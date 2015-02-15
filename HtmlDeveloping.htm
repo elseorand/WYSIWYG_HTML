@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html>
 	<head>
@@ -149,10 +148,10 @@ label {
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:100%; height:40px;border-radius:20px;" >
 			<input type="button" value="Ins" id="FuncInsElement" />
-			<label for="ValTag">Tag  <input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="width:15em; ime-mode:disabled;" value="table>\0+\1*2" /></label>
-			<label for="TagHld">Hlds <input type="text" placeholder="key0:tr>th*4;key1:tr>td*4;" id="TagHld" class="autoExtend" style="width:15em; ime-mode:disabled;"  value="\0:thead>tr>th*4;\1:tbody>tr*4>th+\2;\2:td*3;" /></label>
+			<label for="ValTag">Tag  <input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="width:15em; ime-mode:disabled;" value="table#hoge>\0+\1*2" /></label>
+			<label for="TagHld">Hlds <input type="text" placeholder="key0:tr>th*4;key1:tr>td*4;" id="TagHld" class="autoExtend" style="width:15em; ime-mode:disabled;"  value="\0:thead>tr>th*4;\1:tbody>tr*4>th+\2;\2:td.test*3;" /></label>
 			<label for="ValArrayJSON">vals  <input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" /></label>
-			<label for="ValPropJSON" >props <input type="text" placeholder="{&quot;style&quot;:&quot&quot;}" id="ValPropJSON" class="autoExtend" style="width:15em" value="{&quot;table&quot;:{&quot;style&quot;:&quot;border-collapse:collapse;&quot;},&quot;td,th&quot;:{&quot;style&quot;:&quot;border:1px solid black;&quot;}}" /></label>
+			<label for="ValPropJSON" >props <input type="text" placeholder="{&quot;style&quot;:&quot&quot;}" id="ValPropJSON" class="autoExtend" style="width:15em" value="{&quot;table&quot;:{&quot;style&quot;:&quot;border-collapse:collapse;background-color:white;&quot;},&quot;td,th&quot;:{&quot;style&quot;:&quot;border:1px solid black;&quot;},&quot;th&quot;:{&quot;style&quot;:&quot;color:red;&quot;}}" /></label>
 
 		</section>
 		<footer style="position:fixed; bottom:0px;">
@@ -269,7 +268,6 @@ $(function(){
 										}
 										el_selected_val_array_json.val(set_val).trigger('change');
 										delete new_prop_s.html;
-										console.log(' new disp prop_s : '+JSON.stringify( new_prop_s ));
 										el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger('change');
 								}
 						}else{
@@ -368,7 +366,8 @@ $(function(){
 				}
 				return rtn_map;
 		}
-		
+
+		var kept_element_s = ['class','style'];
 		/**
 	   * raw_prop_s allowed: {"single css selector":{"style":"hoge"},"single css selector"･･･} or {"style":"hoge"}
 	   */
@@ -383,20 +382,40 @@ $(function(){
 						if( ! $.isPlainObject(prop_s) ){
 								throw new TypeError('Error : props should be JSON Object!! ');
 						}
-						for(var key in prop_s) if(prop_s.hasOwnProperty(key)){
-								if(key.trim() === 'style'){
-										rtn['*'] = prop_s[key];
-								}else{
-										var tmp_style = prop_s[key];
-										if($.isPlainObject(tmp_style)){
-												var tmp = key.trim();
-												if(tmp.indexOf(',') > -1){
-														var selector_s = tmp.trim().split(',');
-														for(var t=0; t < selector_s.length; ++t){
-																rtn[selector_s[t].trim()] = tmp_style;;
-														}
+						if(prop_s.hasOwnProperty('style') || prop_s.hasOwnProperty('class') || prop_s.hasOwnProperty('id')){
+								rtn['*'] = prop_s;
+						}else{
+								for(var key in prop_s) if(prop_s.hasOwnProperty(key)){
+										var tmp_prop_s = prop_s[key];
+										if($.isPlainObject(tmp_prop_s)){
+												var tag = key.trim();
+												var selector_s;
+												if(tag.indexOf(',') > -1){
+														selector_s = tag.split(',');
 												}else{
-														rtn[tmp] = tmp_style;
+														selector_s = [tag];
+												}
+												for(var t=0; t < selector_s.length; ++t){
+														var tmp_key = selector_s[t].trim();
+														var kept = {};
+														var tmp_kept_key = '';
+														kept['style'] = {};
+														kept['class'] = '';
+														if(rtn.hasOwnProperty(tmp_key)){
+																for(var k=0; k < kept_element_s.length; ++k){
+																		tmp_kept_key = kept_element_s[k];
+																		if(rtn[tmp_key].hasOwnProperty(tmp_kept_key)){
+																				if(tmp_kept_key === 'style'){
+																						rtn[tmp_key][tmp_kept_key] = merge_css(rtn[tmp_key][tmp_kept_key], tmp_prop_s[tmp_kept_key]);
+																				}else if(tmp_kept_key === 'class'){
+																						rtn[tmp_key][tmp_kept_key] += ' ' + tmp_prop_s[tmp_kept_key];
+																				}
+																		}
+																}
+														}else{
+																rtn[tmp_key] = {};
+																$.extend(rtn[tmp_key],tmp_prop_s);
+														}
 												}
 										}else{
 												throw new TypeError('Error : props should be JSON Object!! ');
@@ -408,7 +427,7 @@ $(function(){
 				}catch(e){
 						console.log(e);//TODO
 				}
-				//console.log('prop_s2 : '+JSON.stringify(prop_s2));
+				console.log('prop_s : '+JSON.stringify(rtn));
 				return rtn;
 		}
 
@@ -509,7 +528,6 @@ $(function(){
 												}
 												// child の一番下の子孫を新しい親とする
 												$.merge(new_parent_s, child_last.last_child_s);//子供もやがて親になる･･･
-												console.log("new p size : "+ new_parent_s.length+" ; "+JSON.stringify(new_parent_s));
 										}else{
 												if(prop_map.hasOwnProperty(tag)){
 														var kept_style = merge_css(prop_s.style, prop_map[tag].style);
@@ -747,9 +765,9 @@ $(function(){
 						length_val = _this.val().length;
 				}
 				var length_for_eval = parseInt(length_val * 0.7, 10);
-				var not_extended = _this.css('width') !== '100em';
+				var not_extended = _this.css('width') !== '120em';
 				if(length_for_eval > 15 && not_extended){
-						_this.animate({"width":"100em"},200);
+						_this.animate({"width":"120em"},200);
 				}else if(! not_extended){
 						//nothing
 				}else{

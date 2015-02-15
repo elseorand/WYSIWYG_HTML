@@ -1,14 +1,15 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!doctype html>
 <html>
 	<head>
 		<meta charset="UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<title>HTML Developing</title>
-		<link rel="stylesheet" type="text/css" href="./js/jquery-ui-1.11.1.custom/jquery-ui.min.css">
+		<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/js/jquery-ui-1.11.1.custom/jquery-ui.min.css">
 
-		<script type="text/javascript" src="./js/jquery-2.1.1.min.js"></script>
-		<script type="text/javascript" src="./js/jquery-ui-1.11.1.custom/jquery-ui.min.js"></script>
-		<script type="text/javascript" src="./js/d3.v3.min.js"></script>
+		<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-2.1.1.min.js"></script>
+		<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-ui-1.11.1.custom/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="<%=request.getContextPath()%>/js/d3.v3.min.js"></script>
 		<style type="text/css" >
 * {
 	font-family: 'A-TTC 新ゴ M', 'ヒラギノ角ゴ Pro W3',
@@ -150,9 +151,11 @@ label {
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:100%; height:40px;border-radius:20px;" >
 			<input type="button" value="Ins" id="FuncInsElement" />
-			<label for="ValTag">Tag  <input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="width:15em; ime-mode:disabled;"/></label>
-			<label for="ValArrayJSON">vals  <input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em"/></label>
-			<label for="ValPropJSON" >props <input type="text" placeholder="{&quot;style&quot;:&quot&quot;}" id="ValPropJSON" class="autoExtend" style="width:15em" value="{&quot;style&quot;:&quot&quot;}"  /></label>
+			<label for="ValTag">Tag  <input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="width:15em; ime-mode:disabled;" value="table#hoge>\0+\1*2" /></label>
+			<label for="TagHld">Hlds <input type="text" placeholder="key0:tr>th*4;key1:tr>td*4;" id="TagHld" class="autoExtend" style="width:15em; ime-mode:disabled;"  value="\0:thead>tr>th*4;\1:tbody>tr*4>th+\2;\2:td.test*3;" /></label>
+			<label for="ValArrayJSON">vals  <input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" /></label>
+			<label for="ValPropJSON" >props <input type="text" placeholder="{&quot;style&quot;:&quot&quot;}" id="ValPropJSON" class="autoExtend" style="width:15em" value="{&quot;table&quot;:{&quot;style&quot;:&quot;border-collapse:collapse;background-color:white;&quot;},&quot;td,th&quot;:{&quot;style&quot;:&quot;border:1px solid black;&quot;},&quot;th&quot;:{&quot;style&quot;:&quot;color:red;&quot;}}" /></label>
+
 		</section>
 		<footer style="position:fixed; bottom:0px;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
@@ -177,8 +180,8 @@ $(function(){
 		var LAYER_SEP = '>';
 		var LOOP_HLD = '*';
 		var SBL_HLD = '+';
-		var DEFAULT_WIDTH = '100px';
-		var DEFAULT_HEIGHT = '30px';
+		var DEFAULT_WIDTH = 100;
+		var DEFAULT_HEIGHT = 30;
 
 		// Fields //TODO 統合Funcオブジェクトの作成
 		// func
@@ -194,6 +197,7 @@ $(function(){
 
 		// input area
 		var el_val_tag = $('#ValTag');
+		var el_tag_hld = $('#TagHld');
 		var el_val_prop_json = $('#ValPropJSON');
 		var el_val_array_json = $('#ValArrayJSON');
 
@@ -234,7 +238,7 @@ $(function(){
 								}else{
 										selector = '*[data-my-obj-id="'+raw_select_my_obj_id+'"]';
 								}
-						console.log('selector:'+selector);
+						//console.log('selector:'+selector);
 						_these = $(selector, el_screen_area);
 						//console.log('_this id:'+_this.data('my-obj-id'));
 				}
@@ -267,7 +271,6 @@ $(function(){
 										}
 										el_selected_val_array_json.val(set_val).trigger('change');
 										delete new_prop_s.html;
-										console.log(' new disp prop_s : '+JSON.stringify( new_prop_s ));
 										el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger('change');
 								}
 						}else{
@@ -282,7 +285,7 @@ $(function(){
 		 * @return null => null
 		 */
 		function format_raw_val_s(raw_val_s){
-				console.log(raw_val_s);//TODO history機能の一部に
+				//console.log(raw_val_s);//TODO history機能の一部に
 				var formatted_val_s = [""];
 				if( raw_val_s != null && raw_val_s !== ''){
 						raw_val_s = raw_val_s.trim();
@@ -307,7 +310,7 @@ $(function(){
 	   * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
 	   */
 		function format_raw_tag_s(raw_tag_s, length_val_s){
-				console.log(raw_tag_s);
+				//console.log(raw_tag_s);
 				if( raw_tag_s == null || raw_tag_s.trim() === ''){
 						console.log('Please input at least one tag');
 						return ;
@@ -318,8 +321,8 @@ $(function(){
 				$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
 						var trimed_tag = tag.trim();
 						var pooled_tag_s = [];
-						$.each(trimed_tag.split(SBL_HLD), function(cIdx, split_by_cumma){//sibiling
-								var tag_num = split_by_cumma.trim().split(LOOP_HLD);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
+						$.each(trimed_tag.split(SBL_HLD), function(cIdx, sbl){//sibiling
+								var tag_num = sbl.trim().split(LOOP_HLD);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 								var loop_num = 1;
 								if(tag_num.length > 1){
 										var raw_num = tag_num[1];
@@ -346,49 +349,89 @@ $(function(){
 				return tag_s2;
 	 }
 
+		function format_raw_tag_holder_s(raw_tag_holder_s){
+				var rtn_map = {};
+				if(raw_tag_holder_s == null || typeof raw_tag_holder_s === 'undefined' || raw_tag_holder_s.length === 0){
+						return rtn_map;
+				}
+				var el_s = raw_tag_holder_s.trim().split(';');
+				var length_el_s = el_s.length;
+				for(var i=0; i < length_el_s; ++i){
+						var pl_tag = el_s[i].trim().split(':');
+						if( ! $.isArray(pl_tag) || pl_tag == null ||  pl_tag.length != 2){
+								if(pl_tag.length === 0 || pl_tag[0] === ''){
+										continue;
+								}else{
+										throw new TypeError('Error : illegal place holder : '+pl_tag+";");
+								}
+						}
+						rtn_map[pl_tag[0]] = pl_tag[1];								
+				}
+				return rtn_map;
+		}
+
+		var kept_element_s = ['class','style'];
 		/**
-	   *
+	   * raw_prop_s allowed: {"single css selector":{"style":"hoge"},"single css selector"･･･} or {"style":"hoge"}
 	   */
-		function format_raw_prop_s(raw_prop_s, length_tag_s2){
-				var raw_prop_s2 = [];
-				var prop_s2 =[];
+		function format_raw_prop_s(raw_prop_s){
+				var prop_s = {};
+				var rtn = {};
 				try{
 						//console.log(raw_prop_s);//TODO historyの一要素に
 						if( raw_prop_s != null && raw_prop_s.trim() !== ''){
-								raw_prop_s2 = JSON.parse(raw_prop_s);
+								prop_s = JSON.parse(raw_prop_s);
 						}
-						if( ! $.isArray(raw_prop_s2) ){
-								raw_prop_s2 = [raw_prop_s2];
+						if( ! $.isPlainObject(prop_s) ){
+								throw new TypeError('Error : props should be JSON Object!! ');
 						}
-						var length_s2 = raw_prop_s2.length;
-						for(var i=0; i < length_s2; ++i){
-								var temp_prop_s = {};
-								raw_prop_s = raw_prop_s2[i];
-								for(var key in raw_prop_s) if(raw_prop_s.hasOwnProperty(key)){
-										temp_prop_s[key.trim()] = raw_prop_s[key];
+						if(prop_s.hasOwnProperty('style') || prop_s.hasOwnProperty('class') || prop_s.hasOwnProperty('id')){
+								rtn['*'] = prop_s;
+						}else{
+								for(var key in prop_s) if(prop_s.hasOwnProperty(key)){
+										var tmp_prop_s = prop_s[key];
+										if($.isPlainObject(tmp_prop_s)){
+												var tag = key.trim();
+												var selector_s;
+												if(tag.indexOf(',') > -1){
+														selector_s = tag.split(',');
+												}else{
+														selector_s = [tag];
+												}
+												for(var t=0; t < selector_s.length; ++t){
+														var tmp_key = selector_s[t].trim();
+														var kept = {};
+														var tmp_kept_key = '';
+														kept['style'] = {};
+														kept['class'] = '';
+														if(rtn.hasOwnProperty(tmp_key)){
+																for(var k=0; k < kept_element_s.length; ++k){
+																		tmp_kept_key = kept_element_s[k];
+																		if(rtn[tmp_key].hasOwnProperty(tmp_kept_key)){
+																				if(tmp_kept_key === 'style'){
+																						rtn[tmp_key][tmp_kept_key] = merge_css(rtn[tmp_key][tmp_kept_key], tmp_prop_s[tmp_kept_key]);
+																				}else if(tmp_kept_key === 'class'){
+																						rtn[tmp_key][tmp_kept_key] += ' ' + tmp_prop_s[tmp_kept_key];
+																				}
+																		}
+																}
+														}else{
+																rtn[tmp_key] = {};
+																$.extend(rtn[tmp_key],tmp_prop_s);
+														}
+												}
+										}else{
+												throw new TypeError('Error : props should be JSON Object!! ');
+										}
 								}
-								// Important position : absoluteが必須だが､ここで設定してもdraggableで上書きされるため無駄
-								prop_s2.push(temp_prop_s);
 						}
+						// Important position : absoluteが必須だが､ここで設定してもdraggableで上書きされるため無駄
+
 				}catch(e){
 						console.log(e);//TODO
 				}
-				//console.log('prop_s2 : '+JSON.stringify(prop_s2));
-
-				if( prop_s2.length === 0){
-						for(var i=0; i<length_tag_s2; ++i){
-								prop_s2[i] = {};
-						}
-				}else if(prop_s2.length ===1){
-						for(var i=0; i<length_tag_s2; ++i){
-								prop_s2[i] = prop_s2[0];
-						}
-				}else if( length_tag_s2 !== prop_s2.length){
-						console.log('Different num of tags:'+length_tag_s2+' from num of props:'+prop_s2.length+'. ');
-						return;
-				}
-
-				return prop_s2;
+				console.log('prop_s : '+JSON.stringify(rtn));
+				return rtn;
 		}
 
 		/**
@@ -413,57 +456,129 @@ $(function(){
 		}
 
 		var draggableとresizableが同時には正常に動かないタグ = ["table","input"	,"select","textarea","ol" ,"ul"];
+		var draggableとresizableの対象外のタグ = ["tbody","thead","tr","td","th","li","option"];
 
-		/**
-		 * draggableやresizableを可能にする加工を施します｡
-		 * tableやinputはdivでwrapするなど副作用があります｡
-		 */
-		function convert_data_to_display(raw_tag_s , raw_val_s , raw_prop_s){
-				// 引数 整形 処理
-				var formatted_val_s = format_raw_val_s(raw_val_s);
-				var length_val_s = formatted_val_s.length;
-				var tag_s2 = format_raw_tag_s(raw_tag_s, length_val_s);
+		var processing_place_hld_s = [];//再帰を使用しているため無限ループや無限トランポリン対策
+		function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, hld_map){
+				var root_s = {"child_s":[],"last_child_s":[]};
+				var parent_s = [root_s];
 				var length_tag_s2 = tag_s2.length;
-				var prop_s2 = format_raw_prop_s(raw_prop_s, length_tag_s2);
-
-				//本処理
-				var root_s = [{"child_s":[]}];
-				var parent_s = root_s;
 				//console.log('tag_s2:'+JSON.stringify(tag_s2));
-				$.each(tag_s2, function(idx, tag_s ){
-						//サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
-						var temp_prop_s = prop_s2[idx];
-						set_default_size(temp_prop_s);
+				// 初期サイズ決定のため､最下層から要素数とサイズを調査する
+				var tag_size_s = [];
+				var counter = 1;
+				for(var i=length_tag_s2 - 1; i >= 0; --i){
+						tag_size_s.push(counter);
+						counter *= tag_s2[i].tag_s.length;
+				};
+				tag_size_s = tag_size_s.reverse();
+				$.each(tag_s2, function(layer_idx, tag_s ){
+						//console.log("tag_s : " + JSON.stringify(tag_s))//like [div]
 						var new_parent_s = [];
 						//console.log('tag_s.tag_s:'+JSON.stringify(tag_s.tag_s));
 						$.each(parent_s, function(pIdx, parent){
 								for(var i=0; i < tag_s.tag_s.length; ++i){
 										var tag = tag_s.tag_s[i];
-										var prop_s = {};
-										$.extend(prop_s, temp_prop_s);//copy
-										var child = my_apply(tag, prop_s,[]);
-										//draggable と resizableが同時には正常に動かないタグについては､div.wrapperでwrapしておく
-										if($.inArray(tag, draggableとresizableが同時には正常に動かないタグ) > -1){
-												var wrapper = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding:8px;"},[child] );
-												parent.child_s[i] = wrapper;
-												var child_class = child.prop_s['class'];
-												if( typeof child_class === 'undefined'){
-														child.prop_s['class'] = '';
-												}
-														child.prop_s['class'] += ' wrapped';
+										var tag_id_cls = [];
+										if(tag.indexOf('.') > -1){//has class
+												tag_id_cls = tag.split('.');
 										}else{
-												parent.child_s[i] = child;
+												tag_id_cls[0] = tag;
 										}
-										new_parent_s.push(child);//子供もやがて親になる･･･
+										var prop_s = {};
+										//サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
+										if(prop_map.hasOwnProperty('*')){
+												prop_s['style'] = prop_map['*'];
+										}
+										set_default_size(prop_s, tag_size_s, layer_idx, i);
+										
+										var tmp_cls = '';
+										for(var cl=1; cl < tag_id_cls.length; ++cl){
+												var tmp = tag_id_cls[cl];
+												tmp_cls += tmp+' ';
+												if(prop_map.hasOwnProperty( '.'+tmp)){
+														prop_s['style'] = merge_css(prop_s['style'], prop_map['.'+tmp]);
+												}
+										}
+										prop_s['class'] = tmp_cls;
+										var tag_id = tag_id_cls[0];
+										if(tag_id.indexOf('#') > -1){
+												tag_id = tag_id.split('#');
+												//TODO validation
+												tag = tag_id[0];
+												prop_s['id'] = tag_id[1];
+										}else{
+												tag = tag_id;
+										}
+										if(tag.indexOf('=') > -1){
+												//TODO []
+										}
+										var child = null;
+										if(tag in hld_map){
+												var index_tag = processing_place_hld_s.indexOf(tag);
+												if(index_tag > -1){
+														processing_place_hld_s = [];
+														alert('Error : unlimited loop !');
+														throw new TypeError('Error : infinite loop !');
+												}
+												processing_place_hld_s.push(tag);//new
+												var child_last = convert_lineardata_to_child_s(format_raw_tag_s(hld_map[tag]), prop_map, val_s, hld_map);
+												processing_place_hld_s[processing_place_hld_s.indexOf(tag)] = "";//delete
+												var length_child_s = child_last.child_s.length;
+												for(var j=0; j < length_child_s; ++j){
+														child = child_last.child_s[j];
+														parent.child_s.push(child);
+												}
+												// child の一番下の子孫を新しい親とする
+												$.merge(new_parent_s, child_last.last_child_s);//子供もやがて親になる･･･
+										}else{
+												if(prop_map.hasOwnProperty(tag)){
+														var kept_style = merge_css(prop_s.style, prop_map[tag].style);
+														$.extend(prop_s, prop_map[tag]);
+														prop_s.style = kept_style;
+												}
+												child = my_apply(tag, prop_s,[]);
+												//draggable と resizableが同時には正常に動かないタグについては､div.wrapperでwrapしておく
+												if($.inArray(tag, draggableとresizableが同時には正常に動かないタグ) > -1){
+														var wrapper = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding:8px;"},[child] );
+														parent.child_s[i] = wrapper;
+														var child_class = child.prop_s['class'];
+														if( typeof child_class === 'undefined'){
+																child.prop_s['class'] = '';
+														}
+														child.prop_s['class'] += ' wrapped';
+												}else{
+														parent.child_s.push(child);
+												}
+												new_parent_s.push(child);//子供もやがて親になる･･･
+										}
 								}
 						});
+						
 						parent_s = new_parent_s;
 				});
+				root_s.last_child_s = parent_s;
+				return root_s;
+		};
+		
+		/**
+		 * draggableやresizableを可能にする加工を施します｡
+		 * tableやinputはdivでwrapするなど副作用があります｡
+		 */
+		function convert_data_to_display(raw_tag_s , raw_val_s , raw_prop_s, raw_tag_holder_s){
+				// 引数 整形 処理
+				var val_s = format_raw_val_s(raw_val_s);
+				var length_val_s = val_s.length;
+				var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
+				var hld_map = format_raw_tag_holder_s(raw_tag_holder_s);
+				var linear_data = format_raw_tag_s(raw_tag_s, length_val_s);
+				
+				var new_parent_s = convert_lineardata_to_child_s(linear_data, prop_map, val_s, hld_map);
 
 				//値埋め
-				if(formatted_val_s !== null){
-						$.each(parent_s, function(pIdx, parent){
-								var setVal = formatted_val_s[parseInt(pIdx % formatted_val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
+				if(val_s !== null){
+						$.each(new_parent_s.last_child_s, function(pIdx, parent){
+								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
 								//console.log('setVal:'+setVal);
 								if( parent.tag === 'input'){
 										parent.prop_s["value"] = setVal;
@@ -472,9 +587,11 @@ $(function(){
 								}
 						});
 				}
-
-				return root_s;
+				delete new_parent_s.last_child_s;
+				return new_parent_s;
 		}
+
+		
 		/**
 		 * {"tag":"table","prop_s":{},"child_s":[{loop...}]}を再帰処理する
 		 * データの二重加工を防ぐため､副作用処理一切禁止 そういった処理はconvert_to_displayに実装
@@ -495,7 +612,7 @@ $(function(){
 				if(tag_setting_s.hasOwnProperty(tag)){
 						var setting = tag_setting_s[tag];
 						var require_s = setting['require_s'];
-						$.each(require_s, function(idx, require){
+						$.each(require_s, function(layer_idx, require){
 								if( ! prop_s.hasOwnProperty(require)){
 										console.log("This "+tag+" tag requires a "+require+" prop.");//TODO exception
 								}
@@ -586,9 +703,10 @@ $(function(){
 												 .data('my-selected',false)
 												 .appendTo( target );
 						if( wrapped_is_true ){
-
-						}else if( tag === 'tbody' || tag === 'thead' || tag === 'tr' || tag === 'td' || tag === 'th' || tag === 'li' || tag === 'option'){//TODO
-
+								//nothing
+						}else if(draggableとresizableの対象外のタグ.indexOf(tag) > -1 ){
+								//nothing
+								work_jq.css({"top":"","left":"","position":"relative"});
 						}else{
 								if( is_resizable_draggable ){
 										work_jq
@@ -643,13 +761,18 @@ $(function(){
 		});
 		el_auto_extend.on('keyup change mouseout',function(){
 				var _this = $(this);
-				var length_val = _this.val().length;
-		var length_for_eval = parseInt(length_val * 0.7, 10);
-				if(length_for_eval > 100){
-						length_for_eval = 100;
+				var length_val = 0;
+				if(_this.get(0).tagName === 'textarea'){
+						length_val = _this.html().length;
+				}else{
+						length_val = _this.val().length;
 				}
-				if( length_for_eval > 15){//TODO magic 15em
-						_this.animate({"width":length_for_eval+"em"},200);
+				var length_for_eval = parseInt(length_val * 0.7, 10);
+				var not_extended = _this.css('width') !== '120em';
+				if(length_for_eval > 15 && not_extended){
+						_this.animate({"width":"120em"},200);
+				}else if(! not_extended){
+						//nothing
 				}else{
 						_this.animate({"width":default_width_setting_s[_this.attr('id')]},200);
 				}
@@ -671,13 +794,12 @@ $(function(){
 				}
 				var raw_tag_s = el_val_tag.val();
 				if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
-						var root_s = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_val_prop_json.val() );
+						console.log("el_val_prop_json.val() : "+el_val_prop_json.val());
+						var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_val_prop_json.val(), el_tag_hld.val() );
 
-						$.each(root_s, function(idx, root){
-								//console.log('root:'+JSON.stringify(root.child_s));
-								$.each(root.child_s, function(cIdx, child){
-										display_onscreen(for_add_target_s, child);
-								});
+						//console.log('root:'+JSON.stringify(root.child_s));
+						$.each(root.child_s, function(cIdx, child){
+								display_onscreen(for_add_target_s, child);
 						});
 				}
 		});
@@ -776,14 +898,12 @@ $(function(){
 						added_target_s = [el_screen_area];//追加先のデフォルトはscreen
 				}
 
-				var root_s = convert_data_to_display( el_selected_val_tag.val()
-								, el_selected_val_array_json.val(), el_selected_val_prop_json.val());
+				var root = convert_data_to_display( el_selected_val_tag.val()
+								, el_selected_val_array_json.val(), el_selected_val_prop_json.val(), {});
 
-				$.each(root_s, function(idx, root){
-						//console.log('root:'+JSON.stringify(root.child_s));
-						$.each(root.child_s, function(cIdx, child){
-								display_onscreen(added_target_s, child);
-						});
+				//console.log('root:'+JSON.stringify(root.child_s));
+				$.each(root.child_s, function(cIdx, child){
+						display_onscreen(added_target_s, child);
 				});
 		});
 
@@ -841,59 +961,17 @@ $(function(){
 		el_func_save.on('click', function(){
 				var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 				//console.log('mother id:'+mother_id);
-				var user_add_content_s = $('*[data-my-obj-id^='+mother_id+'_]', el_screen_area);
-				var len_content_s = user_add_content_s.length;
-				var tree = _tree(mother_id);
-				//TODO save する root を自動取得 selected対応
-				var root = my_apply();
-				root.tag = 'section';//TODO
-				tree.upsert(mother_id,root);
-
-				for(var i=0; i < len_content_s; ++i){
-						var target = my_apply();
- 						var content = user_add_content_s.get(i);
- 						var _content = $(content);
- 						var my_obj_id = _content.data('my-obj-id');
-
-						target.tag = content.localName;
-						target.prop_s.style = _content.attr('style');
-
-						var raw_my_obj_val = _content.data('my-obj-val');
-						var my_obj_val ;
-						if(typeof raw_my_obj_val === 'undefined' || raw_my_obj_val == ''){
-								if ( content.localName === 'input'){
-										my_obj_val = _content.val();
-								}else if(content.localName === 'textarea'){
-										my_obj_val = _content.text();
-								}else{
-										my_obj_val = "";
-								}
-						}else{
-								my_obj_val = raw_my_obj_val;
-						}
-						var new_prop_s = {};
-						$.extend(true, new_prop_s,_content.data('my-org-prop_s'), target.prop_s);
-						target.prop_s = new_prop_s;
-						if( content.localName === 'input'){//TODO 関数化
-								target.prop_s['value'] = my_obj_val;
-						}else{
-								target.prop_s['html'] = my_obj_val;
-						}
-
-						tree.upsert(my_obj_id, target);
-				}
-
-				var parsed = tree.parse();
-				el_saved_serialized.val(parsed);
+				var stringified = get_tree_select_dom(mother_id).stringify();
+				el_saved_serialized.val(stringified);
 				MY_STORAGE
 		.transaction()
 		.remove('save_'+(history_counter-3))
-		.replace('save_'+history_counter, parsed)
+		.replace('save_'+history_counter, stringified)
 		.commit();
 				init_save_history();
-	 ++history_counter;
+ ++history_counter;
 		});
-
+		
 		el_func_load.on('click', function(){
 				var raw_child = el_saved_serialized.val();
 				var parsed = [];
@@ -901,6 +979,8 @@ $(function(){
 						parsed = JSON.parse(raw_child);
 				}catch(e){
 						console.log(e.message);
+						alert('Error : check console log');
+						return;
 				}
 				if( ! $.isArray(parsed)){
 						parsed = [parsed];
@@ -964,7 +1044,7 @@ $(function(){
 		}
 		function do_void(){}
 		/**
-		 * 後勝ち
+		 * override
 		 */
 		function merge_css(){
 				var pool = {};
@@ -1021,7 +1101,7 @@ $(function(){
 								}
 								pool[my_obj_id] = body;
 						},
-						"parse":function(){
+						"stringify":function(){
 								var rtn = JSON.stringify(pool[mother_id].child_s);
 								//console.log(rtn);
 								return rtn;
@@ -1086,7 +1166,7 @@ $(function(){
 										return Object.keys(temp);
 								}else if(is_true_storage === true){
 										var rtn = Object.getOwnPropertyNames(JSON.parse(this.raw()));
-										console.log('keys : '+rtn);
+										//console.log('keys : '+rtn);
 										return rtn;
 								}else{
 										return [];
@@ -1099,24 +1179,95 @@ $(function(){
 				};
 		};
 
+		function get_tree_select_dom(mother_id){
+				var user_add_content_s = $('*[data-my-obj-id^='+mother_id+'_]', el_screen_area);
+				var len_content_s = user_add_content_s.length;
+				var tree = _tree(mother_id);
+				//TODO save する root を自動取得 selected対応
+				var root = my_apply();
+				root.tag = 'section';//TODO
+				tree.upsert(mother_id,root);
+
+				for(var i=0; i < len_content_s; ++i){
+						var target = my_apply();
+ 						var content = user_add_content_s.get(i);
+ 						var _content = $(content);
+ 						var my_obj_id = _content.data('my-obj-id');
+
+						target.tag = content.localName;
+						target.prop_s.style = _content.attr('style');
+
+						var raw_my_obj_val = _content.data('my-obj-val');
+						var my_obj_val ;
+						if(typeof raw_my_obj_val === 'undefined' || raw_my_obj_val == ''){
+								if ( content.localName === 'input'){
+										my_obj_val = _content.val();
+								}else if(content.localName === 'textarea'){
+										my_obj_val = _content.text();
+								}else{
+										my_obj_val = "";
+								}
+						}else{
+								my_obj_val = raw_my_obj_val;
+						}
+						var new_prop_s = {};
+						$.extend(true, new_prop_s,_content.data('my-org-prop_s'), target.prop_s);
+						target.prop_s = new_prop_s;
+						if( content.localName === 'input'){//TODO 関数化
+								target.prop_s['value'] = my_obj_val;
+						}else{
+								target.prop_s['html'] = my_obj_val;
+						}
+						tree.upsert(my_obj_id, target);
+				}
+				return tree;
+		};
+
 		/**
 		 * 1pxサイズの操作不能オブジェクトを産まないために､
 		 * Defaultサイズを設定する
+		 * TODO ユーザー指定CSSの設定も調査対象にする
 		 */
-		function set_default_size(temp_prop_s){
+		function set_default_size(temp_prop_s, tag_size_s, my_layer_idx, my_idx){
+				var my_height = DEFAULT_HEIGHT + 25 * (tag_size_s.length - my_layer_idx);
+				var my_width = (DEFAULT_WIDTH + 10 * (tag_size_s.length - my_layer_idx)) * tag_size_s[my_layer_idx];
 				if( typeof temp_prop_s.style === 'undefined'){
-						temp_prop_s.style = 'z-index: 110;height:'+DEFAULT_HEIGHT+';width:'+DEFAULT_WIDTH+';top:100px;left:100px;';
+						temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(my_layer_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
 						//console.log('no style');
 				}else {
 						if( temp_prop_s.style.indexOf('z-index') === -1){
-								temp_prop_s.style +='z-index:110;';
+								temp_prop_s.style +='z-index:'+get_z_index(my_layer_idx)+';';
 						}
 						if( temp_prop_s.style.indexOf('width') === -1){
-								temp_prop_s.style +='width:'+DEFAULT_WIDTH+';';
+								temp_prop_s.style +='width:'+my_width+'px;';
 						}
 						if( temp_prop_s.style.indexOf('height') === -1){
-								temp_prop_s.style +='height:'+DEFAULT_HEIGHT+';';
+								temp_prop_s.style +='height:'+my_height+'px;';
 						}
+						if( temp_prop_s.style.indexOf('top') === -1){
+								temp_prop_s.style +='top:'+get_top(my_layer_idx)+'px;';
+						}
+						if( temp_prop_s.style.indexOf('left') === -1){
+								temp_prop_s.style +='left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+						}
+				}
+		};
+
+		function get_z_index(my_layer_idx){
+				return 110 + my_layer_idx;
+		};
+		function get_top(my_layer_idx){
+				if( my_layer_idx === 0){
+						return 100;
+				}else{
+						return 10 ;
+				}
+		};
+		function get_left(tag_size_s, my_layer_idx, my_idx){
+				if( my_layer_idx === 0){
+						return 100;
+				}else{
+						return 10 + (DEFAULT_WIDTH + 12 * (tag_size_s.length - my_layer_idx) ) * (tag_size_s[my_layer_idx] * (my_idx));
 				}
 		};
 
