@@ -7,15 +7,15 @@ emmetlike, but not the same.
 * Tag:
 article>header+section+footer
 =>
-<arcticle>
+`<arcticle>
 <header></header>
 <section></section>
 <footer></footer>
-</article>
+</article>`
 
 1. Example 02 nest
 
-<arcticle>
+`<arcticle>
 <header>
 <h3></h3>
 </header>
@@ -25,7 +25,7 @@ article>header+section+footer
 <p></p>
 </section>
 <footer></footer>
-</article>
+</article>`
 
 <=
 
