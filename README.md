@@ -6,15 +6,15 @@ emmetlike, but not the same.
 1. Example 01 simple
 * Tag:
 article>header+section+footer
-=>
+* HTML:
 `<arcticle>
 <header></header>
 <section></section>
 <footer></footer>
 </article>`
 
-1. Example 02 nest
-
+2. Example 02 nest
+* HTML:
 `<arcticle>
 <header>
 <h3></h3>
@@ -26,9 +26,6 @@ article>header+section+footer
 </section>
 <footer></footer>
 </article>`
-
-<=
-
 * Tag:
 article>myHeader+mySection+footer
 * Hld:

@@ -54,13 +54,6 @@ input[type=text] {
 	width: 100%;
 }
 
-.content {
-	width: 800px;
-	margin: 30px auto 0px;
-	display: none;
-	padding: 5px 30px 10px;
-}
-
 h1,h2,h3,h4 {
 	text-align: center;
 }
@@ -89,10 +82,6 @@ h3 {
 .menu_bar {
 	background-color: rgba(221, 221, 221, 0.5);
 	padding: 5px;
-}
-
-.float_menu{
-
 }
 
 .side_menu_bar>input {
@@ -457,8 +446,8 @@ $(function(){
 
 		var draggableとresizableが同時には正常に動かないタグ = ["table","input"	,"select","textarea","ol" ,"ul"];
 		var draggableとresizableの対象外のタグ = ["tbody","thead","tr","td","th","li","option"];
-
 		var processing_place_hld_s = [];//再帰を使用しているため無限ループや無限トランポリン対策
+		
 		function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, hld_map){
 				var root_s = {"child_s":[],"last_child_s":[]};
 				var parent_s = [root_s];
@@ -493,7 +482,7 @@ $(function(){
 										set_default_size(prop_s, tag_size_s, layer_idx, i);
 										
 										var tmp_cls = '';
-										for(var cl=1; cl < tag_id_cls.length; ++cl){
+										for(var cl=1; cl < tag_id_cls.length; ++cl){//0 := tag#id
 												var tmp = tag_id_cls[cl];
 												tmp_cls += tmp+' ';
 												if(prop_map.hasOwnProperty( '.'+tmp)){
@@ -515,6 +504,10 @@ $(function(){
 										}
 										var child = null;
 										if(tag in hld_map){
+												if(tag_id_cls.length > 1){
+														alert("Sorry. place holders don't support #.[]");
+														throw new TypeError("Sorry. place holders don't support #.[]");
+												}
 												var index_tag = processing_place_hld_s.indexOf(tag);
 												if(index_tag > -1){
 														processing_place_hld_s = [];
@@ -566,29 +559,34 @@ $(function(){
 		 * tableやinputはdivでwrapするなど副作用があります｡
 		 */
 		function convert_data_to_display(raw_tag_s , raw_val_s , raw_prop_s, raw_tag_holder_s){
-				// 引数 整形 処理
-				var val_s = format_raw_val_s(raw_val_s);
-				var length_val_s = val_s.length;
-				var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
-				var hld_map = format_raw_tag_holder_s(raw_tag_holder_s);
-				var linear_data = format_raw_tag_s(raw_tag_s, length_val_s);
-				
-				var new_parent_s = convert_lineardata_to_child_s(linear_data, prop_map, val_s, hld_map);
-
-				//値埋め
-				if(val_s !== null){
-						$.each(new_parent_s.last_child_s, function(pIdx, parent){
-								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
-								//console.log('setVal:'+setVal);
-								if( parent.tag === 'input'){
-										parent.prop_s["value"] = setVal;
-								}else{
-										parent.prop_s["html"] = setVal;
-								}
-						});
+				try{
+						// 引数 整形 処理
+						var val_s = format_raw_val_s(raw_val_s);
+						var length_val_s = val_s.length;
+						var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
+						var hld_map = format_raw_tag_holder_s(raw_tag_holder_s);
+						var linear_data = format_raw_tag_s(raw_tag_s, length_val_s);
+						
+						var new_parent_s = convert_lineardata_to_child_s(linear_data, prop_map, val_s, hld_map);
+						
+						//値埋め
+						if(val_s !== null){
+								$.each(new_parent_s.last_child_s, function(pIdx, parent){
+										var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
+										//console.log('setVal:'+setVal);
+										if( parent.tag === 'input'){
+												parent.prop_s["value"] = setVal;
+										}else{
+												parent.prop_s["html"] = setVal;
+										}
+								});
+						}
+						delete new_parent_s.last_child_s;
+						return new_parent_s;
+				}catch(e){
+						console.log(JSON.stringify(e));
+						throw e;
 				}
-				delete new_parent_s.last_child_s;
-				return new_parent_s;
 		}
 
 		
@@ -785,22 +783,26 @@ $(function(){
 
 		// menu func
 		el_func_ins_element.on('click', function(){
-				var for_add_target_s = null;
-				var el_selected_s = $('.'+CLASS_SELECTED);
-				if( el_selected_s.length > 0){
-						for_add_target_s = el_selected_s;
-				}else{
-						for_add_target_s = [el_screen_area];//追加先のデフォルトはscreen
-				}
-				var raw_tag_s = el_val_tag.val();
-				if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
-						console.log("el_val_prop_json.val() : "+el_val_prop_json.val());
-						var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_val_prop_json.val(), el_tag_hld.val() );
-
-						//console.log('root:'+JSON.stringify(root.child_s));
-						$.each(root.child_s, function(cIdx, child){
-								display_onscreen(for_add_target_s, child);
-						});
+				try{
+						var for_add_target_s = null;
+						var el_selected_s = $('.'+CLASS_SELECTED);
+						if( el_selected_s.length > 0){
+								for_add_target_s = el_selected_s;
+						}else{
+								for_add_target_s = [el_screen_area];//追加先のデフォルトはscreen
+						}
+						var raw_tag_s = el_val_tag.val();
+						if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
+								console.log("el_val_prop_json.val() : "+el_val_prop_json.val());
+								var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_val_prop_json.val(), el_tag_hld.val() );
+								
+								//console.log('root:'+JSON.stringify(root.child_s));
+								$.each(root.child_s, function(cIdx, child){
+										display_onscreen(for_add_target_s, child);
+								});
+						}
+				}catch(e){
+						console.log(e);
 				}
 		});
 
@@ -890,21 +892,25 @@ $(function(){
 		});
 
 		el_func_copy_element.on('click', function(){
-				var added_target_s = null;
-				var el_selected_s = $('.'+CLASS_SELECTED);
-				if( el_selected_s.length > 0){
-						added_target_s = el_selected_s;
-				}else{
-						added_target_s = [el_screen_area];//追加先のデフォルトはscreen
+				try{
+						var added_target_s = null;
+						var el_selected_s = $('.'+CLASS_SELECTED);
+						if( el_selected_s.length > 0){
+								added_target_s = el_selected_s;
+						}else{
+								added_target_s = [el_screen_area];//追加先のデフォルトはscreen
+						}
+						
+						var root = convert_data_to_display( el_selected_val_tag.val()
+										, el_selected_val_array_json.val(), el_selected_val_prop_json.val(), {});
+						
+						//console.log('root:'+JSON.stringify(root.child_s));
+						$.each(root.child_s, function(cIdx, child){
+								display_onscreen(added_target_s, child);
+						});
+				}catch(e){
+						console.log(e);
 				}
-
-				var root = convert_data_to_display( el_selected_val_tag.val()
-								, el_selected_val_array_json.val(), el_selected_val_prop_json.val(), {});
-
-				//console.log('root:'+JSON.stringify(root.child_s));
-				$.each(root.child_s, function(cIdx, child){
-						display_onscreen(added_target_s, child);
-				});
 		});
 
 		el_func_html_element.on('click',function(){
