@@ -115,6 +115,10 @@ label {
 .display_none{
 	display : none;
 }
+.menu_button{
+		 margin:10px;
+}
+		 
 </style>
 	</head>
 	<body>
@@ -138,22 +142,21 @@ label {
 			<textarea id="sandbox_screen" ></textarea>
 			<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
 		</section>
-		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:100%; height:40px;border-radius:20px;" >
-			<input type="button" value="Ins" id="FuncInsElement" />
-			<label for="ValTag">Tag  <input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="width:15em; ime-mode:disabled;" value="table#hoge>\0+\1*2" /></label>
-			<label for="TagHld">Hlds <input type="text" placeholder="key0:tr>th*4;key1:tr>td*4;" id="TagHld" class="autoExtend" style="width:15em; ime-mode:disabled;"  value="\0:thead>tr>th*4;\1:tbody>tr*4>th+\2;\2:td.test*3;" /></label>
-			<label for="ValArrayJSON">vals  <input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" /></label>
-			<label for="ValPropJSON" >props <input type="text" placeholder="{&quot;style&quot;:&quot&quot;}" id="ValPropJSON" class="autoExtend" style="width:15em" value="{&quot;table&quot;:{&quot;style&quot;:&quot;border-collapse:collapse;background-color:white;&quot;},&quot;td,th&quot;:{&quot;style&quot;:&quot;border:1px solid black;&quot;},&quot;th&quot;:{&quot;style&quot;:&quot;color:red;&quot;}}" /></label>
-
+		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:107em; height:11em;border-radius:20px;" >
+			<label for="ValTag">Tag  </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="width:15em; ime-mode:disabled;" value="table#hoge>\0+\1" /><br />
+			<label for="TagHld">Hlds </label><input type="text" placeholder="key0:tr>th*4;key1:tr>td*4;" id="TagHld" class="autoExtend" style="width:15em; ime-mode:disabled;"  value="\0:thead>tr>th*4;\1:tbody>tr*4>th+\2;\2:td.test*3;" /><br />
+			<label for="ValArrayJSON">vals  </label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" /><br />
+			<label for="ValPropJSON" >props </label><input type="text" placeholder="{&quot;style&quot;:&quot&quot;}" id="ValPropJSON" class="autoExtend json_val" style="width:15em" value="{&quot;table&quot;:{&quot;style&quot;:&quot;border-collapse:collapse;background-color:white;table-layout:fixed;&quot;},&quot;td,th&quot;:{&quot;style&quot;:&quot;border:1px solid black;&quot;},&quot;th&quot;:{&quot;style&quot;:&quot;color:red;&quot;}}" /><br />
+<input type="button" class="menu_button" value="Ins" id="FuncInsElement" /><input type="button" class="menu_button" value="Reg" id="FuncRegElement" />
 		</section>
 		<footer style="position:fixed; bottom:0px;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
 				<input type="button" value="Select" id="FuncSelectElement" />
-				<label for="SelectedMyObjId">MyID<input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/></label>
-				<input type="button" value="UpSlctd" id="FuncUpdateElement" />
-				<label for="SelectedValTag">Tag<input type="text" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/></label>
-				<label for="SelectedValArrayJSON">vals<input type="text" id="SelectedValArrayJSON" class="autoExtend" style="width:10em"/></label>
-				<label for="SelectedValPropJSON" >props<input type="text" id="SelectedValPropJSON" class="autoExtend" style="width:15em" value="{&quot;style&quot;:&quot&quot;}"  /></label>
+				<label for="SelectedMyObjId">MyID</label><input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/>
+				<input type="button" value="UpSlctd" id="FuncUpdateElement" class="menu_button" />
+				<label for="SelectedValTag">Tag</label><input type="text" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
+				<label for="SelectedValArrayJSON">vals</label><input type="text" id="SelectedValArrayJSON" class="autoExtend" style="width:10em"/>
+				<label for="SelectedValPropJSON" >props</label><input type="text" id="SelectedValPropJSON" class="autoExtend json_val" style="width:15em" value="{&quot;style&quot;:&quot&quot;}"  />
 			</section>
 		</footer>
 <script>
@@ -183,6 +186,7 @@ $(function(){
 		var el_func_save = $('#FuncSave');
 		var el_func_load = $('#FuncLoad');
 		var el_func_cancel_selected = $('#FuncCancelSelected');
+		var el_func_json_val = $('.json_val');
 
 		// input area
 		var el_val_tag = $('#ValTag');
@@ -419,7 +423,7 @@ $(function(){
 				}catch(e){
 						console.log(e);//TODO
 				}
-				console.log('prop_s : '+JSON.stringify(rtn));
+				//console.log('prop_s : '+JSON.stringify(rtn));
 				return rtn;
 		}
 
@@ -444,8 +448,9 @@ $(function(){
 				return { "tag":tag ,"prop_s":prop_s ,"child_s":child_s};
 		}
 
-		var draggableとresizableが同時には正常に動かないタグ = ["table","input"	,"select","textarea","ol" ,"ul"];
+		var draggableとresizableが同時には正常に動かないタグ = ["input"	,"select","textarea","ol" ,"ul"];
 		var draggableとresizableの対象外のタグ = ["tbody","thead","tr","td","th","li","option"];
+		var resizableのみ対象のタグ = [];
 		var processing_place_hld_s = [];//再帰を使用しているため無限ループや無限トランポリン対策
 		
 		function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, hld_map){
@@ -502,6 +507,7 @@ $(function(){
 										if(tag.indexOf('=') > -1){
 												//TODO []
 										}
+
 										var child = null;
 										if(tag in hld_map){
 												if(tag_id_cls.length > 1){
@@ -553,7 +559,7 @@ $(function(){
 				root_s.last_child_s = parent_s;
 				return root_s;
 		};
-		
+
 		/**
 		 * draggableやresizableを可能にする加工を施します｡
 		 * tableやinputはdivでwrapするなど副作用があります｡
@@ -566,12 +572,12 @@ $(function(){
 						var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
 						var hld_map = format_raw_tag_holder_s(raw_tag_holder_s);
 						var linear_data = format_raw_tag_s(raw_tag_s, length_val_s);
-						
-						var new_parent_s = convert_lineardata_to_child_s(linear_data, prop_map, val_s, hld_map);
+
+						var root = convert_lineardata_to_child_s(linear_data, prop_map, val_s, hld_map);
 						
 						//値埋め
 						if(val_s !== null){
-								$.each(new_parent_s.last_child_s, function(pIdx, parent){
+								$.each(root.last_child_s, function(pIdx, parent){
 										var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
 										//console.log('setVal:'+setVal);
 										if( parent.tag === 'input'){
@@ -581,14 +587,47 @@ $(function(){
 										}
 								});
 						}
-						delete new_parent_s.last_child_s;
-						return new_parent_s;
+						delete root.last_child_s;
+
+						// thead 直下 1行目のth,tdには列幅選択機能を付与する
+						scan_for_thead(root.child_s);
+
+						return root;
 				}catch(e){
 						console.log(JSON.stringify(e));
 						throw e;
 				}
 		}
-
+		
+		var column_id_for_resize = 0;
+		function scan_for_thead(tmp_rt_s){
+				for(var r=0; r < tmp_rt_s.length; ++r){
+						var tmp_rt = tmp_rt_s[r];
+						if(tmp_rt.hasOwnProperty('tag') && tmp_rt.tag === 'thead'
+								&& tmp_rt.hasOwnProperty('child_s') && tmp_rt.child_s.length > 0){
+										var tmp_tr = tmp_rt.child_s[0];
+										if(tmp_tr.hasOwnProperty('tag') && tmp_tr.tag === 'tr'
+												&& tmp_tr.hasOwnProperty('child_s') && tmp_tr.child_s.length > 0){
+														tmp_tdh_s = tmp_tr.child_s;
+														for(var dh=0; dh < tmp_tdh_s.length;++dh){
+																if(tmp_tdh_s[dh].prop_s.hasOwnProperty('class')){
+																		tmp_tdh_s[dh].prop_s.class += ' mod_col_width col_id_'+column_id_for_resize;
+																}else{
+																		tmp_tdh_s[dh].prop_s['class'] = '  mod_col_width col_id_'+column_id_for_resize;
+																}
+															 ++column_id_for_resize;
+														}
+										}
+						}else if(tmp_rt.hasOwnProperty('child_s') ){
+								if( tmp_rt.child_s.length === 0){
+										continue;
+								}else{//dig
+										scan_for_thead(tmp_rt.child_s);
+								}
+						}
+				}
+		};
+				
 		
 		/**
 		 * {"tag":"table","prop_s":{},"child_s":[{loop...}]}を再帰処理する
@@ -693,6 +732,10 @@ $(function(){
 						var i_am_wrapper = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapper') !== -1;
 						if( i_am_wrapper ){
 								resizableOption["alsoResize"] = '[data-my-obj-id^="'+my_regular_id+'_"]';
+								resizableOption["stop"] = function(ev, ui){
+										var tmp = $('*',work_jq);
+										work_jq.height(tmp.height() + 10).width(tmp.width() + 10);
+								};
 								//console.log("also tag:"+tag+', parent:'+parent_id);
 								//console.log("handle:"+JSON.stringify(draggableOption));
 						}
@@ -705,6 +748,8 @@ $(function(){
 						}else if(draggableとresizableの対象外のタグ.indexOf(tag) > -1 ){
 								//nothing
 								work_jq.css({"top":"","left":"","position":"relative"});
+						}else if(resizableのみ対象のタグ.indexOf(tag) > -1){
+
 						}else{
 								if( is_resizable_draggable ){
 										work_jq
@@ -719,6 +764,13 @@ $(function(){
 					.css('position','absolute');
 						}
 				}
+				$('td,th').resizable({"stop":function(ev, ui){
+										not_click = true;
+								},
+								"start":function(ev, ui){
+										not_click = true;
+								},
+															"autoHide":true, "handles":"all", "cancel":"option"});
 		}
 
 		function mthd_delete_element_impl(in_target_css){
@@ -793,7 +845,7 @@ $(function(){
 						}
 						var raw_tag_s = el_val_tag.val();
 						if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
-								console.log("el_val_prop_json.val() : "+el_val_prop_json.val());
+								//console.log("el_val_prop_json.val() : "+el_val_prop_json.val());
 								var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_val_prop_json.val(), el_tag_hld.val() );
 								
 								//console.log('root:'+JSON.stringify(root.child_s));
@@ -994,6 +1046,19 @@ $(function(){
 				var len_parsed = parsed.length;
 				for(var i=0; i < len_parsed; ++i){
 						display_onscreen(el_screen_area, parsed[i]);
+				}
+		});
+
+		el_func_json_val.on('change', function(){
+				var _this = $(this);
+				try{
+						if( typeof JSON.parse(_this.val()) === 'object' ){
+								_this.siblings('.menu_button').attr({"disabled":false});
+						}else{
+								_this.siblings('.menu_button').attr({"disabled":true});
+						}
+				}catch(e){
+						_this.siblings('.menu_button').attr({"disabled":true});
 				}
 		});
 
@@ -1276,7 +1341,6 @@ $(function(){
 						return 10 + (DEFAULT_WIDTH + 12 * (tag_size_s.length - my_layer_idx) ) * (tag_size_s[my_layer_idx] * (my_idx));
 				}
 		};
-
  });
 </script>
 	</body>
