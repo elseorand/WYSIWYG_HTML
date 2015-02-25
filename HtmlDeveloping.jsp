@@ -153,7 +153,7 @@
 			<ul id="prop_list"></ul>
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:1100px; height:7em;border-radius:20px;" >
-			<label for="ValTag">Tag	 </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="table#hoge>thead_th($a=4)+tbody_th_td($a,3)" /><br />
+			<label for="ValTag">Tag	 </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="table_cross_header(3,6)" /><br />
 			<input type="hidden" id="part_list_input" class="json_val" value="" />
 			<label for="ValArrayJSON">vals	</label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" /><br />
 			<input type="hidden" id="prop_list_input" class="json_val" value="" />
@@ -223,6 +223,11 @@
 
 				// settings
 				var tag_setting_s ={"input":{"require_s":["type"]}};
+				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul"];
+				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
+				var サイズを持たせないタグ = ["tbody","thead","tr"];
+				var resizableのみ対象のタグ = [];
+				var HTML5のタグには無い文字 = ["_","-","$",":",";","(",")","+","@","[","]","{","}","/",">","<",",",".","#","%","&","'",'"',"=","^","~"];
 
 				// status , state
 				var STATUS = getStatus();
@@ -335,7 +340,7 @@
 								//console.log("raw_num:"+raw_num);
 								raw_num = param_s.hasOwnProperty(raw_num) ? param_s[raw_num] : raw_num;
 								if( ! $.isNumeric(raw_num)){
-									console.log('param_s : ' + JSON.stringify(param_s));
+									console.log('* param_s : ' + JSON.stringify(param_s));
 									loop_num = reverse_porlish_notation(raw_num, param_s);//DEV
 									console.log('formula : '+raw_num + ', loop num : '+loop_num);
 								}else{
@@ -360,8 +365,7 @@
 					if(raw_tag_holder_s != null && typeof raw_tag_holder_s === 'string'){
 						try{
 							$.extend(rtn_map, JSON.parse(raw_tag_holder_s));
-						}catch(e){
-						}
+						}catch(e){}
 					}
 					return rtn_map;
 				}
@@ -398,7 +402,7 @@
 										var tmp_key = selector_s[t].trim();
 										var kept = {};
 										var tmp_kept_key = '';
-										kept['style'] = {};
+										kept['style'] = {};//TODO Classにまとめよう･･･
 										kept['class'] = '';
 										if(rtn.hasOwnProperty(tmp_key)){
 											for(var k=0; k < kept_element_s.length; ++k){
@@ -422,7 +426,6 @@
 							}
 						}
 						// Important position : absoluteが必須だが､ここで設定してもdraggableで上書きされるため無駄
-						
 					}catch(e){
 						console.log(e);//TODO
 					}
@@ -437,7 +440,6 @@
 					if(arguments.length === 0){
 						return {"tag":"","prop_s":{"style":""},"child_s":[]};
 					}
-					
 					if(typeof tag !== 'string'){
 						throw new TypeError('tag is not a string.');
 					}
@@ -447,21 +449,121 @@
 					if( ! $.isArray(child_s)){
 						throw new TypeError('child_s is not an array.');
 					}
-					
 					return { "tag":tag ,"prop_s":prop_s ,"child_s":child_s};
 				}
+
+				/**
+				* 副作用 param_mapに
+				*/
+				function extract_param_from(_input_tag, param_map, parent_param_s){
+					var parenthesis_first = _input_tag.indexOf('(');
+					var parenthesis_last = _input_tag.lastIndexOf(')');
+					if( parenthesis_last < parenthesis_first || parenthesis_first * parenthesis_first < 0 ){
+						throw new TypeError(_input_tag);
+					}
+					if(parenthesis_first !== -1 ){
+						var raw_param = _input_tag.substring(parenthesis_first + 1, parenthesis_last).trim();
+						var input_tag = _input_tag.substring(0, parenthesis_first) + _input_tag.substring(parenthesis_last + 1, _input_tag.length);
+						var raw_param_split = raw_param.split(',');
+						var length_raw_param_split = raw_param_split.length;
+						var param_s = {};
+						for(var p=0; p<length_raw_param_split; ++p){
+							var var_val = raw_param_split[p].split('=');
+							var val = null;
+							var var_idx = null;
+							if(var_val.length !== 1){
+								if(var_val.length === 2){
+									if(param_map.hasOwnProperty(var_val[0])){
+										throw new Error('Error var dupe : '+input_tag);
+									}
+								}else{
+									throw new TypeError(var_val);
+								}
+							}
+							var_idx = var_val.length - 1;
+							val = var_val[var_idx];
+							if(var_idx > 0){
+								var tmp_param = var_val[0];
+								console.log('tmp_param : '+tmp_param);
+								param_map[tmp_param] = parent_param_s.hasOwnProperty(val) ? parent_param_s[val] : val;
+							}
+							val = param_map.hasOwnProperty(var_val[0]) ? param_map[var_val[0]] : val;
+							param_s["$"+Object.keys(param_s).length] = val;
+						}
+					}else{
+						input_tag = _input_tag;
+						param_s = {};
+					}
+
+					//resolving param_s by param_map
+					if($.isPlainObject(param_s)){
+						$.each(Object.keys(param_s),function(idx, key){
+							try{
+								param_s[key] = reverse_porlish_notation(param_s[key], param_map);//逆ポーランド記法のSyntaxチェック
+							}catch(e){}
+						});
+					}
+					return [input_tag,param_s];
+				}
+
+				function extract_css_selector(input_tag, prop_map){
+					var tag = null;
+					var prop_s = {};
+					var tag_id_cls = [];
+					if(input_tag.indexOf('.') > -1){
+						tag_id_cls = input_tag.split('.');//has class
+					}else{
+						tag_id_cls[0] = input_tag;
+					}
+					var tag_id = tag_id_cls[0];
+					if(tag_id.indexOf('#') > -1){
+						tag_id = tag_id.split('#');
+						//TODO validation
+						tag = tag_id[0];
+						prop_s['id'] = tag_id[1];
+					}else{
+						tag = tag_id;
+					}
+
+					if(prop_map.hasOwnProperty('*')){
+						prop_s['style'] = prop_map['*'];
+					}
+					var tmp_cls = '';
+					for(var cl=1; cl < tag_id_cls.length; ++cl){//0 := tag#id
+						var tmp = tag_id_cls[cl];
+						tmp_cls += tmp+' ';
+						if(prop_map.hasOwnProperty( '.'+tmp)){
+							prop_s['style'] = merge_css(prop_s['style'], prop_map['.'+tmp]);
+						}
+					}
+					prop_s['class'] = tmp_cls;
+					if(tag.indexOf('=') > -1){
+						//TODO []
+					}
+					return [tag, prop_s];
+				}
+				var 関数タグの対象外css_selector = ["id","class","type"];
+				function check_input_data(tag, prop_s, infinite_loop_check){
+					var length_forbidden = 関数タグの対象外css_selector.length;
+					for(var i=0; i < length_forbidden; ++i){
+						var tgt = 関数タグの対象外css_selector[i];
+						if(prop_s.hasOwnProperty(tgt) && prop_s[tgt] != ''){
+							console.log('prop_s : ' + JSON.stringify(prop_s));
+							alert("Sorry. parts in Tag don't support #.[]");
+							throw new TypeError("Sorry. parts in Tag don't support #.[]");
+						}
+					}
+					var index_tag = infinite_loop_check.indexOf(tag);
+					if(index_tag > -1){
+						alert('Error : '+tag+' : infinite loop detected !');
+						throw new TypeError('Error : infinite loop !');
+					}
+				}
 				
-				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul"];
-				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
-				var サイズを持たせないタグ = ["tbody","thead","tr"];
-				var resizableのみ対象のタグ = [];
-				var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
-				
-				function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, part_map, param_map, parent_param_s){
+				function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, part_map, param_map, parent_param_s, infinite_loop_check){
 					var root_s = {"child_s":[],"last_child_s":[]};
 					var parent_s = [root_s];
 					var length_tag_s2 = tag_s2.length;
-					//console.log('tag_s2:'+JSON.stringify(tag_s2));
 					// 初期サイズ決定のため､最下層から要素数とサイズを調査する
 					var tag_size_s = [];
 					var counter = 1;
@@ -472,123 +574,49 @@
 					tag_size_s = tag_size_s.reverse();
 
 					$.each(tag_s2, function(layer_idx, tag_s ){
-						//console.log("tag_s : " + JSON.stringify(tag_s))//like [div]
 						var new_parent_s = [];
-						//console.log('tag_s.tag_s:'+JSON.stringify(tag_s.tag_s));
 						$.each(parent_s, function(pIdx, parent){
 							for(var i=0; i < tag_s.tag_s.length; ++i){
-								var input_tag = tag_s.tag_s[i];
-								var tag_id_cls = [];
-								//remove param
-								parenthesis_first = input_tag.indexOf('(');
-								parenthesis_last = input_tag.indexOf(')');
-								if( parenthesis_last < parenthesis_first || parenthesis_first * parenthesis_first < 0 ){
-									throw new TypeError(input_tag);
-								}
-								if(parenthesis_first !== -1 ){
-									var raw_param = input_tag.substring(parenthesis_first + 1, parenthesis_last).trim();
-									input_tag = input_tag.substring(0, parenthesis_first) + input_tag.substring(parenthesis_last + 1, input_tag.length);
-									var raw_param_split = raw_param.split(',');
-									var length_raw_param_split = raw_param_split.length;
-									var param_s = {};
-									for(var p=0; p<length_raw_param_split; ++p){
-										var var_val = raw_param_split[p].split('=');
-										var val = null;
-										if(var_val.length === 2){
-											if(param_map.hasOwnProperty(var_val[0])){
-												throw new Error('Error var dupe : '+input_tag);
-											}
-											param_map[var_val[0]] = var_val[1];
-											val = var_val[1];
-										}else if(var_val.length = 1){
-											val = param_map.hasOwnProperty(var_val[0]) ? param_map[var_val[0]] : var_val[0];
-										}else{
-											throw new TypeError(var_val);
-										}
-										param_s["$"+Object.keys(param_s).length] = val;
-									}
-								}
-								if(input_tag.indexOf('.') > -1){
-									tag_id_cls = input_tag.split('.');//has class
-								}else{
-									tag_id_cls[0] = input_tag;
-								}
-								var prop_s = {};
-								var tag_id = tag_id_cls[0];
-								var tag = null;
-								if(tag_id.indexOf('#') > -1){
-									tag_id = tag_id.split('#');
-									//TODO validation
-									tag = tag_id[0];
-									prop_s['id'] = tag_id[1];
-								}else{
-									tag = tag_id;
-								}
-
+								//tag_s.tag_s[i] :  tag#hoge.fuga.hage($col=4,5,0) //removed "*n"
+								var input_tag_param_s = extract_param_from(tag_s.tag_s[i], param_map, parent_param_s);//副作用 param_mapへ
+								var input_tag = input_tag_param_s[0];
+								var param_s = input_tag_param_s[1];
+								//css selector
+								var tag_prop_s = extract_css_selector(input_tag, prop_map);
+								var tag = tag_prop_s[0];
+								var prop_s = tag_prop_s[1];
 								//サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
-								if(prop_map.hasOwnProperty('*')){
-									prop_s['style'] = prop_map['*'];
-								}
 								set_default_size(tag, prop_s, tag_size_s, layer_idx, i);
-								var tmp_cls = '';
-								for(var cl=1; cl < tag_id_cls.length; ++cl){//0 := tag#id
-									var tmp = tag_id_cls[cl];
-									tmp_cls += tmp+' ';
-									if(prop_map.hasOwnProperty( '.'+tmp)){
-										prop_s['style'] = merge_css(prop_s['style'], prop_map['.'+tmp]);
-									}
-								}
-								prop_s['class'] = tmp_cls;
-								if(tag.indexOf('=') > -1){
-									//TODO []
-								}
 								
-								var child = null;
 								if(part_map.hasOwnProperty(tag)){//part nest route
-									if(tag_id_cls.length > 1){
-										alert("Sorry. parts in Tag don't support #.[]");
-										throw new TypeError("Sorry. parts in Tag don't support #.[]");
-									}
-									var index_tag = infinite_loop_check.indexOf(tag);
-									if(index_tag > -1){
-										infinite_loop_check = [];
-										alert('Error : '+tag+' : infinite loop detected !');
-										throw new TypeError('Error : infinite loop !');
-									}
+									//error check
+									check_input_data(tag, prop_s, infinite_loop_check);
 									infinite_loop_check.push(tag);//new
-									var child_last = convert_lineardata_to_child_s(format_raw_tag_s(part_map[tag], param_s), prop_map, val_s, part_map, param_map, param_s);
+									var child_last = convert_lineardata_to_child_s(format_raw_tag_s(part_map[tag], param_s), prop_map, val_s, part_map, param_map, param_s, infinite_loop_check);
 									infinite_loop_check[infinite_loop_check.indexOf(tag)] = "";//delete
-									var length_child_s = child_last.child_s.length;
-									for(var j=0; j < length_child_s; ++j){
-										child = child_last.child_s[j];
-										parent.child_s.push(child);
-									}
+									$.merge(parent.child_s, child_last.child_s);
 									// child の一番下の子孫を新しい親とする
 									$.merge(new_parent_s, child_last.last_child_s);//子供もやがて親になる･･･
 								}else{
+									$.each(HTML5のタグには無い文字, function(idx,forbidden_char){//TODO tagを分解して回した方が良いはず
+										if(tag.indexOf(forbidden_char) > 0) throw new TypeError('Tag : '+tag+' does not belong to HTML5. ');
+									});
 									if(prop_map.hasOwnProperty(tag)){
 										var kept_style = merge_css(prop_s.style, prop_map[tag].style);
 										$.extend(prop_s, prop_map[tag]);
 										prop_s.style = kept_style;
 									}
-									child = my_apply(tag, prop_s,[]);
-									//draggable と resizableが同時には正常に動かないタグについては､div.wrapperでwrapしておく
+									var child = my_apply(tag, prop_s,[]);
 									if($.inArray(tag, draggableとresizableが同時には正常に動かないためwrapするタグ) > -1){
-										var wrapper = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding:8px;"},[child] );
-										parent.child_s[i] = wrapper;
-										var child_class = child.prop_s['class'];
-										if( typeof child_class === 'undefined'){
-											child.prop_s['class'] = '';
-										}
+										if(! child.prop_s.hasOwnProperty('class')){	child.prop_s['class'] = '';	}
 										child.prop_s['class'] += ' wrapped';
-									}else{
-										parent.child_s.push(child);
+										child = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding:8px;"},[child] );//wrapper
 									}
+									parent.child_s.push(child);
 									new_parent_s.push(child);//子供もやがて親になる･･･
 								}
 							}
 						});
-						
 						parent_s = new_parent_s;
 					});
 					root_s.last_child_s = parent_s;
@@ -644,10 +672,11 @@
 						var length_val_s = val_s.length;
 						var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
 						var part_map = format_raw_tag_holder_s(raw_tag_holder_s);
-						var linear_data = format_raw_tag_s(raw_tag_s, []);
+						var linear_data = format_raw_tag_s(raw_tag_s, []);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
 						var param_map = {};
+						var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
 						
-						var root = convert_lineardata_to_child_s(linear_data, prop_map, val_s, part_map, param_map, []);
+						var root = convert_lineardata_to_child_s(linear_data, prop_map, val_s, part_map, param_map, [], infinite_loop_check);
 						
 						//値埋め
 						if(val_s !== null){
@@ -663,45 +692,12 @@
 						}
 						delete root.last_child_s;
 						
-						// thead 直下 1行目のth,tdには列幅選択機能を付与する
-						scan_for_thead(root.child_s);
-						
 						return root;
 					}catch(e){
 						console.log(JSON.stringify(e));
 						throw e;
 					}
 				}
-				
-				var column_id_for_resize = 0;
-				function scan_for_thead(tmp_rt_s){
-					for(var r=0; r < tmp_rt_s.length; ++r){
-						var tmp_rt = tmp_rt_s[r];
-						if(tmp_rt.hasOwnProperty('tag') && tmp_rt.tag === 'thead'
-							&& tmp_rt.hasOwnProperty('child_s') && tmp_rt.child_s.length > 0){
-								var tmp_tr = tmp_rt.child_s[0];
-								if(tmp_tr.hasOwnProperty('tag') && tmp_tr.tag === 'tr'
-									&& tmp_tr.hasOwnProperty('child_s') && tmp_tr.child_s.length > 0){
-										tmp_tdh_s = tmp_tr.child_s;
-										for(var dh=0; dh < tmp_tdh_s.length;++dh){
-											if(tmp_tdh_s[dh].prop_s.hasOwnProperty('class')){
-												tmp_tdh_s[dh].prop_s.class += ' mod_col_width col_id_'+column_id_for_resize;
-											}else{
-												tmp_tdh_s[dh].prop_s['class'] = '	 mod_col_width col_id_'+column_id_for_resize;
-											}
-												++column_id_for_resize;
-										}
-								}
-						}else if(tmp_rt.hasOwnProperty('child_s') ){
-							if( tmp_rt.child_s.length === 0){
-								continue;
-							}else{//dig
-								scan_for_thead(tmp_rt.child_s);
-							}
-						}
-					}
-				};
-				
 				
 				/**
 				 * {"tag":"table","prop_s":{},"child_s":[{loop...}]}を再帰処理する
@@ -1157,8 +1153,8 @@
 
 				MY_STORAGE
 					.transaction()
-					.replace("part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}}))
-					.replace("prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}}))
+//					.replace("part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}}))
+//					.replace("prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}}))
 					.commit();
 
 				//part_list, prop_list
@@ -1597,22 +1593,29 @@
 									pool_formula += c;
 								}
 							}else if( op_idx === 7){
-								throw new TypeError("Error not closed )");
+								throw new TypeError("Error formula not closed ) : " + formula);
 							}else{
 								pool += c;
 							}
 						}
+						if(pool != null && pool != ''){
+							stack.push(pool);
+						}
+					}
+					if(stack.length !== 1){
+						throw new Error("Error formula is illegal : " + formula);
 					}
 					return stack[0];
 				}
 
 				console.log(reverse_porlish_notation('4 (6 (3 $0 +) +) * 2 (1 $1 +) * /', {"$0":1,"$1":3}) === 5);
 				
-				console.log(reverse_porlish_notation('1 5 + 2 3 + *') === 30);
-				console.log(reverse_porlish_notation('1 5 + 3 +') === 9);
-				console.log(reverse_porlish_notation('1 5 + 2 4 + -') === 0);
+//				console.log(reverse_porlish_notation('1 5 + 2 3 + *') === 30);
+//				console.log(reverse_porlish_notation('1 5 + 3 +') === 9);
+//				console.log(reverse_porlish_notation('1 5 + 2 4 + -') === 0);
 				console.log(reverse_porlish_notation('1 6 * 2 1 * /') === 3);
 				console.log(reverse_porlish_notation('4 (6 (3 1 +) +) * 2 (1 3 +) * /') === 5);
+				console.log(reverse_porlish_notation('34') === '34');
 
 			});
 		</script>
