@@ -315,7 +315,52 @@
 					}
 					return formatted_val_s;
 				}
-				
+				/**
+				* ignore_nest_parenthesis_s should be like  [["(",")"],["{","}"]]
+				*	 nestを$nest$ など単階層同一文字もサポートする
+				*/
+				function split_ignore_nest(str,splitter, ignore_nest_parenthesis_s){
+					var ign_pair_map = {};
+					$.each(ignore_nest_parenthesis_s,function(idx, pair){
+						ign_pair_map[pair[0]] = pair[1];
+					});
+					if(ignore_nest_parenthesis_s.indexOf(splitter) > -1) throw new Error('splitter '+splitter+' is in ignores');
+					if(str == null || typeof str !== 'string')	throw new TypeError(str + ' is not valid.');
+					var length_str = str.length;
+					var result = [];
+					var tmp_str = '';
+					var nested_char_stack = [];
+					var now_close_char = '';
+					
+					for(var i=0; i<length_str; ++i){
+						var char = str[i];
+						//nestを$nest$ など単階層同一文字もサポートするため
+						if(char === now_close_char){
+							tmp_str += char;
+							now_close_char = nested_char_stack.pop();
+							continue;
+						}else if(ign_pair_map.hasOwnProperty(char)){
+							tmp_str += char;
+							nested_char_stack.push(now_close_char);
+							now_close_char = ign_pair_map[char];
+							continue;
+						}else if(now_close_char !== ''){
+							tmp_str += char;
+							continue;
+						}
+
+						if(splitter === char){
+							result.push(tmp_str);
+							tmp_str = '';
+						}else{
+							tmp_str += char;
+						}
+					}
+					if(tmp_str !== ''){
+						result.push(tmp_str);
+					}
+					return result;
+				}
 				/**
 				 * @param tag tag_2 tag_? tag1,tag2
 				 * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
@@ -332,7 +377,7 @@
 					$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
 						var trimed_tag = tag.trim();
 						var pooled_tag_s = [];
-						$.each(trimed_tag.split(SBL_HLD), function(cIdx, sbl){//sibiling
+						$.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibiling
 							var tag_num = sbl.trim().split(LOOP_HLD);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 							var loop_num = 1;
 							if(tag_num.length > 1){
@@ -484,7 +529,6 @@
 							val = var_val[var_idx];
 							if(var_idx > 0){
 								var tmp_param = var_val[0];
-								console.log('tmp_param : '+tmp_param);
 								param_map[tmp_param] = parent_param_s.hasOwnProperty(val) ? parent_param_s[val] : val;
 							}
 							val = param_map.hasOwnProperty(var_val[0]) ? param_map[var_val[0]] : val;
@@ -1228,6 +1272,10 @@
 							.commit();
 						refresh_select_list(some_key, el_some.select);
 					});
+					
+					el_some.del.on('click',function(){
+						alert('now coding');
+					});
 				});
 
 				function refresh_select_list(some_key, el_some_select){
@@ -1571,11 +1619,15 @@
 							if (op_idx === 0) {
 								if(pool !== ''){
 									var pool = param_s.hasOwnProperty(pool) ? param_s[pool] : pool;
-									num = parseInt(pool, 10);
-									pool = '';
-									stack.push(num);
+									if(pool === '+' || pool === '-'){//(+3 -1 +)への対応
+										stack.push(operator_s[' +-*/%()'.indexOf(pool)] (stack.pop(), stack.pop()));
+									}else{
+										num = parseInt(pool, 10);
+										pool = '';
+										stack.push(num);
+									}
 								}
-							}else	if(0 < op_idx && op_idx < 6 ){
+							}else	if(2 < op_idx && op_idx < 6 || (i+1 === length_formula && 0 < op_idx && op_idx <= 2)){//(+3 -1 +)への対応
 								stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 							}else if( op_idx === 6){
 								++i;
@@ -1603,7 +1655,8 @@
 						}
 					}
 					if(stack.length !== 1){
-						throw new Error("Error formula is illegal : " + formula);
+						console.log('stack : '+ JSON.stringify(stack));
+						throw new Error("Error formula is illegal : " + formula + ' : param_s : ' + JSON.stringify(param_s));
 					}
 					return stack[0];
 				}
@@ -1616,6 +1669,10 @@
 				console.log(reverse_porlish_notation('1 6 * 2 1 * /') === 3);
 				console.log(reverse_porlish_notation('4 (6 (3 1 +) +) * 2 (1 3 +) * /') === 5);
 				console.log(reverse_porlish_notation('34') === '34');
+
+				console.log(split_ignore_nest('table>thead_th($col=$0)+tbody_th_td(($col -1 +),$row=$1)','+',[["(",")"]]));
+				console.log(split_ignore_nest('Hello(world,!!)',',',[["(",")"]]));
+				console.log(split_ignore_nest('true','',[]));
 
 			});
 		</script>
