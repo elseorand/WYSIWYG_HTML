@@ -706,6 +706,7 @@
 					}
 				};
 				
+
 				/**
 				 * draggableやresizableを可能にする加工を施します｡
 				 * tableやinputはdivでwrapするなど副作用があります｡
