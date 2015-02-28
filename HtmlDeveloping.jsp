@@ -184,6 +184,7 @@
 				var SBL_HLD = '+';
 				var DEFAULT_WIDTH = 100;
 				var DEFAULT_HEIGHT = 30;
+
 				
 				// Fields //TODO 統合Funcオブジェクトの作成
 				// func
