@@ -1211,15 +1211,13 @@ console.log('start convert_lineardata_to_child_s');
 				MY_STORAGE
 					.transaction()
 					.ifelse(! MY_STORAGE.has("part_list")
-							, ['replace',"part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}})]
+							, ['replace',"part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)","table_cross_header":"table>thead_th($0)+tbody_th_td($0,$1)"}})]
 						, []
 					)
 					.ifelse(! MY_STORAGE.has("prop_list")
 							, ['replace',"prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}})]
 						,[]
 					)
-//					.replace("part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}}))
-//					.replace("prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}}))
 					.commit();
 
 				//part_list, prop_list
