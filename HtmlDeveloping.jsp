@@ -368,7 +368,9 @@
 				 * @param tag tag_2 tag_? tag1,tag2
 				 * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
 				 */
-				function format_raw_tag_s(raw_tag_s, param_s){
+				function format_raw_tag_s(raw_tag_s, _param_s){
+					var param_s = {};
+					$.extend(true, param_s, _param_s);
 					//console.log(raw_tag_s);
 					if( raw_tag_s == null || raw_tag_s.trim() === ''){
 						console.log('Please input at least one tag');
@@ -383,7 +385,6 @@
 						$.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibiling
 							var tag_num = sbl.trim().split(LOOP_HLD);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 							var loop_num = 1;
-							var tmp_param_s = {};
 							if(tag_num.length > 1){
 								var raw_num = tag_num[1];
 								console.log("loop_num : "+raw_num);
@@ -391,9 +392,12 @@
 								if( ! $.isNumeric(raw_num)){
 									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
 									loop_num = reverse_porlish_notation(raw_num, param_s, param_s);
-									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', tmp_param_s : '+JSON.stringify(tmp_param_s));
+									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', param_s : '+JSON.stringify(param_s));
 								}else{
 									loop_num = parseInt(raw_num, 10);
+								}
+								if( loop_num < 0 ){
+									throw new Error('loop num : '+loop_num +' should be >= 0 ');
 								}
 								//console.log('loop_num:'+loop_num);
 							}
@@ -554,7 +558,7 @@
 							}
 						});
 					}
-console.log('extract_param_from : ' + _input_tag + ' : ' + JSON.stringify([input_tag,param_s]));
+//console.log('extract_param_from : ' + _input_tag + ' : ' + JSON.stringify([input_tag,param_s]));
 					return [input_tag,param_s];
 				}
 
@@ -1208,9 +1212,12 @@ console.log('start convert_lineardata_to_child_s');
 					.transaction()
 					.ifelse(! MY_STORAGE.has("part_list")
 							, ['replace',"part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}})]
-						  , ['replace',"prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}})]
-						)
-
+						, []
+					)
+					.ifelse(! MY_STORAGE.has("prop_list")
+							, ['replace',"prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}})]
+						,[]
+					)
 //					.replace("part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}}))
 //					.replace("prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}}))
 					.commit();
@@ -1560,8 +1567,11 @@ console.log('start convert_lineardata_to_child_s');
 								}else{
 									throw new TypeError('func if param bool is required.');
 								}
-								func_name = param_s.shift();
-								this[func_name].apply(this, param_s);
+								param_s = if_nullOrUndef_then_return_init(param_s, []);
+								if(param_s.length > 0){
+									func_name = param_s.shift();
+									this[func_name].apply(this, param_s);
+								}
 								return this;
 							}
 					};
@@ -1720,8 +1730,12 @@ console.log('start convert_lineardata_to_child_s');
 						console.log('stack : '+ JSON.stringify(stack));
 						throw new Error("Error formula is illegal : " + formula + ' : param_s : ' + JSON.stringify(param_s));
 					}
+					var rtn = stack[0];
+					if( ! $.isNumeric(rtn) ){
+						throw new Error("Error var " + rtn + ' is not resolved ');
+					}
 
-					return stack[0];
+					return rtn;
 				}
 
 				function if_nullOrUndef_then_return_init(param, init){
@@ -1732,6 +1746,7 @@ console.log('start convert_lineardata_to_child_s');
 					}
 				}
 
+				console.log(reverse_porlish_notation('$0 $1 +', {"$0":1,"$1":3}) === 4);
 				console.log(reverse_porlish_notation('4 (6 (3 $0 +) +) * 2 (1 $1 +) * /', {"$0":1,"$1":3}) === 5);
 
 				console.log(reverse_porlish_notation('1 5 + 2 3 + *') === 30);
