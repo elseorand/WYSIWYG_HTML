@@ -5,11 +5,11 @@
 		<meta charset="UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=11" />
 		<title>HTML Developing</title>
-		<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/js/jquery-ui-1.11.1.custom/jquery-ui.min.css">
 
-		<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-2.1.1.min.js"></script>
-		<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-ui-1.11.1.custom/jquery-ui.min.js"></script>
-		<script type="text/javascript" src="<%=request.getContextPath()%>/js/d3.v3.min.js"></script>
+ 		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" />
+ 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+ 		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+
 		<style type="text/css" >
 			* {
 				font-family: 'A-TTC 新ゴ M', 'ヒラギノ角ゴ Pro W3',
@@ -82,6 +82,7 @@
 			.menu_bar {
 				background-color: rgba(221, 221, 221, 0.5);
 				padding: 5px;
+				height: 50px;
 			}
 
 			.side_menu_bar>input {
@@ -118,7 +119,7 @@
 			.menu_button{
 				margin:10px;
 			}
-			
+
 		</style>
 	</head>
 	<body>
@@ -173,7 +174,7 @@
 			$(function(){
 				var FUNC_ID = "HtmlDeveloping";
 				var MY_STORAGE = constructor_storage(FUNC_ID);
-				
+
 				//複数形はsufixとして_sまたは､_s1. 多重配列は_s_sではなく_s2
 				// Constatns
 				var DEFAULT_GRID_SIZE = 32;
@@ -185,7 +186,7 @@
 				var DEFAULT_WIDTH = 100;
 				var DEFAULT_HEIGHT = 30;
 
-				
+
 				// Fields //TODO 統合Funcオブジェクトの作成
 				// func
 				var el_func_ins_element = $('#FuncInsElement');
@@ -207,7 +208,7 @@
 				var el_selected_val_tag = $('#SelectedValTag');
 				var el_selected_val_prop_json = $('#SelectedValPropJSON');
 				var el_selected_val_array_json = $('#SelectedValArrayJSON');
-				
+
 				var el_some_list = {"part_list":$('#part_list'), "prop_list":$('#prop_list')};
 				var el_some_input = {"part_list":$('#part_list_input'), "prop_list":$('#prop_list_input')};
 				var el_some_func_suffix_s = ["reg","select","del","name"];
@@ -262,7 +263,7 @@
 						if(_this.data('my-selected') === false){
 							_this.data('my-selected', true);
 							_this.addClass(CLASS_SELECTED);
-							
+
 							if(length_these_minus_1 === idx){
 								if( no_aster ){
 									el_selected_val_id.val(my_obj_id);
@@ -291,7 +292,7 @@
 						}
 					});
 				}
-				
+
 				/**
 				 * 単一要素やJSONや､"hogehoge"などのraw_val_sに対応
 				 * @return null => null
@@ -319,6 +320,7 @@
 				/**
 				* ignore_nest_parenthesis_s should be like  [["(",")"],["{","}"]]
 				*	 nestを$nest$ など単階層同一文字もサポートする
+				* @return 
 				*/
 				function split_ignore_nest(str,splitter, ignore_nest_parenthesis_s){
 					var ign_pair_map = {};
@@ -332,7 +334,7 @@
 					var tmp_str = '';
 					var nested_char_stack = [];
 					var now_close_char = '';
-					
+
 					for(var i=0; i<length_str; ++i){
 						var char = str[i];
 						//nestを$nest$ など単階層同一文字もサポートするため
@@ -373,7 +375,7 @@
 						return ;
 					}
 					raw_tag_s = raw_tag_s.trim().replace(/\s+/g,' ').replace(/\s*,\s*/g,',');//複数連続スペースやカンマを一つに変換
-					//console.log("raw_tag_s:"+raw_tag_s);
+					console.log("raw_tag_s:"+JSON.stringify(raw_tag_s));
 					var tag_s2 = [];
 					$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
 						var trimed_tag = tag.trim();
@@ -381,14 +383,15 @@
 						$.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibiling
 							var tag_num = sbl.trim().split(LOOP_HLD);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 							var loop_num = 1;
+							var tmp_param_s = {};
 							if(tag_num.length > 1){
 								var raw_num = tag_num[1];
-								//console.log("raw_num:"+raw_num);
+								console.log("loop_num : "+raw_num);
 								raw_num = param_s.hasOwnProperty(raw_num) ? param_s[raw_num] : raw_num;
 								if( ! $.isNumeric(raw_num)){
-									console.log('* param_s : ' + JSON.stringify(param_s));
-									loop_num = reverse_porlish_notation(raw_num, param_s);//DEV
-									console.log('formula : '+raw_num + ', loop num : '+loop_num);
+									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
+									loop_num = reverse_porlish_notation(raw_num, param_s, param_s);
+									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', tmp_param_s : '+JSON.stringify(tmp_param_s));
 								}else{
 									loop_num = parseInt(raw_num, 10);
 								}
@@ -402,10 +405,10 @@
 						tag_s2.push({"tag_s":pooled_tag_s});
 					});
 					//console.log('tag_s2:'+JSON.stringify(tag_s2));
-					
+
 					return tag_s2;
 				}
-				
+
 				function format_raw_tag_holder_s(raw_tag_holder_s){
 					var rtn_map = {};
 					if(raw_tag_holder_s != null && typeof raw_tag_holder_s === 'string'){
@@ -415,7 +418,7 @@
 					}
 					return rtn_map;
 				}
-				
+
 				var kept_element_s = ['class','style'];
 				/**
 				 * raw_prop_s allowed: {"single css selector":{"style":"hoge"},"single css selector"･･･} or {"style":"hoge"}
@@ -478,7 +481,7 @@
 					//console.log('prop_s : '+JSON.stringify(rtn));
 					return rtn;
 				}
-				
+
 				/**
 				 * 空のアプリケーションの基本オブジェクトを返す
 				 */
@@ -528,11 +531,11 @@
 							}
 							var_idx = var_val.length - 1;
 							val = var_val[var_idx];
-							if(var_idx > 0){
-								var tmp_param = var_val[0];
-								param_map[tmp_param] = parent_param_s.hasOwnProperty(val) ? parent_param_s[val] : val;
+							var param_key = var_val[0];
+							if(var_idx > 0){// この関数で=を用いて変数に値を設定している場合
+								param_map[param_key] = parent_param_s.hasOwnProperty(val) ? parent_param_s[val] : val;
 							}
-							val = param_map.hasOwnProperty(var_val[0]) ? param_map[var_val[0]] : val;
+							val = param_map.hasOwnProperty(var_val[0]) ? param_map[var_val[0]] : parent_param_s.hasOwnProperty(param_key) ? parent_param_s[param_key] : val;
 							param_s["$"+Object.keys(param_s).length] = val;
 						}
 					}else{
@@ -542,12 +545,16 @@
 
 					//resolving param_s by param_map
 					if($.isPlainObject(param_s)){
+						var tmp_param_s = {};
 						$.each(Object.keys(param_s),function(idx, key){
 							try{
-								param_s[key] = reverse_porlish_notation(param_s[key], param_map);//逆ポーランド記法のSyntaxチェック
-							}catch(e){}
+								param_s[key] = reverse_porlish_notation(param_s[key], param_map, tmp_param_s);//逆ポーランド記法のSyntaxチェック
+							}catch(e){
+								console.log('re porlisth error : '+e);
+							}
 						});
 					}
+console.log('extract_param_from : ' + _input_tag + ' : ' + JSON.stringify([input_tag,param_s]));
 					return [input_tag,param_s];
 				}
 
@@ -604,7 +611,7 @@
 						throw new TypeError('Error : infinite loop !');
 					}
 				}
-				
+
 				function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, part_map, param_map, parent_param_s, infinite_loop_check){
 					var root_s = {"child_s":[],"last_child_s":[]};
 					var parent_s = [root_s];
@@ -632,7 +639,7 @@
 								var prop_s = tag_prop_s[1];
 								//サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
 								set_default_size(tag, prop_s, tag_size_s, layer_idx, i);
-								
+
 								if(part_map.hasOwnProperty(tag)){//part nest route
 									//error check
 									check_input_data(tag, prop_s, infinite_loop_check);
@@ -667,7 +674,7 @@
 					root_s.last_child_s = parent_s;
 					return root_s;
 				};
-				
+
 				/**
 				 * 1pxサイズの操作不能オブジェクトを産まないために､
 				 * Defaultサイズを設定する
@@ -705,7 +712,7 @@
 						}
 					}
 				};
-				
+
 
 				/**
 				 * draggableやresizableを可能にする加工を施します｡
@@ -721,9 +728,9 @@
 						var linear_data = format_raw_tag_s(raw_tag_s, []);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
 						var param_map = {};
 						var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
-						
+console.log('start convert_lineardata_to_child_s');
 						var root = convert_lineardata_to_child_s(linear_data, prop_map, val_s, part_map, param_map, [], infinite_loop_check);
-						
+
 						//値埋め
 						if(val_s !== null){
 							$.each(root.last_child_s, function(pIdx, parent){
@@ -737,14 +744,14 @@
 							});
 						}
 						delete root.last_child_s;
-						
+
 						return root;
 					}catch(e){
 						console.log(JSON.stringify(e));
 						throw e;
 					}
 				}
-				
+
 				/**
 				 * {"tag":"table","prop_s":{},"child_s":[{loop...}]}を再帰処理する
 				 * データの二重加工を防ぐため､副作用処理一切禁止 そういった処理はconvert_to_displayに実装
@@ -761,7 +768,7 @@
 					if( ! $.isArray(child_s)){
 						console.log('Error this is not Array:'+JSON.stringify(child_s));
 					}
-					
+
 					if(tag_setting_s.hasOwnProperty(tag)){
 						var setting = tag_setting_s[tag];
 						var require_s = setting['require_s'];
@@ -771,12 +778,12 @@
 							}
 						});
 					}
-					
+
 					//console.log('tag : '+tag);//TODO
 					var length_target_s	 = target_s.length;
 					for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
 						var target = $(target_s[idx_tgt]);
-						
+
 						var work_jq = tag.length == 0 ? target : $('<'+tag+'>');
 						for(var prop in prop_s)if(prop_s.hasOwnProperty(prop)){
 							prop = prop.trim();
@@ -792,12 +799,12 @@
 								work_jq.attr(prop,prop_s[prop]);
 							}
 						}
-						
+
 						work_jq.data('my-org-prop_s', prop_s);
 						if( work_jq === target){
 							continue;
 						}
-						
+
 						var my_obj_id = STATUS.getNewMyObjId();//TODO DIできるように
 						var parent_id = target.attr('data-my-obj-id');
 						var my_regular_id = parent_id+'_'+ my_obj_id;
@@ -820,13 +827,13 @@
 								}
 								//console.log(work_jq.attr('id')+':click');
 								select_element(my_regular_id, work_jq);//TODO XXX
-								
+
 							});
 						var length_child_s = child_s.length;
 						for(var idx_child=0; idx_child < length_child_s; ++idx_child){
 							display_onscreen([work_jq], child_s[idx_child]);
 						}
-						
+
 						var resizableOption = {
 							"stop":function(ev, ui){
 								not_click = true;
@@ -855,7 +862,7 @@
 							//console.log("also tag:"+tag+', parent:'+parent_id);
 							//console.log("handle:"+JSON.stringify(draggableOption));
 						}
-						
+
 						work_jq
 							.data('my-selected',false)
 							.appendTo( target );
@@ -865,7 +872,7 @@
 							//nothing
 							work_jq.css({"top":"","left":"","position":"relative"});
 						}else if(resizableのみ対象のタグ.indexOf(tag) > -1){
-							
+
 						}else{
 							if( is_resizable_draggable ){
 								work_jq
@@ -888,7 +895,7 @@
 						},
 						"autoHide":true, "handles":"all", "cancel":"option"});
 				}
-				
+
 				function mthd_delete_element_impl(in_target_css){
 					var target_css ;
 					if( in_target_css !== null){
@@ -908,7 +915,7 @@
 					});
 					//console.log('delete css:'+target_css);
 				}
-				
+
 				function getStatus(){
 					var obj_id = 1;
 					return {
@@ -917,7 +924,7 @@
 						}
 					};
 				}
-				
+
 				// screen util setting
 				var default_width_setting_s = {};
 				var el_auto_extend = $('.autoExtend');
@@ -944,12 +951,12 @@
 						_this.animate({"width":default_width_setting_s[_this.attr('id')]},200);
 					}
 				});
-				
+
 				el_float_menu.resizable({"autoHide":true,"minWidth":80}).draggable();
 				el_screen_area.on('click',function(){
 					el_func_cancel_selected.trigger('click');
 				});
-				
+
 				// menu func
 				el_func_ins_element.on('click', function(){
 					try{
@@ -963,7 +970,7 @@
 						var raw_tag_s = el_val_tag.val();
 						if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
 							var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input['prop_list'].val(), el_some_input['part_list'].val() );
-							
+
 							//console.log('root:'+JSON.stringify(root.child_s));
 							$.each(root.child_s, function(cIdx, child){
 								display_onscreen(for_add_target_s, child);
@@ -973,7 +980,7 @@
 						console.log(e);
 					}
 				});
-				
+
 				/**
 				 *
 				 */
@@ -1003,12 +1010,12 @@
 					}else{
 						raw_val_s = [raw_val_s];
 					}
-					
+
 					var prop_s = JSON.parse( el_selected_val_prop_json.val() );
 					if( ! $.isPlainObject(prop_s)){
 						throw new TypeError('prop is not JSON style.');//TODO exception
 					}
-					
+
 					$.each(target_s, function(idx, _target){
 						var target = $(_target);
 						target.children
@@ -1053,12 +1060,12 @@
 						target.data('my-org-prop_s', org_prop_s);
 					});
 				});
-				
+
 				el_func_select_element.on('click', function(){
 					var my_regular_id = el_selected_val_id.val();
 					select_element(my_regular_id);
 				});
-				
+
 				el_func_copy_element.on('click', function(){
 					try{
 						var added_target_s = null;
@@ -1068,10 +1075,10 @@
 						}else{
 							added_target_s = [el_screen_area];//追加先のデフォルトはscreen
 						}
-						
+
 						var root = convert_data_to_display( el_selected_val_tag.val()
 								, el_selected_val_array_json.val(), el_selected_val_prop_json.val(), {});
-						
+
 						//console.log('root:'+JSON.stringify(root.child_s));
 						$.each(root.child_s, function(cIdx, child){
 							display_onscreen(added_target_s, child);
@@ -1080,7 +1087,7 @@
 						console.log(e);
 					}
 				});
-				
+
 				el_func_html_element.on('click',function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = JSON.parse(raw_child);
@@ -1145,7 +1152,7 @@
 					init_save_history();
 				++history_counter;
 				});
-				
+
 				el_func_load.on('click', function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = [];
@@ -1199,6 +1206,11 @@
 
 				MY_STORAGE
 					.transaction()
+					.ifelse(! MY_STORAGE.has("part_list")
+							, ['replace',"part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}})]
+						  , ['replace',"prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}})]
+						)
+
 //					.replace("part_list",JSON.stringify({"example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)"}}))
 //					.replace("prop_list",JSON.stringify({"example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"}}}))
 					.commit();
@@ -1233,7 +1245,7 @@
 						}else{
 							return false;
 						}
-						
+
 						var tmp_el_list = el_some_list[some_key];
 						var tmp_el_input = el_some_input[some_key];
 						tmp_el_list.empty();//clear
@@ -1243,7 +1255,7 @@
 						// for new empty input
 						new_empty_line(tmp_el_list);
 						tmp_el_list.parent().height(tmp_el_list.height() + 100);
-						
+
 						tmp_el_list.on('change','input.key',function(){
 							var pre_height = tmp_el_list.height();
 							$('input.key', tmp_el_list).each(function(){
@@ -1262,7 +1274,7 @@
 						});
 						tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
 					}).trigger('change');//end el_some.select
-					
+
 					el_some.reg.on('click',function(){
 						var some_name = el_some.name.val();
 						var tmp_el_list = el_some_list[some_key]; //TODO dupe
@@ -1274,7 +1286,7 @@
 							.commit();
 						refresh_select_list(some_key, el_some.select);
 					});
-					
+
 					el_some.del.on('click',function(){
 						alert('now coding');
 					});
@@ -1283,6 +1295,9 @@
 				function refresh_select_list(some_key, el_some_select){
 					// creating option in select
 					var list_s_in_storage = JSON.parse(MY_STORAGE.select(some_key));
+					if(typeof list_s_in_storage === 'undefined' || list_s_in_storage == null){
+						return;
+					}
 					var keys_list_s = Object.keys(list_s_in_storage);
 					var length_keys_list_s = keys_list_s.length;
 					el_some_select.empty();
@@ -1315,10 +1330,10 @@
 					tmp =	$('<input />').attr({"class":"autoExtend val"}).css({"width":"40em","ime-mode":"disabled"}).appendTo(new_li);
 					if(typeof val !== 'undefined'){
 						tmp.val(val);
-					}					
+					}
 					new_li.appendTo(parent);
 				}
-				
+
 				//Util
 				function call_val(obj, set_val){
 					obj.data('my-obj-val', set_val);
@@ -1394,7 +1409,7 @@
 						return obj;
 					}else{
 						return obj.tostring();
-					}						
+					}
 				}
 
 				function force_parse(obj){
@@ -1408,7 +1423,7 @@
 						return obj;
 					}else{
 						return obj;
-					}						
+					}
 				}
 
 				function _tree(in_mother_id){
@@ -1481,7 +1496,11 @@
 								var str_key = ''+key;
 								var pooled = uncommit_pool[str_key];
 								if(typeof pooled === 'undefined'){
-									var saved = localStorage[FUNC_ID][key];
+									var raw = localStorage[FUNC_ID];
+									if(typeof raw === 'undefined'){
+										return null;
+									}
+									var saved = raw[key];
 									if(typeof saved === 'undefined'){
 										return null;
 									}else{
@@ -1526,6 +1545,23 @@
 								is_locked = false;
 								this.transaction();
 								is_locked = true;
+								return this;
+							},
+						"has":function(key){
+							return null != this.select(key);
+						},
+						  "ifelse":function(bool, true_param_s, false_param_s){
+								var func_name = null;
+								var param_s = null;
+								if(bool === true){
+									param_s = arguments[1];
+								}else if(bool === false){
+									param_s = arguments[2];
+								}else{
+									throw new TypeError('func if param bool is required.');
+								}
+								func_name = param_s.shift();
+								this[func_name].apply(this, param_s);
 								return this;
 							}
 					};
@@ -1574,7 +1610,7 @@
 					}
 					return tree;
 				};
-				
+
 				function get_z_index(my_layer_idx){
 					return 110 + my_layer_idx;
 				};
@@ -1593,10 +1629,14 @@
 					}
 				};
 
-				function reverse_porlish_notation(formula, param_s){
-					if(typeof param_s === 'undefined'){
-						param_s = {};
-					}
+				var OPERATOR_CHAR_S = ' +-*/%()=';
+				var IDX_MULTI = OPERATOR_CHAR_S.indexOf('*');
+				var IDX_PAREN = OPERATOR_CHAR_S.indexOf('(');
+				var IDX_EQUAL = OPERATOR_CHAR_S.indexOf('=');
+				function reverse_porlish_notation(formula, _param_s, _tmp_param_s){
+					var param_s = if_nullOrUndef_then_return_init(_param_s, {});
+					var tmp_param_s = if_nullOrUndef_then_return_init(_tmp_param_s, {});
+//console.log('formula : '+formula);
 					var _formula = formula;
 					var _parent_counter = 0;
 					if($.isArray(_formula)){
@@ -1605,11 +1645,19 @@
 					if(typeof _formula === 'string'){
 						_formula = formula.replace(/\s+/g,' ').trim();
 					}
-					var operator_s =[,function(a0, a1){return a0 + a1;}
+					var operator_s =[ //null
+						,function(a0, a1){
+							if($.isNumeric(a0) && $.isNumeric(a1)){
+								return a0 + a1;
+							}else{
+								throw new TypeError(a0 + ' : ' + a1 + ' are not resolved ');
+							}
+						}
 						,function(a0, a1){return a1 - a0;}
 						,function(a0, a1){return a1 * a0;}
 						,function(a0, a1){return a1 / a0;}
-						,function(a0, a1){return a1 % a0;}];
+						,function(a0, a1){return a1 % a0;}
+					];
 					if(_formula != null && typeof _formula !== 'undefined'){
 						var stack = [];
 						var pool = '';
@@ -1617,21 +1665,25 @@
 						var length_formula = _formula.length;
 						for(var i=0; i<length_formula; ++i){
 							var c = _formula.charAt(i);
-							var op_idx = ' +-*/%()'.indexOf(c);
+							var op_idx = OPERATOR_CHAR_S.indexOf(c);
 							if (op_idx === 0) {
 								if(pool !== ''){
 									var pool = param_s.hasOwnProperty(pool) ? param_s[pool] : pool;
 									if(pool === '+' || pool === '-'){//(+3 -1 +)への対応
-										stack.push(operator_s[' +-*/%()'.indexOf(pool)] (stack.pop(), stack.pop()));
+										stack.push(operator_s[OPERATOR_CHAR_S.indexOf(pool)] (stack.pop(), stack.pop()));
+									}else if( ! $.isNumeric(pool) ){
+										stack.push(pool);
+										pool = '';
 									}else{
 										num = parseInt(pool, 10);
 										pool = '';
 										stack.push(num);
 									}
 								}
-							}else	if(2 < op_idx && op_idx < 6 || (i+1 === length_formula && 0 < op_idx && op_idx <= 2)){//(+3 -1 +)への対応
+							}else	if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN 
+											|| ((i+1 === length_formula || _formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 								stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
-							}else if( op_idx === 6){
+							}else if( op_idx === IDX_PAREN){
 								++i;
 								++_parent_counter;
 								var pool_formula = "";
@@ -1639,15 +1691,22 @@
 									c = _formula.charAt(i);
 									if( c === '(') ++_parent_counter;
 									if( c === ')') --_parent_counter;
-
 									if(_parent_counter === 0){
-										stack.push(reverse_porlish_notation(pool_formula, param_s));
+										stack.push(reverse_porlish_notation(pool_formula, param_s, tmp_param_s));
 										break;
 									}
 									pool_formula += c;
 								}
-							}else if( op_idx === 7){
+							}else if( op_idx === IDX_PAREN + 1){
 								throw new TypeError("Error formula not closed ) : " + formula);
+							}else if( op_idx === IDX_EQUAL ){
+								var val = stack.pop();// 評価順に依存しないため
+								var key = stack.pop();
+								while(! $.isNumeric(val) && tmp_param_s.hasOwnProperty(val) ){
+									val = tmp_param_s[val];
+								}
+								tmp_param_s[key] = val;								
+								stack.push(val);
 							}else{
 								pool += c;
 							}
@@ -1657,20 +1716,32 @@
 						}
 					}
 					if(stack.length !== 1){
+						console.log('tmp_param_s : '+JSON.stringify(tmp_param_s));
 						console.log('stack : '+ JSON.stringify(stack));
 						throw new Error("Error formula is illegal : " + formula + ' : param_s : ' + JSON.stringify(param_s));
 					}
+
 					return stack[0];
 				}
 
+				function if_nullOrUndef_then_return_init(param, init){
+					if(typeof param === 'undefined' || param == null ){
+						return init;
+					}else{
+						return param;
+					}
+				}
+
 				console.log(reverse_porlish_notation('4 (6 (3 $0 +) +) * 2 (1 $1 +) * /', {"$0":1,"$1":3}) === 5);
-				
-//				console.log(reverse_porlish_notation('1 5 + 2 3 + *') === 30);
-//				console.log(reverse_porlish_notation('1 5 + 3 +') === 9);
-//				console.log(reverse_porlish_notation('1 5 + 2 4 + -') === 0);
+
+				console.log(reverse_porlish_notation('1 5 + 2 3 + *') === 30);
+				console.log(reverse_porlish_notation('1 5 + 3 +') === 9);
+				console.log(reverse_porlish_notation('1 5 + 2 4 + -') === 0);
 				console.log(reverse_porlish_notation('1 6 * 2 1 * /') === 3);
 				console.log(reverse_porlish_notation('4 (6 (3 1 +) +) * 2 (1 3 +) * /') === 5);
 				console.log(reverse_porlish_notation('34') === '34');
+
+				console.log(reverse_porlish_notation('($a 2 =)') === 2);
 
 				console.log(split_ignore_nest('table>thead_th($col=$0)+tbody_th_td(($col -1 +),$row=$1)','+',[["(",")"]]));
 				console.log(split_ignore_nest('Hello(world,!!)',',',[["(",")"]]));
