@@ -369,30 +369,33 @@
 				 * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
 				 */
 				function format_raw_tag_s(raw_tag_s, _param_s){
+//					console.log('format_raw_tag_s '+JSON.stringify(arguments));
 					var param_s = {};
+					var resolved_param_s = {};
 					$.extend(true, param_s, _param_s);
-					//console.log(raw_tag_s);
 					if( raw_tag_s == null || raw_tag_s.trim() === ''){
 						console.log('Please input at least one tag');
 						return ;
 					}
 					raw_tag_s = raw_tag_s.trim().replace(/\s+/g,' ').replace(/\s*,\s*/g,',');//複数連続スペースやカンマを一つに変換
-					console.log("raw_tag_s:"+JSON.stringify(raw_tag_s));
+//					console.log("raw_tag_s:"+JSON.stringify(raw_tag_s));
 					var tag_s2 = [];
 					$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
 						var trimed_tag = tag.trim();
 						var pooled_tag_s = [];
 						$.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibiling
-							var tag_num = sbl.trim().split(LOOP_HLD);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
+							var tag_num = split_ignore_nest(sbl.trim() , LOOP_HLD,[["(",")"]]);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 							var loop_num = 1;
 							if(tag_num.length > 1){
 								var raw_num = tag_num[1];
-								console.log("loop_num : "+raw_num);
+//								console.log("loop_raw_num : "+raw_num);
 								raw_num = param_s.hasOwnProperty(raw_num) ? param_s[raw_num] : raw_num;
 								if( ! $.isNumeric(raw_num)){
-									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
-									loop_num = reverse_porlish_notation(raw_num, param_s, param_s);
-									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', param_s : '+JSON.stringify(param_s));
+//									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
+									var result = reverse_porlish_notation_logic(raw_num, param_s, resolved_param_s);
+									loop_num = result[0];
+									resolved_param_s = result[2];
+//									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', param_s : '+JSON.stringify(param_s) + ', resolved : '+JSON.stringify(resolved_param_s));
 								}else{
 									loop_num = parseInt(raw_num, 10);
 								}
@@ -480,7 +483,7 @@
 						}
 						// Important position : absoluteが必須だが､ここで設定してもdraggableで上書きされるため無駄
 					}catch(e){
-						console.log(e);//TODO
+						console.log(e);
 					}
 					//console.log('prop_s : '+JSON.stringify(rtn));
 					return rtn;
@@ -509,6 +512,7 @@
 				* 副作用 param_mapに
 				*/
 				function extract_param_from(_input_tag, param_map, parent_param_s){
+//console.log('extract_param_from : '+JSON.stringify(arguments));
 					var parenthesis_first = _input_tag.indexOf('(');
 					var parenthesis_last = _input_tag.lastIndexOf(')');
 					if( parenthesis_last < parenthesis_first || parenthesis_first * parenthesis_first < 0 ){
@@ -520,43 +524,18 @@
 						var raw_param_split = raw_param.split(',');
 						var length_raw_param_split = raw_param_split.length;
 						var param_s = {};
+						var resolved = {};
+						$.extend(true, resolved, param_map, parent_param_s);
 						for(var p=0; p<length_raw_param_split; ++p){
-							var var_val = raw_param_split[p].split('=');
-							var val = null;
-							var var_idx = null;
-							if(var_val.length !== 1){
-								if(var_val.length === 2){
-									if(param_map.hasOwnProperty(var_val[0])){
-										throw new Error('Error var dupe : '+input_tag);
-									}
-								}else{
-									throw new TypeError(var_val);
-								}
-							}
-							var_idx = var_val.length - 1;
-							val = var_val[var_idx];
-							var param_key = var_val[0];
-							if(var_idx > 0){// この関数で=を用いて変数に値を設定している場合
-								param_map[param_key] = parent_param_s.hasOwnProperty(val) ? parent_param_s[val] : val;
-							}
-							val = param_map.hasOwnProperty(var_val[0]) ? param_map[var_val[0]] : parent_param_s.hasOwnProperty(param_key) ? parent_param_s[param_key] : val;
-							param_s["$"+Object.keys(param_s).length] = val;
+							var val_param_extract = reverse_porlish_notation_logic(raw_param_split[p], resolved,{});
+//console.log('val_param_extract : '+JSON.stringify(val_param_extract));
+							$.extend(resolved,val_param_extract[2]);
+//TODO mod same param_map 
+							param_s["$"+Object.keys(param_s).length] = val_param_extract[0];
 						}
 					}else{
 						input_tag = _input_tag;
 						param_s = {};
-					}
-
-					//resolving param_s by param_map
-					if($.isPlainObject(param_s)){
-						var tmp_param_s = {};
-						$.each(Object.keys(param_s),function(idx, key){
-							try{
-								param_s[key] = reverse_porlish_notation(param_s[key], param_map, tmp_param_s);//逆ポーランド記法のSyntaxチェック
-							}catch(e){
-								console.log('re porlisth error : '+e);
-							}
-						});
 					}
 //console.log('extract_param_from : ' + _input_tag + ' : ' + JSON.stringify([input_tag,param_s]));
 					return [input_tag,param_s];
@@ -604,7 +583,7 @@
 					for(var i=0; i < length_forbidden; ++i){
 						var tgt = 関数タグの対象外css_selector[i];
 						if(prop_s.hasOwnProperty(tgt) && prop_s[tgt] != ''){
-							console.log('prop_s : ' + JSON.stringify(prop_s));
+//							console.log('prop_s : ' + JSON.stringify(prop_s));
 							alert("Sorry. parts in Tag don't support #.[]");
 							throw new TypeError("Sorry. parts in Tag don't support #.[]");
 						}
@@ -732,7 +711,7 @@
 						var linear_data = format_raw_tag_s(raw_tag_s, []);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
 						var param_map = {};
 						var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
-console.log('start convert_lineardata_to_child_s');
+//console.log('start convert_lineardata_to_child_s');
 						var root = convert_lineardata_to_child_s(linear_data, prop_map, val_s, part_map, param_map, [], infinite_loop_check);
 
 						//値埋め
@@ -778,12 +757,13 @@ console.log('start convert_lineardata_to_child_s');
 						var require_s = setting['require_s'];
 						$.each(require_s, function(layer_idx, require){
 							if( ! prop_s.hasOwnProperty(require)){
-								console.log("This "+tag+" tag requires a "+require+" prop.");//TODO exception
+								console.log("This "+tag+" tag requires a "+require+" prop.")
+									throw new Error("This "+tag+" tag requires a "+require+" prop.");
 							}
 						});
 					}
 
-					//console.log('tag : '+tag);//TODO
+					//console.log('tag : '+tag);
 					var length_target_s	 = target_s.length;
 					for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
 						var target = $(target_s[idx_tgt]);
@@ -819,7 +799,7 @@ console.log('start convert_lineardata_to_child_s');
 						}
 						work_jq
 							.addClass(CLASS_HTMLIZE)
-							.attr('data-my-obj-id', my_regular_id)//TODO separator _
+							.attr('data-my-obj-id', my_regular_id)
 							.data('my-obj-id', my_regular_id)
 							.attr({"id":user_input_id})
 							.on('click',function(ev){
@@ -1017,7 +997,7 @@ console.log('start convert_lineardata_to_child_s');
 
 					var prop_s = JSON.parse( el_selected_val_prop_json.val() );
 					if( ! $.isPlainObject(prop_s)){
-						throw new TypeError('prop is not JSON style.');//TODO exception
+						throw new TypeError('prop is not JSON style.');
 					}
 
 					$.each(target_s, function(idx, _target){
@@ -1641,45 +1621,50 @@ console.log('start convert_lineardata_to_child_s');
 				var IDX_MULTI = OPERATOR_CHAR_S.indexOf('*');
 				var IDX_PAREN = OPERATOR_CHAR_S.indexOf('(');
 				var IDX_EQUAL = OPERATOR_CHAR_S.indexOf('=');
-				function reverse_porlish_notation(formula, _param_s, _tmp_param_s){
+				var operator_s =[ //null
+					,function(a0, a1){is_calcable(a0,a1); return a1 + a0;}
+					,function(a0, a1){is_calcable(a0,a1); return a1 - a0;}
+					,function(a0, a1){is_calcable(a0,a1); return a1 * a0;}
+					,function(a0, a1){is_calcable(a0,a1); return a1 / a0;}
+					,function(a0, a1){is_calcable(a0,a1); return a1 % a0;}
+				];
+				function is_calcable(a0, a1){
+					if($.isNumeric(a0) && $.isNumeric(a1)){
+						return ;
+					}else{
+						throw new TypeError(a0 + ' : ' + a1 + ' are not resolved ');
+					}
+				}
+				function reverse_porlish_notation(formula, _param_s){
 					var param_s = if_nullOrUndef_then_return_init(_param_s, {});
-					var tmp_param_s = if_nullOrUndef_then_return_init(_tmp_param_s, {});
-//console.log('formula : '+formula);
-					var _formula = formula;
+					return reverse_porlish_notation_logic(formula, param_s, {})[0];
+				}
+				function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
+//console.log('reverse_porlish_notation_logic : '+JSON.stringify(arguments));
+					var param_s = {}; $.extend(true,param_s, _param_s);
+					var resolved_param_s = {}; $.extend(true,resolved_param_s, _resolved_param_s);
+					var formula = _formula;
 					var _parent_counter = 0;
-					if($.isArray(_formula)){
-						_formula = _formula.join(' ');
+					if($.isArray(formula)){
+						formula = formula.join(' ');
 					}
-					if(typeof _formula === 'string'){
-						_formula = formula.replace(/\s+/g,' ').trim();
+					if(typeof formula === 'string'){
+						formula = formula.replace(/\s+/g,' ').trim();
 					}
-					var operator_s =[ //null
-						,function(a0, a1){
-							if($.isNumeric(a0) && $.isNumeric(a1)){
-								return a0 + a1;
-							}else{
-								throw new TypeError(a0 + ' : ' + a1 + ' are not resolved ');
-							}
-						}
-						,function(a0, a1){return a1 - a0;}
-						,function(a0, a1){return a1 * a0;}
-						,function(a0, a1){return a1 / a0;}
-						,function(a0, a1){return a1 % a0;}
-					];
-					if(_formula != null && typeof _formula !== 'undefined'){
+					if(formula != null && typeof formula !== 'undefined'){
 						var stack = [];
 						var pool = '';
 						var num = 0;
-						var length_formula = _formula.length;
+						var length_formula = formula.length;
 						for(var i=0; i<length_formula; ++i){
-							var c = _formula.charAt(i);
+							var c = formula.charAt(i);
 							var op_idx = OPERATOR_CHAR_S.indexOf(c);
 							if (op_idx === 0) {
 								if(pool !== ''){
-									var pool = param_s.hasOwnProperty(pool) ? param_s[pool] : pool;
+									pool = param_s.hasOwnProperty(pool) ? param_s[pool] : resolved_param_s.hasOwnProperty(pool) ? resolved_param_s[pool] : pool;
 									if(pool === '+' || pool === '-'){//(+3 -1 +)への対応
 										stack.push(operator_s[OPERATOR_CHAR_S.indexOf(pool)] (stack.pop(), stack.pop()));
-									}else if( ! $.isNumeric(pool) ){
+									}else if(! $.isNumeric(pool) && pool.lastIndexOf('$',0) === 0){//var route
 										stack.push(pool);
 										pool = '';
 									}else{
@@ -1689,18 +1674,21 @@ console.log('start convert_lineardata_to_child_s');
 									}
 								}
 							}else	if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN 
-											|| ((i+1 === length_formula || _formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
+											|| ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 								stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 							}else if( op_idx === IDX_PAREN){
 								++i;
 								++_parent_counter;
 								var pool_formula = "";
 								for(; i<length_formula; ++i){
-									c = _formula.charAt(i);
+									c = formula.charAt(i);
 									if( c === '(') ++_parent_counter;
 									if( c === ')') --_parent_counter;
 									if(_parent_counter === 0){
-										stack.push(reverse_porlish_notation(pool_formula, param_s, tmp_param_s));
+										var result = reverse_porlish_notation_logic(pool_formula, param_s,resolved_param_s);
+										param_s = result[1];
+										resolved_param_s = result[2];
+										stack.push(result[0]);
 										break;
 									}
 									pool_formula += c;
@@ -1710,30 +1698,36 @@ console.log('start convert_lineardata_to_child_s');
 							}else if( op_idx === IDX_EQUAL ){
 								var val = stack.pop();// 評価順に依存しないため
 								var key = stack.pop();
-								while(! $.isNumeric(val) && tmp_param_s.hasOwnProperty(val) ){
-									val = tmp_param_s[val];
+								while(! $.isNumeric(val) && resolved_param_s.hasOwnProperty(val) ){
+									val = resolved_param_s[val];
 								}
-								tmp_param_s[key] = val;								
+								if($.isNumeric(key)){
+									throw new TypeError('Error '+key+' is not var. val is ' + val);
+								}
+								resolved_param_s[key] = val;								
 								stack.push(val);
 							}else{
 								pool += c;
 							}
-						}
+						}//end for
 						if(pool != null && pool != ''){
+							pool = param_s.hasOwnProperty(pool) ? param_s[pool] : resolved_param_s.hasOwnProperty(pool) ? resolved_param_s[pool] : pool;
 							stack.push(pool);
 						}
 					}
 					if(stack.length !== 1){
-						console.log('tmp_param_s : '+JSON.stringify(tmp_param_s));
+						console.log('resolved_param_s : '+JSON.stringify(resolved_param_s));
 						console.log('stack : '+ JSON.stringify(stack));
 						throw new Error("Error formula is illegal : " + formula + ' : param_s : ' + JSON.stringify(param_s));
 					}
 					var rtn = stack[0];
 					if( ! $.isNumeric(rtn) ){
 						throw new Error("Error var " + rtn + ' is not resolved ');
+					}else{
+						rtn = parseInt(rtn,10);
 					}
-
-					return rtn;
+//console.log('return reverse_porlish_notation_logic '+JSON.stringify([rtn,param_s,resolved_param_s]));
+					return [rtn,param_s,resolved_param_s];
 				}
 
 				function if_nullOrUndef_then_return_init(param, init){
@@ -1743,7 +1737,10 @@ console.log('start convert_lineardata_to_child_s');
 						return param;
 					}
 				}
-
+				console.log(reverse_porlish_notation('1 5 -') === -4);
+				console.log(JSON.stringify(reverse_porlish_notation_logic("$a ($b 3 *) =",{"$b":2},{})));
+				console.log(JSON.stringify(reverse_porlish_notation_logic("$c $a $b 4 * = =",{"$b":3},{})));
+				console.log(JSON.stringify(reverse_porlish_notation_logic("$a $b 4 * = 4 *",{"$b":3},{})));
 				console.log(reverse_porlish_notation('$0 $1 +', {"$0":1,"$1":3}) === 4);
 				console.log(reverse_porlish_notation('4 (6 (3 $0 +) +) * 2 (1 $1 +) * /', {"$0":1,"$1":3}) === 5);
 
@@ -1759,6 +1756,7 @@ console.log('start convert_lineardata_to_child_s');
 				console.log(split_ignore_nest('table>thead_th($col=$0)+tbody_th_td(($col -1 +),$row=$1)','+',[["(",")"]]));
 				console.log(split_ignore_nest('Hello(world,!!)',',',[["(",")"]]));
 				console.log(split_ignore_nest('true','',[]));
+				console.log(reverse_porlish_notation_logic("$0",{"$0":3,"$1":6,"$2":2},{}));
 
 			});
 		</script>
