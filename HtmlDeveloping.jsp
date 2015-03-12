@@ -155,8 +155,8 @@
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:1100px; height:7em;border-radius:20px;" >
 			<label for="ValTag">Tag	 </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="table_cross_header($a 5 =,6,$a 4 -)" /><br />
-			<input type="hidden" id="part_list_input" class="json_val" value="test" />
-			<label for="ValArrayJSON">vals	</label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" /><br />
+			<input type="hidden" id="part_list_input" class="json_val" value="" />
+			<label for="ValArrayJSON">vals	</label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" value="test" /><br />
 			<input type="hidden" id="prop_list_input" class="json_val" value="" />
 			<input type="button" class="menu_button" value="Ins" id="FuncInsElement" /><input type="button" class="menu_button" value="Reg" id="FuncRegElement" />
 		</section>
