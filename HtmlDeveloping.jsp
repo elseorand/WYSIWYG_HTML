@@ -99,6 +99,26 @@
 				opacity: 0.6;
 			}
 
+			.objCut {
+				border:4px dotted blue !important;
+				opacity: 0.6;
+			}
+
+			.objCut *{
+				background-color: #aaccff !important;
+				opacity: 0.6;
+			}
+
+			.objCopy {
+				border:4px dotted green !important;
+				opacity: 0.6;
+			}
+
+			.objCopy *{
+				background-color: #aaffcc !important;
+				opacity: 0.6;
+			}
+
 			label {
 				padding-left: 5px;
 				padding-right: 5px;
@@ -128,18 +148,20 @@
 
 			</section>
 			<section id="sub_header_menu_bar" class="hide_mode_target menu_bar" data-fire-key-code="escape"	 style="position:fixed;top:0px ;left: 0px ;z-index:101; display:none;" >
-				<input type="button" value="Save" id="FuncSave" />
-				<input type="button" value="Load" id="FuncLoad" />
+				<input type="button" value="Save" id="func_save_element" />
+				<input type="button" value="Load" id="func_load_element" />
 				<input type="text" id="saved_serialized"	placeholder="click save => The data comes here" />
 				<select id="history" ></select>
 			</section>
 		</header>
 		<section id="screen" style="position:absolute; top:44px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0"></section>
 		<section id="side_menu_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:540px;z-index:101;right:0px;width:20%; height:30%;border-radius:20px;" >
-			<input type="button" value="Del" id="FuncDeleteElement" /><br />
-			<input type="button" value="CxlSel" id="FuncCancelSelected" /><br />
-			<input type="button" value="Copy" id="FuncCopyElement" /><br />
-			<input type="button" value="Html" id="FuncHtmlElement" /><br />
+			<input type="button" value="Del" id="func_delete_element" /><br />
+			<input type="button" value="CxlSel" id="func_cxlselected_element" /><br />
+			<input type="button" value="Copy" id="func_copy_element" /><br />
+			<input type="button" value="Cut" id="func_cut_element" /><br />
+			<input type="button" value="Paste" id="func_paste_element" /><br />
+			<input type="button" value="Html" id="func_html_element" /><br />
 			<textarea id="sandbox_screen" ></textarea>
 			<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
 		</section>
@@ -158,15 +180,15 @@
 			<input type="hidden" id="part_list_input" class="json_val" value="" />
 			<label for="ValArrayJSON">vals	</label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" value="test" /><br />
 			<input type="hidden" id="prop_list_input" class="json_val" value="" />
-			<input type="button" class="menu_button" value="Ins" id="FuncInsElement" /><input type="button" class="menu_button" value="Reg" id="FuncRegElement" />
+			<input type="button" class="menu_button" value="Ins" id="func_insert_element" /><input type="button" class="menu_button" value="Reg" id="FuncRegElement" />
 		</section>
 		<footer style="position:fixed; bottom:0px;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
-				<input type="button" value="Select" id="FuncSelectElement" />
+				<input type="button" value="Select" id="func_select_element" />
 				<label for="SelectedMyObjId">MyID</label><input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/>
-				<input type="button" value="UpSlctd" id="FuncUpdateElement" class="menu_button" />
+				<input type="button" value="UpSlctd" id="func_update_element" class="menu_button" />
 				<label for="SelectedValTag">Tag</label><input type="text" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
-				<label for="SelectedValArrayJSON">vals</label><input type="text" id="SelectedValArrayJSON" class="autoExtend" style="width:10em"/>
+				<label for="SelectedValArrayJSON">vals</label><input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>
 				<label for="SelectedValPropJSON" >props</label><input type="text" id="SelectedValPropJSON" class="autoExtend json_val" style="width:15em" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
 		</footer>
@@ -179,7 +201,11 @@
 				// Constatns
 				var DEFAULT_GRID_SIZE = 32;
 				var CLASS_SELECTED = 'objSelected';
+				var CLASS_COPY = 'objCopy';
+				var CLASS_CUT = 'objCut';
 				var CLASS_HTMLIZE = 'htmlize';
+				var CLASS_S = {"selected":CLASS_SELECTED, "copy":CLASS_COPY,"cut":CLASS_CUT,"htmlize":CLASS_HTMLIZE};
+				
 				var LAYER_SEP = '>';
 				var LOOP_HLD = '*';
 				var SBL_HLD = '+';
@@ -187,17 +213,14 @@
 				var DEFAULT_HEIGHT = 30;
 
 
-				// Fields //TODO 統合Funcオブジェクトの作成
+				// Fields
 				// func
-				var el_func_ins_element = $('#FuncInsElement');
-				var el_func_select_element = $('#FuncSelectElement');
-				var el_func_update_element = $('#FuncUpdateElement');
-				var el_func_copy_element = $('#FuncCopyElement');
-				var el_func_html_element = $('#FuncHtmlElement');
-				var el_func_delete_element = $('#FuncDeleteElement');
-				var el_func_save = $('#FuncSave');
-				var el_func_load = $('#FuncLoad');
-				var el_func_cancel_selected = $('#FuncCancelSelected');
+				var func_name_s = ["copy","cut","paste","html","delete","insert","select","update","save","load","cxlselected"];
+				var el_func_s = {};
+				$.each(func_name_s,function(idx, name){
+					el_func_s[name] = $('#func_'+name+'_element');
+				});
+									var el_func_cancel_selected = $('#func_cxlselected_element');
 				var el_func_json_val = $('.json_val');
 
 				// input area
@@ -530,7 +553,7 @@
 							var val_param_extract = reverse_porlish_notation_logic(raw_param_split[p], resolved,{});
 //console.log('val_param_extract : '+JSON.stringify(val_param_extract));
 							$.extend(resolved,val_param_extract[2]);
-//TODO mod same param_map 
+//TODO mod same param_map n
 							param_s["$"+Object.keys(param_s).length] = val_param_extract[0];
 						}
 					}else{
@@ -561,17 +584,17 @@
 					}
 
 					if(prop_map.hasOwnProperty('*')){
-						prop_s['style'] = prop_map['*'];
+						$.extend(true,prop_s, prop_map['*']);
 					}
-					var tmp_cls = '';
+					var tmp_cl_s = '';
 					for(var cl=1; cl < tag_id_cls.length; ++cl){//0 := tag#id
 						var tmp = tag_id_cls[cl];
-						tmp_cls += tmp+' ';
+						tmp_cl_s += tmp+' ';
 						if(prop_map.hasOwnProperty( '.'+tmp)){
-							prop_s['style'] = merge_css(prop_s['style'], prop_map['.'+tmp]);
+							prop_s['style'] = merge_css(prop_s['style'], prop_map['.'+tmp]['style']);
 						}
 					}
-					prop_s['class'] = tmp_cls;
+					prop_s['class'] = tmp_cl_s;
 					if(tag.indexOf('=') > -1){
 						//TODO []
 					}
@@ -702,6 +725,7 @@
 				 * tableやinputはdivでwrapするなど副作用があります｡
 				 */
 				function convert_data_to_display(raw_tag_s , raw_val_s , raw_prop_s, raw_tag_holder_s){
+					console.log('convert_data_to_display '+JSON.stringify(arguments));
 					try{
 						// 引数 整形 処理
 						var val_s = format_raw_val_s(raw_val_s);
@@ -938,11 +962,11 @@
 
 				el_float_menu.resizable({"autoHide":true,"minWidth":80}).draggable();
 				el_screen_area.on('click',function(){
-					el_func_cancel_selected.trigger('click');
+					el_func_s['cxlselected'].trigger('click');
 				});
 
 				// menu func
-				el_func_ins_element.on('click', function(){
+				el_func_s['insert'].on('click', function(){
 					try{
 						var for_add_target_s = null;
 						var el_selected_s = $('.'+CLASS_SELECTED);
@@ -968,7 +992,7 @@
 				/**
 				 *
 				 */
-				el_func_update_element.on('click', function(){
+				el_func_s['update'].on('click', function(){
 					var target_s;
 					var el_selected_s = $('.'+CLASS_SELECTED);
 					if( el_selected_s.length > 0){
@@ -1045,34 +1069,49 @@
 					});
 				});
 
-				el_func_select_element.on('click', function(){
+				el_func_s['select'].on('click', function(){
 					var my_regular_id = el_selected_val_id.val();
 					select_element(my_regular_id);
 				});
-
-				el_func_copy_element.on('click', function(){
+				
+				var copy_cut_func_s = ["copy","cut"];
+				/**
+				 * copy : no recursive , mono layer
+				 */
+					$.each(copy_cut_func_s,function(idx, name){
+						el_func_s[name].on('click', function(){
+							try{
+								$('.'+CLASS_SELECTED).toggleClass(CLASS_S[name]);
+							}catch(e){
+								console.log(e);
+							}
+						});
+					});
+						
+				/**
+				 * paste
+				 */
+				el_func_s['paste'].on('click', function(){
 					try{
 						var added_target_s = null;
-						var el_selected_s = $('.'+CLASS_SELECTED);
+						var el_selected_s = $('.'+CLASS_COPY + ', .'+CLASS_CUT);
 						if( el_selected_s.length > 0){
 							added_target_s = el_selected_s;
 						}else{
 							added_target_s = [el_screen_area];//追加先のデフォルトはscreen
 						}
-
+//TODO tmp copy impl
 						var root = convert_data_to_display( el_selected_val_tag.val()
 								, el_selected_val_array_json.val(), el_selected_val_prop_json.val(), {});
-
-						//console.log('root:'+JSON.stringify(root.child_s));
 						$.each(root.child_s, function(cIdx, child){
-							display_onscreen(added_target_s, child);
+							display_onscreen([el_screen_area], child);
 						});
 					}catch(e){
 						console.log(e);
 					}
 				});
 
-				el_func_html_element.on('click',function(){
+				el_func_s['html'].on('click',function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = JSON.parse(raw_child);
 					if( ! $.isArray(parsed)){
@@ -1097,12 +1136,12 @@
 					el_sandbox_screen_area.html(output_html);
 				});
 
-				el_func_delete_element.on('click', function(){
+				el_func_s['delete'].on('click', function(){
 					//console.log("delete");
 					mthd_delete_element_impl(CLASS_SELECTED);
 				});
 
-				el_func_cancel_selected.on('click', function(){
+				el_func_s['cxlselected'].on('click', function(){
 					$('.'+CLASS_SELECTED).each(function(){
 						$(this).removeClass(CLASS_SELECTED);
 					});
@@ -1123,7 +1162,7 @@
 				/**
 				 * saveされる対象はdata-my-obj-idが付与されているもの
 				 */
-				el_func_save.on('click', function(){
+				el_func_s['save'].on('click', function(){
 					var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 					//console.log('mother id:'+mother_id);
 					var stringified = get_tree_select_dom(mother_id).stringify();
@@ -1137,7 +1176,7 @@
 				++history_counter;
 				});
 
-				el_func_load.on('click', function(){
+				el_func_s['load'].on('click', function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = [];
 					try{
