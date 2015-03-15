@@ -725,7 +725,7 @@
 				 * tableやinputはdivでwrapするなど副作用があります｡
 				 */
 				function convert_data_to_display(raw_tag_s , raw_val_s , raw_prop_s, raw_tag_holder_s){
-					console.log('convert_data_to_display '+JSON.stringify(arguments));
+					//console.log('convert_data_to_display '+JSON.stringify(arguments));
 					try{
 						// 引数 整形 処理
 						var val_s = format_raw_val_s(raw_val_s);
@@ -818,7 +818,7 @@
 						var my_regular_id = parent_id+'_'+ my_obj_id;
 						//console.log('parent my-obj-id:'+parent_id +', mine:'+my_regular_id);
 						var user_input_id = work_jq.attr('id');
-						if( typeof user_input_id === 'undefined' ){
+						if( typeof user_input_id === 'undefined' || $('#'+user_input_id).length !== 0 ){
 							user_input_id = my_regular_id;
 						}
 						work_jq
@@ -826,7 +826,7 @@
 							.attr('data-my-obj-id', my_regular_id)
 							.data('my-obj-id', my_regular_id)
 							.attr({"id":user_input_id})
-							.on('click',function(ev){
+							.on('click',function(ev){// 選択処理実装
 								ev.stopPropagation();
 								if( not_click ){
 									//console.log(not_click);
@@ -835,7 +835,6 @@
 								}
 								//console.log(work_jq.attr('id')+':click');
 								select_element(my_regular_id, work_jq);//TODO XXX
-
 							});
 						var length_child_s = child_s.length;
 						for(var idx_child=0; idx_child < length_child_s; ++idx_child){
@@ -915,13 +914,13 @@
 						target_css = '.'+target_css;
 					}
 					$(target_css).each(function(){
-						var _this = $(this);
-						var my_regular_id = _this.data('my-obj-id');
-						//console.log('delete my_regular_id:'+my_regular_id);
-						$('[data-my-obj-id^="'+my_regular_id+'_"]', el_screen_area).empty().remove();
-						_this.empty().remove();
+						var my_regular_id = $(this).data('my-obj-id');
+						mthd_delete_element_by_my_id(my_regular_id);
 					});
 					//console.log('delete css:'+target_css);
+				}
+				function mthd_delete_element_by_my_id(my_regular_id){
+					$('[data-my-obj-id="'+my_regular_id+'"]', el_screen_area).empty().remove();
 				}
 
 				function getStatus(){
@@ -943,7 +942,7 @@
 				$('.menu_bar').on('keyup change mouseout','.autoExtend',function(){
 					var _this = $(this);
 					var length_val = 0;
-					if(_this.get(0).tagName === 'textarea'){
+					if(_this.get(0).localName === 'textarea'){
 						length_val = _this.html().length;
 					}else{
 						length_val = _this.val().length;
@@ -1074,18 +1073,27 @@
 					select_element(my_regular_id);
 				});
 				
-				var copy_cut_func_s = ["copy","cut"];
+				var 互いに排他の機能_s = ["copy","cut"];
+				var 互いに排他機能のCLASSを含まないセレクタ = '';
 				/**
 				 * copy : no recursive , mono layer
 				 */
-					$.each(copy_cut_func_s,function(idx, name){
+					$.each(互いに排他の機能_s,function(idx, name){
+						var now_class = CLASS_S[name];
 						el_func_s[name].on('click', function(){
 							try{
-								$('.'+CLASS_SELECTED).toggleClass(CLASS_S[name]);
+								var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
+								//新規選択分があれば､それのみを処理し､既存分は触らない
+								if(new_targeted.length > 0){
+									new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
+								}else{//新規選択分がなければ､全解除し選択状態に
+									$('.'+now_class).removeClass(now_class).addClass(CLASS_SELECTED);
+								}
 							}catch(e){
 								console.log(e);
 							}
 						});
+						互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
 					});
 						
 				/**
@@ -1094,17 +1102,24 @@
 				el_func_s['paste'].on('click', function(){
 					try{
 						var added_target_s = null;
-						var el_selected_s = $('.'+CLASS_COPY + ', .'+CLASS_CUT);
+						var el_selected_s = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);//xxx
 						if( el_selected_s.length > 0){
 							added_target_s = el_selected_s;
 						}else{
 							added_target_s = [el_screen_area];//追加先のデフォルトはscreen
 						}
-//TODO tmp copy impl
-						var root = convert_data_to_display( el_selected_val_tag.val()
-								, el_selected_val_array_json.val(), el_selected_val_prop_json.val(), {});
-						$.each(root.child_s, function(cIdx, child){
-							display_onscreen([el_screen_area], child);
+
+						$.each(互いに排他の機能_s,function(idx, name){
+							var now_class = CLASS_S[name];
+							$('.'+now_class).each(function(){
+								var _this = $(this);
+								var my_obj_id = _this.attr('data-my-obj-id');
+								if(typeof my_obj_id !== 'undefined'){
+									var root = get_child_tree_select_dom(my_obj_id).raw()[my_obj_id];
+									if(name === 'cut') mthd_delete_element_by_my_id(my_obj_id);//TODO
+									display_onscreen(added_target_s, root);
+								}
+							});
 						});
 					}catch(e){
 						console.log(e);
@@ -1165,7 +1180,7 @@
 				el_func_s['save'].on('click', function(){
 					var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 					//console.log('mother id:'+mother_id);
-					var stringified = get_tree_select_dom(mother_id).stringify();
+					var stringified = get_child_tree_select_dom(mother_id).stringify_child_s();
 					el_saved_serialized.val(stringified);
 					MY_STORAGE
 						.transaction()
@@ -1472,9 +1487,19 @@
 							}
 							pool[my_obj_id] = body;
 						},
-							"stringify":function(){
+							"stringify_child_s":function(){
 								var rtn = JSON.stringify(pool[mother_id].child_s);
 								//console.log(rtn);
+								return rtn;
+							},
+							"stringify":function(){
+								var rtn = JSON.stringify(pool);
+								//console.log(rtn);
+								return rtn;
+							},
+							"raw":function(){
+								var rtn = {};
+								$.extend(true,rtn, pool);
 								return rtn;
 							}
 					};
@@ -1594,23 +1619,18 @@
 					};
 				};
 
-				function get_tree_select_dom(mother_id){
-					var user_add_content_s = $('*[data-my-obj-id^='+mother_id+'_]', el_screen_area);
+				function extract_from_dom(tree, user_add_content_s){
 					var len_content_s = user_add_content_s.length;
-					var tree = _tree(mother_id);
-					//TODO save する root を自動取得 selected対応
-					var root = my_apply();
-					root.tag = 'section';//TODO
-					tree.upsert(mother_id,root);
-
 					for(var i=0; i < len_content_s; ++i){
 						var target = my_apply();
-						var content = user_add_content_s.get(i);
+						var content = user_add_content_s[i];
 						var _content = $(content);
 						var my_obj_id = _content.data('my-obj-id');
 
+						for(var key in content) if(typeof _content.attr(key) !== 'undefined'){
+							target.prop_s[key] = _content.attr(key);
+						}
 						target.tag = content.localName;
-						target.prop_s.style = _content.attr('style');
 
 						var raw_my_obj_val = _content.data('my-obj-val');
 						var my_obj_val ;
@@ -1636,10 +1656,18 @@
 						tree.upsert(my_obj_id, target);
 					}
 					return tree;
+				}
+
+				function get_child_tree_select_dom(mother_id){
+					var user_add_content_s = $(' *[data-my-obj-id^='+mother_id+'_]', el_screen_area);
+					var root_dom = $('*[data-my-obj-id='+mother_id+']')[0];
+					var tree = _tree(mother_id);
+					tree = extract_from_dom(tree, [root_dom]);
+					return extract_from_dom(tree, user_add_content_s);
 				};
 
 				function get_z_index(my_layer_idx){
-					return 110 + my_layer_idx;
+					return 110 + parseInt(my_layer_idx,10);
 				};
 				function get_top(my_layer_idx){
 					if( my_layer_idx === 0){
