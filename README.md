@@ -142,7 +142,7 @@ Select elements and Click "Delete" button.
 
 ## Copy, Cut And Paste<a id="sec-1-4"></a>
 
-The borders of copyed or cut elements become dotted and green, blue. Their children become transparent.  
+The border of copyed or cut elements become dotted and green, blue. Their children become transparent.  
          You cau select some elements.
 
 ### the way of copying or cutting<a id="sec-1-4-1"></a>
