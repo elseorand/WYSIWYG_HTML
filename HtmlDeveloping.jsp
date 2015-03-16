@@ -1108,7 +1108,7 @@
 						}else{
 							added_target_s = [el_screen_area];//追加先のデフォルトはscreen
 						}
-
+//TODO bug infinite loop
 						$.each(互いに排他の機能_s,function(idx, name){
 							var now_class = CLASS_S[name];
 							$('.'+now_class).each(function(){
@@ -1470,7 +1470,10 @@
 					var pool = {};
 					return {
 						"upsert":function(my_obj_id, body){
-							var parent_obj_id = my_obj_id.substring(0,my_obj_id.lastIndexOf('_'));
+							if($.isNumeric(my_obj_id)){
+								my_obj_id = my_obj_id.toString();
+							}
+							var parent_obj_id = my_obj_id.substring(0,my_obj_id.toString().lastIndexOf('_'));
 							var pooled_parent =	 pool[parent_obj_id];
 							if( typeof pooled_parent === 'undefined'){
 								var newer = my_apply();
