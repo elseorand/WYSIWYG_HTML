@@ -118,7 +118,7 @@ Creating a HTML mock on Real browser.
 
 ## Select<a id="sec-1-2"></a>
 
-The borders of selected elements become dotted and red. Their children become transparent.  
+The borders of selected elements becomes dotted and red. Their children become transparent.  
          You cau select some elements.
 
 ### Two ways of selecting<a id="sec-1-2-1"></a>
