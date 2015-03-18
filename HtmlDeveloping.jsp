@@ -253,6 +253,7 @@
 				var サイズを持たせないタグ = ["tbody","thead","tr"];
 				var resizableのみ対象のタグ = [];
 				var HTML5のタグには無い文字 = ["_","-","$",":",";","(",")","+","@","[","]","{","}","/",">","<",",",".","#","%","&","'",'"',"=","^","~"];
+				var 直接文字編集可能タグ = ["input","textarea"];
 
 				// status , state
 				var STATUS = getStatus();
@@ -678,6 +679,7 @@
 									}
 									var child = my_apply(tag, prop_s,[]);
 									new_parent_s.push(child);//子供もやがて親になる･･･
+									//wrap
 									if($.inArray(tag, draggableとresizableが同時には正常に動かないためwrapするタグ) > -1){
 										if(! child.prop_s.hasOwnProperty('class')){	child.prop_s['class'] = '';	}
 										child.prop_s['class'] += ' wrapped';
@@ -687,10 +689,8 @@
 								}
 							}
 						});
-						console.log('new_parent_s '+JSON.stringify(new_parent_s));
 						parent_s = new_parent_s;
 					});
-					console.log('last_child_s '+JSON.stringify(parent_s));
 					root_s.last_child_s = parent_s;
 					return root_s;
 				};
@@ -755,7 +755,6 @@
 						if(val_s !== null){
 							$.each(root.last_child_s, function(pIdx, parent){
 								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
-								console.log('setVal:'+setVal+' , parent.tag : '+parent.tag);
 								if( parent.tag === 'input'){
 									parent.prop_s["value"] = setVal;
 								}else{
@@ -819,8 +818,9 @@
 								}else{
 									work_jq.html(prop_s[prop]);
 								}
-								work_jq.data('my-obj-val', prop_s[prop]);
-								work_jq.attr('data-my-obj-val', prop_s[prop]);
+								work_jq
+								.data('my-obj-val', prop_s[prop])
+								.attr('data-my-obj-val', prop_s[prop]);
 							}else{
 								work_jq.attr(prop,prop_s[prop]);
 							}
@@ -853,6 +853,13 @@
 								}
 								//console.log(work_jq.attr('id')+':click');
 								select_element(my_regular_id, work_jq);//TODO XXX
+							})
+							.on('change',function(ev,obj){
+								var _this = $(this);
+								var val = _this.val()									
+								_this
+									.data('my-obj-val', val)
+									.attr('data-my-obj-val', val);
 							});
 						var length_child_s = child_s.length;
 						for(var idx_child=0; idx_child < length_child_s; ++idx_child){
@@ -882,7 +889,7 @@
 							resizableOption["alsoResize"] = '[data-my-obj-id^="'+my_regular_id+'_"]';
 							resizableOption["stop"] = function(ev, ui){
 								var tmp = $('*',work_jq);
-								work_jq.height(tmp.height() + 10).width(tmp.width() + 10);
+								work_jq.height(tmp.height() + 16).width(tmp.width() + 16);
 							};
 							//console.log("also tag:"+tag+', parent:'+parent_id);
 							//console.log("handle:"+JSON.stringify(draggableOption));
@@ -1180,7 +1187,7 @@
 
 				el_func_s['delete'].on('click', function(){
 					//console.log("delete");
-					mthd_delete_element_impl(CLASS_SELECTED);
+					mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
 				});
 
 				el_func_s['cxlselected'].on('click', function(){
@@ -1403,17 +1410,17 @@
 				//Util
 				function call_val(obj, set_val){
 					obj.data('my-obj-val', set_val);
-					obj.attr('my-obj-val', set_val);
+					obj.attr('data-my-obj-val', set_val);
 					obj.val(set_val);
 				}
 				function call_html(obj, set_val){
 					obj.data('my-obj-val', set_val);
-					obj.attr('my-obj-val', set_val);
+					obj.attr('data-my-obj-val', set_val);
 					obj.html(set_val);
 				}
 				function call_safe_html(obj, set_val){
 					obj.data('my-obj-val', set_val);
-					obj.attr('my-obj-val', set_val);
+					obj.attr('data-my-obj-val', set_val);
 					var _text = obj.text();
 					console.log('text : '+_text+', html : '+obj.html());
 					var kept = $(' > *',obj).detach();
