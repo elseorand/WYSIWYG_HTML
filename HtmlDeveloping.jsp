@@ -261,7 +261,7 @@
 
 				// Implement_s
 				function select_element(raw_select_my_obj_id, input_this){
-					console.log('select_element : '+JSON.stringify(arguments));
+//					console.log('select_element : '+JSON.stringify(arguments));
 					var _these;
 					var selector = '';
 					var no_aster = true;
@@ -283,7 +283,6 @@
 					_these.each(function(idx, in_this){
 						var _this = $(in_this);
 						var my_obj_id = _this.data('my-obj-id');
-						console.log('these my-obj-id:'+my_obj_id);
 						var is_my_selected = _this.data('my-selected');
 						if(typeof is_my_selected === 'undefined' || is_my_selected === false){
 							addSelected(_this);
@@ -302,7 +301,7 @@
 								}else{
 									set_val = new_prop_s.html;
 									if( typeof set_val === 'undefined'){
-										set_val = _this.text();
+										set_val = _this.data('my-obj-val');
 									}
 									el_selected_val_tag.val(_this.get(0).localName);
 								}
@@ -852,7 +851,7 @@
 									not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･
 									return;
 								}
-								console.log(work_jq.attr('id')+':click');
+								//console.log(work_jq.attr('id')+':click');
 								select_element(my_regular_id, work_jq);//TODO XXX
 							});
 						var length_child_s = child_s.length;
@@ -1049,7 +1048,6 @@
 							console.log('my-id : '+ target.attr('data-my-obj-id') + ' is wrapper. So skip.');
 							return true;
 						}
-						//console.log('tag name : '+ tag);
 						if( func_val !== null){
 							// do nothing
 						}else if( tag === 'input'){
@@ -1057,7 +1055,6 @@
 						}else{
 							func_val = call_safe_html;
 						}
-						//console.log('raw_val_s : '+JSON.stringify(raw_val_s));
 						func_val(target, raw_val_s[parseInt(idx % length_val_s, 10)] );
 						//prop
 						var org_prop_s = target.data('my-org-prop_s');
@@ -1211,7 +1208,6 @@
 					var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 					//console.log('mother id:'+mother_id);
 					var stringified = get_child_tree_select_dom(mother_id).stringify_child_s();
-console.log('stringified : '+stringified);
 					el_saved_serialized.val(stringified);
 					MY_STORAGE
 						.transaction()
@@ -1418,19 +1414,11 @@ console.log('stringified : '+stringified);
 				function call_safe_html(obj, set_val){
 					obj.data('my-obj-val', set_val);
 					obj.attr('my-obj-val', set_val);
-					var resizableOption = obj.data("resizable");
-					var is_resizable = true;
-					try{
-						obj.resizable('destroy');
-					}catch(e){
-						is_resizable = false;
-					}
 					var _text = obj.text();
-					var _html = obj.html().substring(_text.length);
-					obj.html(set_val + _html);
-					if( is_resizable){
-						obj.resizable(resizableOption);
-					}
+					console.log('text : '+_text+', html : '+obj.html());
+					var kept = $(' > *',obj).detach();
+					obj.text(set_val);
+					kept.appendTo(obj);
 				}
 				function call_text(obj, set_val){
 					obj.text(set_val);
