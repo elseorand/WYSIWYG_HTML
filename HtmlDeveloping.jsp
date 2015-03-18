@@ -247,7 +247,7 @@
 				var el_history = $('#history');
 
 				// settings
-				var tag_setting_s ={"input":{"require_s":["type"]}};
+				var tag毎の入力規則 ={"input":{"require_s":["type"],"default":{"type":"text"}}};
 				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul"];
 				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
 				var サイズを持たせないタグ = ["tbody","thead","tr"];
@@ -261,6 +261,7 @@
 
 				// Implement_s
 				function select_element(raw_select_my_obj_id, input_this){
+					console.log('select_element : '+JSON.stringify(arguments));
 					var _these;
 					var selector = '';
 					var no_aster = true;
@@ -282,17 +283,17 @@
 					_these.each(function(idx, in_this){
 						var _this = $(in_this);
 						var my_obj_id = _this.data('my-obj-id');
-						//console.log('my-obj-id:'+my_obj_id);
-						if(_this.data('my-selected') === false){
-							_this.data('my-selected', true);
-							_this.addClass(CLASS_SELECTED);
+						console.log('these my-obj-id:'+my_obj_id);
+						var is_my_selected = _this.data('my-selected');
+						if(typeof is_my_selected === 'undefined' || is_my_selected === false){
+							addSelected(_this);
 
 							if(length_these_minus_1 === idx){
 								if( no_aster ){
 									el_selected_val_id.val(my_obj_id);
 								}
-								var new_prop_s = _this.data('my-org-prop_s');
-								new_prop_s.style = merge_css( new_prop_s.style, _this.attr('style') );
+								var new_prop_s = if_nullOrUndef_then_return_init(_this.data('my-org-prop_s'),{"style":""});
+								new_prop_s.style = merge_css( new_prop_s.style, _this.attr('style') );//TODO styleが無い場合
 								var set_val ;
 								if( length_these_minus_1 > 0){
 									// 一度に複数選択された場合は 選択順の制御ができないため､valとして値の配列ではなく､updateを見越してnullを設定する
@@ -310,10 +311,22 @@
 								el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger('change');
 							}
 						}else{
-							_this.data('my-selected', false);
-							_this.removeClass(CLASS_SELECTED);
+							removeSelected(_this);
 						}
 					});
+				}
+
+				function removeSelected(jq_tgt){
+					jq_tgt
+						.data('my-selected', false)
+						.removeClass(CLASS_SELECTED);
+					return jq_tgt;
+				}
+				function addSelected(jq_tgt){
+					jq_tgt
+						.data('my-selected', true)
+						.addClass(CLASS_SELECTED);
+					return jq_tgt;
 				}
 
 				/**
@@ -618,7 +631,7 @@
 					}
 				}
 
-				function convert_lineardata_to_child_s(tag_s2, prop_map, val_s, part_map, param_map, parent_param_s, infinite_loop_check){
+				function convert_lineardata_to_child_s(tag_s2, prop_map, part_map, param_map, parent_param_s, infinite_loop_check){
 					var root_s = {"child_s":[],"last_child_s":[]};
 					var parent_s = [root_s];
 					var length_tag_s2 = tag_s2.length;
@@ -650,7 +663,7 @@
 									//error check
 									check_input_data(tag, prop_s, infinite_loop_check);
 									infinite_loop_check.push(tag);//new
-									var child_last = convert_lineardata_to_child_s(format_raw_tag_s(part_map[tag], param_s), prop_map, val_s, part_map, param_map, param_s, infinite_loop_check);
+									var child_last = convert_lineardata_to_child_s(format_raw_tag_s(part_map[tag], param_s), prop_map, part_map, param_map, param_s, infinite_loop_check);
 									infinite_loop_check[infinite_loop_check.indexOf(tag)] = "";//delete
 									$.merge(parent.child_s, child_last.child_s);
 									// child の一番下の子孫を新しい親とする
@@ -665,18 +678,20 @@
 										prop_s.style = kept_style;
 									}
 									var child = my_apply(tag, prop_s,[]);
+									new_parent_s.push(child);//子供もやがて親になる･･･
 									if($.inArray(tag, draggableとresizableが同時には正常に動かないためwrapするタグ) > -1){
 										if(! child.prop_s.hasOwnProperty('class')){	child.prop_s['class'] = '';	}
 										child.prop_s['class'] += ' wrapped';
 										child = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding:8px;"},[child] );//wrapper
 									}
 									parent.child_s.push(child);
-									new_parent_s.push(child);//子供もやがて親になる･･･
 								}
 							}
 						});
+						console.log('new_parent_s '+JSON.stringify(new_parent_s));
 						parent_s = new_parent_s;
 					});
+					console.log('last_child_s '+JSON.stringify(parent_s));
 					root_s.last_child_s = parent_s;
 					return root_s;
 				};
@@ -735,14 +750,13 @@
 						var linear_data = format_raw_tag_s(raw_tag_s, []);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
 						var param_map = {};
 						var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
-//console.log('start convert_lineardata_to_child_s');
-						var root = convert_lineardata_to_child_s(linear_data, prop_map, val_s, part_map, param_map, [], infinite_loop_check);
+						var root = convert_lineardata_to_child_s(linear_data, prop_map, part_map, param_map, [], infinite_loop_check);
 
 						//値埋め
 						if(val_s !== null){
 							$.each(root.last_child_s, function(pIdx, parent){
 								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
-								//console.log('setVal:'+setVal);
+								console.log('setVal:'+setVal+' , parent.tag : '+parent.tag);
 								if( parent.tag === 'input'){
 									parent.prop_s["value"] = setVal;
 								}else{
@@ -766,6 +780,7 @@
 				 * my_apply形式のデータが対象
 				 */
 				function display_onscreen(target_s, _this, is_resizable_draggable){
+//					console.log('display_onscreen : '+JSON.stringify(arguments));
 					if( typeof is_resizable_draggable === 'undefined' ){
 						is_resizable_draggable = true;
 					}
@@ -776,13 +791,18 @@
 						console.log('Error this is not Array:'+JSON.stringify(child_s));
 					}
 
-					if(tag_setting_s.hasOwnProperty(tag)){
-						var setting = tag_setting_s[tag];
+					if(tag毎の入力規則.hasOwnProperty(tag)){
+						var setting = tag毎の入力規則[tag];
 						var require_s = setting['require_s'];
+						var default_val_s = setting['default'];
 						$.each(require_s, function(layer_idx, require){
 							if( ! prop_s.hasOwnProperty(require)){
-								console.log("This "+tag+" tag requires a "+require+" prop.")
+								if( default_val_s.hasOwnProperty(require)){
+									prop_s[require] = default_val_s[require];
+								}else{
+									console.log("This "+tag+" tag requires a "+require+" prop.")
 									throw new Error("This "+tag+" tag requires a "+require+" prop.");
+								}
 							}
 						});
 					}
@@ -791,7 +811,6 @@
 					var length_target_s	 = target_s.length;
 					for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
 						var target = $(target_s[idx_tgt]);
-
 						var work_jq = tag.length == 0 ? target : $('<'+tag+'>');
 						for(var prop in prop_s)if(prop_s.hasOwnProperty(prop)){
 							prop = prop.trim();
@@ -833,7 +852,7 @@
 									not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･
 									return;
 								}
-								//console.log(work_jq.attr('id')+':click');
+								console.log(work_jq.attr('id')+':click');
 								select_element(my_regular_id, work_jq);//TODO XXX
 							});
 						var length_child_s = child_s.length;
@@ -870,8 +889,7 @@
 							//console.log("handle:"+JSON.stringify(draggableOption));
 						}
 
-						work_jq
-							.data('my-selected',false)
+						removeSelected(work_jq)
 							.appendTo( target );
 						if( wrapped_is_true ){
 							//nothing
@@ -1025,9 +1043,12 @@
 
 					$.each(target_s, function(idx, _target){
 						var target = $(_target);
-						target.children
 						//val
 						var tag = target.get(0).localName;
+						if(target.hasClass('wrapper')){
+							console.log('my-id : '+ target.attr('data-my-obj-id') + ' is wrapper. So skip.');
+							return true;
+						}
 						//console.log('tag name : '+ tag);
 						if( func_val !== null){
 							// do nothing
@@ -1049,19 +1070,27 @@
 								target.attr(p_key, val);
 								org_prop_s[p_key] = val;
 							}else if( p_key === 'class'){
-								var p_class = prop_s['class'].trim();
-								if(p_class[0] === '-'){
-									target.removeClass( p_class.substring(1) );
-								}else if(p_class[0] === '+'){
-									target.addClass( p_class.substring(1) );
-								}else{
-									//target.addClass( p_class );
-								}
+								var p_class_s = val.trim().split(' ');
+								$.each(p_class_s,function(idx,p_class){
+									if(p_class[0] === '-'){
+										target.removeClass( p_class.substring(1) );
+									}else if(p_class[0] === '+'){
+										target.addClass( p_class.substring(1) );
+									}else{
+										target.addClass(p_class);
+									}
+								});
 								org_prop_s['class'] = target.attr('class');
-							}else{
+							}else if( p_key === 'style'){
 								var val = merge_css( target.attr('style'), prop_s.style );
 								target.attr('style', val);
 								org_prop_s['style'] = val;
+							}else if( p_key === 'html'){
+								if(target.get(0).localName === 'input'){
+									target.val(val);
+								}else{
+									target.html(val);
+								}
 							}
 						}
 						target.data('my-org-prop_s', org_prop_s);
@@ -1083,6 +1112,7 @@
 						el_func_s[name].on('click', function(){
 							try{
 								var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
+//TODO if hasClass('wrapped'), then cancel and select parent
 								//新規選択分があれば､それのみを処理し､既存分は触らない
 								if(new_targeted.length > 0){
 									new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
@@ -1158,10 +1188,10 @@
 
 				el_func_s['cxlselected'].on('click', function(){
 					$('.'+CLASS_SELECTED).each(function(){
-						$(this).removeClass(CLASS_SELECTED);
+						removeSelected($(this));
 					});
 				});
-
+				
 
 				var history_counter = MY_STORAGE.keys(true).length;
 				function init_save_history(){
@@ -1181,6 +1211,7 @@
 					var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 					//console.log('mother id:'+mother_id);
 					var stringified = get_child_tree_select_dom(mother_id).stringify_child_s();
+console.log('stringified : '+stringified);
 					el_saved_serialized.val(stringified);
 					MY_STORAGE
 						.transaction()
@@ -1752,8 +1783,11 @@
 								var pool_formula = "";
 								for(; i<length_formula; ++i){
 									c = formula.charAt(i);
-									if( c === '(') ++_parent_counter;
-									if( c === ')') --_parent_counter;
+									if( c === '('){
+										++_parent_counter;
+									}else if( c === ')'){
+										--_parent_counter;
+									}
 									if(_parent_counter === 0){
 										var result = reverse_porlish_notation_logic(pool_formula, param_s,resolved_param_s);
 										param_s = result[1];
