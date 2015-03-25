@@ -155,32 +155,30 @@
 			</section>
 		</header>
 		<section id="screen" style="position:absolute; top:44px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0"></section>
-		<section id="side_menu_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:540px;z-index:101;right:0px;width:20%; height:30%;border-radius:20px;" >
+		<section id="side_menu_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:540px;z-index:101;right:10px;width:100px; height:300px;border-radius:20px;" >
 			<input type="button" value="Del" id="func_delete_element" /><br />
 			<input type="button" value="CxlSel" id="func_cxlselected_element" /><br />
 			<input type="button" value="Copy" id="func_copy_element" /><br />
 			<input type="button" value="Cut" id="func_cut_element" /><br />
 			<input type="button" value="Paste" id="func_paste_element" /><br />
 			<input type="button" value="Html" id="func_html_element" /><br />
-			<textarea id="sandbox_screen" ></textarea>
+			<textarea id="sandbox_screen" rows="2" cols="5"></textarea><br />
+			<select id="parent_list" ></select>
 			<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
 		</section>
-		<section id="part_list_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:180px;z-index:101;right:0px;width:1280px;border-radius:20px;overflow:auto;" >
-			<span>part_list<input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
-				<select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" /></span>
-			<ul id="part_list"></ul>
-		</section>
-		<section id="prop_list_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:360px;z-index:101;right:0px;width:1280px;border-radius:20px;overflow:auto;" >
-			<span>prop_list<input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
-				<select id="prop_list_select"></select><input id="prop_list_del" type="button" value="Del" style="float:right;" /></span>
-			<ul id="prop_list"></ul>
-		</section>
-		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;z-index:101;right:0px;width:1100px; height:7em;border-radius:20px;" >
+		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:100px;z-index:101;right:10px;width:400px; border-radius:20px;overflow:hidden;" >
 			<label for="ValTag">Tag	 </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="table_cross_header($a 5 =,6,$a 4 -)" /><br />
 			<input type="hidden" id="part_list_input" class="json_val" value="" />
 			<label for="ValArrayJSON">vals	</label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" value="test" /><br />
 			<input type="hidden" id="prop_list_input" class="json_val" value="" />
 			<input type="button" class="menu_button" value="Ins" id="func_insert_element" /><input type="button" class="menu_button" value="Reg" id="FuncRegElement" />
+			<hr>
+			<span>part_list<input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
+				<select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" /></span>
+			<ul id="part_list"></ul>
+			<span>prop_list<input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
+				<select id="prop_list_select"></select><input id="prop_list_del" type="button" value="Del" style="float:right;" /></span>
+			<ul id="prop_list"></ul>
 		</section>
 		<footer style="position:fixed; bottom:0px;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
@@ -196,6 +194,7 @@
 			$(function(){
 				var FUNC_ID = "HtmlDeveloping";
 				var MY_STORAGE = constructor_storage(FUNC_ID);
+				var MAX_SAVE_SLOT_S = 10;
 
 				//複数形はsufixとして_sまたは､_s1. 多重配列は_s_sではなく_s2
 				// Constatns
@@ -220,7 +219,7 @@
 				$.each(func_name_s,function(idx, name){
 					el_func_s[name] = $('#func_'+name+'_element');
 				});
-									var el_func_cancel_selected = $('#func_cxlselected_element');
+				var el_func_cancel_selected = $('#func_cxlselected_element');
 				var el_func_json_val = $('.json_val');
 
 				// input area
@@ -236,6 +235,11 @@
 				var el_some_input = {"part_list":$('#part_list_input'), "prop_list":$('#prop_list_input')};
 				var el_some_func_suffix_s = ["reg","select","del","name"];
 
+				var el_parent_list = $('#parent_list');
+				el_parent_list.on('change click',function(ev, obj){
+					var _this = $(this);
+					el_selected_val_id.val(_this.val());
+				});
 
 				// screen area
 				var el_screen_area = $('#screen');
@@ -262,7 +266,7 @@
 
 				// Implement_s
 				function select_element(raw_select_my_obj_id, input_this){
-//					console.log('select_element : '+JSON.stringify(arguments));
+					//					console.log('select_element : '+JSON.stringify(arguments));
 					var _these;
 					var selector = '';
 					var no_aster = true;
@@ -314,6 +318,7 @@
 							removeSelected(_this);
 						}
 					});
+					
 				}
 
 				function removeSelected(jq_tgt){
@@ -354,10 +359,10 @@
 					return formatted_val_s;
 				}
 				/**
-				* ignore_nest_parenthesis_s should be like  [["(",")"],["{","}"]]
-				*	 nestを$nest$ など単階層同一文字もサポートする
-				* @return 
-				*/
+				 * ignore_nest_parenthesis_s should be like  [["(",")"],["{","}"]]
+				 *	 nestを$nest$ など単階層同一文字もサポートする
+				 * @return 
+				 */
 				function split_ignore_nest(str,splitter, ignore_nest_parenthesis_s){
 					var ign_pair_map = {};
 					$.each(ignore_nest_parenthesis_s,function(idx, pair){
@@ -405,7 +410,7 @@
 				 * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
 				 */
 				function format_raw_tag_s(raw_tag_s, _param_s){
-//					console.log('format_raw_tag_s '+JSON.stringify(arguments));
+					//					console.log('format_raw_tag_s '+JSON.stringify(arguments));
 					var param_s = {};
 					var resolved_param_s = {};
 					$.extend(true, param_s, _param_s);
@@ -414,7 +419,7 @@
 						return ;
 					}
 					raw_tag_s = raw_tag_s.trim().replace(/\s+/g,' ').replace(/\s*,\s*/g,',');//複数連続スペースやカンマを一つに変換
-//					console.log("raw_tag_s:"+JSON.stringify(raw_tag_s));
+					//					console.log("raw_tag_s:"+JSON.stringify(raw_tag_s));
 					var tag_s2 = [];
 					$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
 						var trimed_tag = tag.trim();
@@ -424,14 +429,14 @@
 							var loop_num = 1;
 							if(tag_num.length > 1){
 								var raw_num = tag_num[1];
-//								console.log("loop_raw_num : "+raw_num);
+								//								console.log("loop_raw_num : "+raw_num);
 								raw_num = param_s.hasOwnProperty(raw_num) ? param_s[raw_num] : raw_num;
 								if( ! $.isNumeric(raw_num)){
-//									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
+									//									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
 									var result = reverse_porlish_notation_logic(raw_num, param_s, resolved_param_s);
 									loop_num = result[0];
 									resolved_param_s = result[2];
-//									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', param_s : '+JSON.stringify(param_s) + ', resolved : '+JSON.stringify(resolved_param_s));
+									//									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', param_s : '+JSON.stringify(param_s) + ', resolved : '+JSON.stringify(resolved_param_s));
 								}else{
 									loop_num = parseInt(raw_num, 10);
 								}
@@ -545,10 +550,10 @@
 				}
 
 				/**
-				* 副作用 param_mapに
-				*/
+				 * 副作用 param_mapに
+				 */
 				function extract_param_from(_input_tag, param_map, parent_param_s){
-//console.log('extract_param_from : '+JSON.stringify(arguments));
+					//console.log('extract_param_from : '+JSON.stringify(arguments));
 					var parenthesis_first = _input_tag.indexOf('(');
 					var parenthesis_last = _input_tag.lastIndexOf(')');
 					if( parenthesis_last < parenthesis_first || parenthesis_first * parenthesis_first < 0 ){
@@ -564,16 +569,16 @@
 						$.extend(true, resolved, param_map, parent_param_s);
 						for(var p=0; p<length_raw_param_split; ++p){
 							var val_param_extract = reverse_porlish_notation_logic(raw_param_split[p], resolved,{});
-//console.log('val_param_extract : '+JSON.stringify(val_param_extract));
+							//console.log('val_param_extract : '+JSON.stringify(val_param_extract));
 							$.extend(resolved,val_param_extract[2]);
-//TODO mod same param_map n
+							//TODO mod same param_map n
 							param_s["$"+Object.keys(param_s).length] = val_param_extract[0];
 						}
 					}else{
 						input_tag = _input_tag;
 						param_s = {};
 					}
-//console.log('extract_param_from : ' + _input_tag + ' : ' + JSON.stringify([input_tag,param_s]));
+					//console.log('extract_param_from : ' + _input_tag + ' : ' + JSON.stringify([input_tag,param_s]));
 					return [input_tag,param_s];
 				}
 
@@ -619,7 +624,7 @@
 					for(var i=0; i < length_forbidden; ++i){
 						var tgt = 関数タグの対象外css_selector[i];
 						if(prop_s.hasOwnProperty(tgt) && prop_s[tgt] != ''){
-//							console.log('prop_s : ' + JSON.stringify(prop_s));
+							//							console.log('prop_s : ' + JSON.stringify(prop_s));
 							alert("Sorry. parts in Tag don't support #.[]");
 							throw new TypeError("Sorry. parts in Tag don't support #.[]");
 						}
@@ -778,7 +783,7 @@
 				 * my_apply形式のデータが対象
 				 */
 				function display_onscreen(target_s, _this, is_resizable_draggable){
-//					console.log('display_onscreen : '+JSON.stringify(arguments));
+					//					console.log('display_onscreen : '+JSON.stringify(arguments));
 					if( typeof is_resizable_draggable === 'undefined' ){
 						is_resizable_draggable = true;
 					}
@@ -788,7 +793,6 @@
 					if( ! $.isArray(child_s)){
 						console.log('Error this is not Array:'+JSON.stringify(child_s));
 					}
-
 					if(tag毎の入力規則.hasOwnProperty(tag)){
 						var setting = tag毎の入力規則[tag];
 						var require_s = setting['require_s'];
@@ -799,7 +803,7 @@
 									prop_s[require] = default_val_s[require];
 								}else{
 									console.log("This "+tag+" tag requires a "+require+" prop.")
-									throw new Error("This "+tag+" tag requires a "+require+" prop.");
+										throw new Error("This "+tag+" tag requires a "+require+" prop.");
 								}
 							}
 						});
@@ -851,13 +855,25 @@
 									not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･
 									return;
 								}
-								//console.log(work_jq.attr('id')+':click');
-								select_element(my_regular_id, work_jq);//TODO XXX
+								select_element(my_regular_id, work_jq);
+								//analisys my-obj-id
+								var id_list = my_regular_id.split('_');
+								var concat_id = '';
+								var appendHtml = '';
+								$.each(id_list,function(idx,my_id){
+									concat_id += my_id;
+									var tmp = $('*[data-my-obj-id='+concat_id+']',el_screen_area).get(0);
+									if(typeof tmp !== 'undefined'){
+										appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
+									}
+									concat_id += '_';
+								});
+								el_parent_list.empty().append(appendHtml);
 							})
 							.on('change',function(ev,obj){
 								var _this = $(this);
 								var val = _this.val()									
-								_this
+									_this
 									.data('my-obj-val', val)
 									.attr('data-my-obj-val', val);
 							});
@@ -870,10 +886,10 @@
 							"stop":function(ev, ui){
 								not_click = true;
 							},
-								"start":function(ev, ui){
-									not_click = true;
-								},
-								"autoHide":true, "handles":"all", "cancel":"option","minWidth":"10","minHeight":"10"
+							"start":function(ev, ui){
+								not_click = true;
+							},
+							"autoHide":true, "handles":"all", "cancel":"option","minWidth":"10","minHeight":"10"
 						};
 						var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4",
 							"stop":function(ev, ui){
@@ -891,8 +907,6 @@
 								var tmp = $('*',work_jq);
 								work_jq.height(tmp.height() + 16).width(tmp.width() + 16);
 							};
-							//console.log("also tag:"+tag+', parent:'+parent_id);
-							//console.log("handle:"+JSON.stringify(draggableOption));
 						}
 
 						removeSelected(work_jq)
@@ -900,10 +914,9 @@
 						if( wrapped_is_true ){
 							//nothing
 						}else if(必ず子要素のタグ.indexOf(tag) > -1 ){
-							//nothing
 							work_jq.css({"top":"","left":"","position":"relative"});
 						}else if(resizableのみ対象のタグ.indexOf(tag) > -1){
-
+							//nothing
 						}else{
 							if( is_resizable_draggable ){
 								work_jq
@@ -918,13 +931,14 @@
 								.css('position','absolute');
 						}
 					}
-					$('td,th').resizable({"stop":function(ev, ui){
-						not_click = true;
-					},
-						"start":function(ev, ui){
+					$('td,th').resizable(//TODO test $('td,th', work_jq)
+						{"stop":function(ev, ui){
 							not_click = true;
 						},
-						"autoHide":true, "handles":"all", "cancel":"option"});
+							"start":function(ev, ui){
+								not_click = true;
+							},
+							"autoHide":true, "handles":"all", "cancel":"option"});
 				}
 
 				function mthd_delete_element_impl(in_target_css){
@@ -963,6 +977,7 @@
 					var _this = $(obj);
 					default_width_setting_s[_this.attr('id')] = _this.width();
 				});
+
 				$('.menu_bar').on('keyup change mouseout','.autoExtend',function(){
 					var _this = $(this);
 					var length_val = 0;
@@ -1111,25 +1126,25 @@
 				/**
 				 * copy : no recursive , mono layer
 				 */
-					$.each(互いに排他の機能_s,function(idx, name){
-						var now_class = CLASS_S[name];
-						el_func_s[name].on('click', function(){
-							try{
-								var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
-//TODO if hasClass('wrapped'), then cancel and select parent
-								//新規選択分があれば､それのみを処理し､既存分は触らない
-								if(new_targeted.length > 0){
-									new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
-								}else{//新規選択分がなければ､全解除し選択状態に
-									$('.'+now_class).removeClass(now_class).addClass(CLASS_SELECTED);
-								}
-							}catch(e){
-								console.log(e);
+				$.each(互いに排他の機能_s,function(idx, name){
+					var now_class = CLASS_S[name];
+					el_func_s[name].on('click', function(){
+						try{
+							var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
+							//TODO if hasClass('wrapped'), then cancel and select parent
+							//新規選択分があれば､それのみを処理し､既存分は触らない
+							if(new_targeted.length > 0){
+								new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
+							}else{//新規選択分がなければ､全解除し選択状態に
+								$('.'+now_class).removeClass(now_class).addClass(CLASS_SELECTED);
 							}
-						});
-						互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
+						}catch(e){
+							console.log(e);
+						}
 					});
-						
+					互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
+				});
+				
 				/**
 				 * paste
 				 */
@@ -1142,7 +1157,7 @@
 						}else{
 							added_target_s = [el_screen_area];//追加先のデフォルトはscreen
 						}
-//TODO bug infinite loop
+						//TODO bug infinite loop
 						$.each(互いに排他の機能_s,function(idx, name){
 							var now_class = CLASS_S[name];
 							$('.'+now_class).each(function(){
@@ -1196,33 +1211,48 @@
 					});
 				});
 				
-
-				var history_counter = MY_STORAGE.keys(true).length;
+				var history_counter = 0;
 				function init_save_history(){
 					var appender = '';
-					var keys = MY_STORAGE.keys(true);
-					for(var i=0; i < keys.length; ++i){
-						appender = '<option value="'+keys[i]+'">'+keys[i]+'</option>' + appender;
+					var save_s = JSON.parse(MY_STORAGE.select('save_s'));
+					history_counter = 0;
+					for(var key in save_s) if(save_s.hasOwnProperty(key)){
+						appender = '<option value="'+key+'">'+key+'</option>' + appender;
+						var tmp = parseInt(key.split('_')[1],10);
+						history_counter = history_counter < tmp ? tmp : history_counter;
 					}
-					el_history.html(appender);
+					el_history.empty().html(appender);
 				}
-
 				init_save_history();
+
 				/**
 				 * saveされる対象はdata-my-obj-idが付与されているもの
 				 */
 				el_func_s['save'].on('click', function(){
 					var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 					//console.log('mother id:'+mother_id);
-					var stringified = get_child_tree_select_dom(mother_id).stringify_child_s();
+					var child_tree = get_child_tree_select_dom(mother_id);
+					var stringified = child_tree.stringify_child_s();
 					el_saved_serialized.val(stringified);
+					var save_s = JSON.parse(MY_STORAGE.select('save_s'));
+					save_s = save_s == null ? {} : save_s;
+					++history_counter;
+					var tmp_counter = 0;
+					while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
+						if(save_s.hasOwnProperty('save_'+tmp_counter)){
+							delete save_s['save_'+tmp_counter];
+						}
+						if(tmp_counter > 10000){
+							console.log('break');
+						}
+						++tmp_counter;
+					}
+					save_s['save_'+history_counter] = stringified;
 					MY_STORAGE
 						.transaction()
-						.remove('save_'+(history_counter-3))
-						.replace('save_'+history_counter, stringified)
+						.replace('save_s', JSON.stringify(save_s))
 						.commit();
 					init_save_history();
-				++history_counter;
 				});
 
 				el_func_s['load'].on('click', function(){
@@ -1243,6 +1273,15 @@
 						display_onscreen(el_screen_area, parsed[i]);
 					}
 				});
+				el_history.on('change',function(){
+					var _this = $(this);
+					var saved = MY_STORAGE.select('save_s');
+					if(saved != null){
+						var selected = _this.val();
+						el_saved_serialized.val(JSON.parse(saved)[selected]);
+					}
+				}).trigger('change');
+
 
 				el_func_json_val.on('change', function(){
 					var _this = $(this);
@@ -1256,14 +1295,6 @@
 						_this.siblings('.menu_button').attr({"disabled":true});
 					}
 				});
-
-				el_history.on('change',function(){
-					var _this = $(this);
-					var selected = _this.val();
-					var saved = MY_STORAGE
-						.select(selected);
-					el_saved_serialized.val(saved);
-				}).trigger('change');
 
 				// Key bind
 				$(document).on('keydown',function(_ev, _this ){
@@ -1435,15 +1466,16 @@
 				 * override
 				 */
 				function merge_css(){
+					//console.log('merge_css : '+JSON.stringify(arguments));
 					var pool = {};
 					var length_arguments = arguments.length;
 					for(var i=0; i < length_arguments; ++i){
 						var raw = arguments[i];
-						if(raw.hasOwnProperty('style')){
-							raw = raw.style;
-						}
 						if( typeof raw !== 'string'){
 							continue;
+						}
+						if(raw.hasOwnProperty('style')){
+							raw = raw.style;
 						}
 						var raw_el_s = raw.split(';');
 						var length_el_s = raw_el_s.length;
@@ -1516,21 +1548,21 @@
 							}
 							pool[my_obj_id] = body;
 						},
-							"stringify_child_s":function(){
-								var rtn = JSON.stringify(pool[mother_id].child_s);
-								//console.log(rtn);
-								return rtn;
-							},
-							"stringify":function(){
-								var rtn = JSON.stringify(pool);
-								//console.log(rtn);
-								return rtn;
-							},
-							"raw":function(){
-								var rtn = {};
-								$.extend(true,rtn, pool);
-								return rtn;
-							}
+						"stringify_child_s":function(){
+							var rtn = JSON.stringify(pool[mother_id].child_s);
+							//console.log(rtn);
+							return rtn;
+						},
+						"stringify":function(){
+							var rtn = JSON.stringify(pool);
+							//console.log(rtn);
+							return rtn;
+						},
+						"raw":function(){
+							var rtn = {};
+							$.extend(true,rtn, pool);
+							return rtn;
+						}
 					};
 				}
 
@@ -1545,106 +1577,107 @@
 							}
 							return raw;
 						},
-							"transaction":function(){
-								if(is_locked){
-									throw new Error('transaction has opened.');
-								}else{
-									var raw = this.raw();
-									try{
-										uncommit_pool = JSON.parse(raw);
-									}catch(e){
-										console.log(e.message);
-										localStorage[FUNC_ID] = '{}';
-									}
-									is_locked = true;
-									return this;
+						"transaction":function(){
+							if(is_locked){
+								throw new Error('transaction has opened.');
+							}else{
+								var raw = this.raw();
+								try{
+									uncommit_pool = JSON.parse(raw);
+								}catch(e){
+									console.log(e.message);
+									localStorage[FUNC_ID] = '{}';
 								}
-							},
-							"commit":function(){
-								localStorage[FUNC_ID] = JSON.stringify(uncommit_pool);
-								is_locked = false;
-								return this;
-							},
-							"close":function(){
-								uncommit_pool = {};
-								is_locked = false;
-								return this;
-							},
-							"select":function(key){
-								var str_key = ''+key;
-								var pooled = uncommit_pool[str_key];
-								if(typeof pooled === 'undefined'){
-									var raw = localStorage[FUNC_ID];
-									if(typeof raw === 'undefined'){
-										return null;
-									}
-									var saved = raw[key];
-									if(typeof saved === 'undefined'){
-										return null;
-									}else{
-										return saved;
-									}
-								}else{
-									return pooled;
-								}
-							},
-							"replace":function(key, val){
-								var str_key = ''+key;
-								uncommit_pool[str_key] = val;
-								return this;
-							},
-							"merge":function(key_val){
-								$.extend(true, uncommit_pool, key_val);//deep copy
-								return this;
-							},
-							"remove":function(key){
-								if(typeof uncommit_pool[key] !== 'undefined'){
-									delete uncommit_pool[key];
-								}else{
-									console.log('nokey : '+key);
-								}
-								return this;
-							},
-							"truncate":function(){
-								delete localStorage[FUNC_ID];
-							},
-							"keys":function(is_true_storage){
-								if( typeof is_true_storage === 'undefined' || is_true_storage === false){
-									return Object.keys(uncommit_pool);
-								}else if(is_true_storage === true){
-									var rtn = Object.getOwnPropertyNames(JSON.parse(this.raw()));
-									//console.log('keys : '+rtn);
-									return rtn;
-								}else{
-									return [];
-								}
-							},
-							"rollback":function(){
-								is_locked = false;
-								this.transaction();
 								is_locked = true;
 								return this;
-							},
+							}
+						},
+						"commit":function(){
+							localStorage[FUNC_ID] = JSON.stringify(uncommit_pool);
+							is_locked = false;
+							return this;
+						},
+						"close":function(){
+							uncommit_pool = {};
+							is_locked = false;
+							return this;
+						},
+						"select":function(key){
+							var str_key = ''+key;
+							var pooled = uncommit_pool[str_key];
+							if(typeof pooled === 'undefined'){
+								var raw = localStorage[FUNC_ID];
+								if(typeof raw === 'undefined' || raw == null){
+									return null;
+								}
+								raw = JSON.parse(raw);
+								var saved = raw[key];
+								if(typeof saved === 'undefined'){
+									return null;
+								}else{
+									return saved;
+								}
+							}else{
+								return pooled;
+							}
+						},
+						"replace":function(key, val){
+							var str_key = ''+key;
+							uncommit_pool[str_key] = val;
+							return this;
+						},
+						"merge":function(key_val){
+							$.extend(true, uncommit_pool, key_val);//deep copy
+							return this;
+						},
+						"remove":function(key){
+							if(typeof uncommit_pool[key] !== 'undefined'){
+								delete uncommit_pool[key];
+							}else{
+								console.log('nokey : '+key);
+							}
+							return this;
+						},
+						"truncate":function(){
+							delete localStorage[FUNC_ID];
+						},
+						"keys":function(is_true_storage){
+							if( typeof is_true_storage === 'undefined' || is_true_storage === false){
+								return Object.keys(uncommit_pool);
+							}else if(is_true_storage){
+								var rtn = Object.getOwnPropertyNames(JSON.parse(this.raw()));
+								//console.log('keys : '+rtn);
+								return rtn;
+							}else{
+								return [];
+							}
+						},
+						"rollback":function(){
+							is_locked = false;
+							this.transaction();
+							is_locked = true;
+							return this;
+						},
 						"has":function(key){
 							return null != this.select(key);
 						},
-						  "ifelse":function(bool, true_param_s, false_param_s){
-								var func_name = null;
-								var param_s = null;
-								if(bool === true){
-									param_s = arguments[1];
-								}else if(bool === false){
-									param_s = arguments[2];
-								}else{
-									throw new TypeError('func if param bool is required.');
-								}
-								param_s = if_nullOrUndef_then_return_init(param_s, []);
-								if(param_s.length > 0){
-									func_name = param_s.shift();
-									this[func_name].apply(this, param_s);
-								}
-								return this;
+						"ifelse":function(bool, true_param_s, false_param_s){
+							var func_name = null;
+							var param_s = null;
+							if(bool === true){
+								param_s = arguments[1];
+							}else if(bool === false){
+								param_s = arguments[2];
+							}else{
+								throw new TypeError('func if param bool is required.');
 							}
+							param_s = if_nullOrUndef_then_return_init(param_s, []);
+							if(param_s.length > 0){
+								func_name = param_s.shift();
+								this[func_name].apply(this, param_s);
+							}
+							return this;
+						}
 					};
 				};
 
@@ -1736,7 +1769,7 @@
 					return reverse_porlish_notation_logic(formula, param_s, {})[0];
 				}
 				function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
-//console.log('reverse_porlish_notation_logic : '+JSON.stringify(arguments));
+					//console.log('reverse_porlish_notation_logic : '+JSON.stringify(arguments));
 					var param_s = {}; $.extend(true,param_s, _param_s);
 					var resolved_param_s = {}; $.extend(true,resolved_param_s, _resolved_param_s);
 					var formula = _formula;
@@ -1770,16 +1803,16 @@
 									}
 								}
 							}else	if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN 
-											|| ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
-								stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
+																 || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
+																	 stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 							}else if( op_idx === IDX_PAREN){
-								++i;
-								++_parent_counter;
+										++i;
+										++_parent_counter;
 								var pool_formula = "";
 								for(; i<length_formula; ++i){
 									c = formula.charAt(i);
 									if( c === '('){
-										++_parent_counter;
+												++_parent_counter;
 									}else if( c === ')'){
 										--_parent_counter;
 									}
@@ -1825,7 +1858,7 @@
 					}else{
 						rtn = parseInt(rtn,10);
 					}
-//console.log('return reverse_porlish_notation_logic '+JSON.stringify([rtn,param_s,resolved_param_s]));
+					//console.log('return reverse_porlish_notation_logic '+JSON.stringify([rtn,param_s,resolved_param_s]));
 					return [rtn,param_s,resolved_param_s];
 				}
 
