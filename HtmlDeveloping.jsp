@@ -275,31 +275,12 @@
 
 				var el_parent_list = $('#parent_list');
 				el_parent_list.on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
-					var _this = $(this);
+					var _this = myWrapElement(this);
 					el_selected_val_id.val(_this.val());
 				});
 
 				// screen area
 				var el_screen_area = $('#screen');
-				var tmp_div = $('<div class="wrapper" style="width:400px;height:400px;">');
-				var raw_svg = document.createElementNS(SVG_NS, "svg");
-				raw_svg.setAttribute("width","400px");
-				raw_svg.setAttribute("height","400px");
-				var raw_line = document.createElementNS(SVG_NS, "line");
-				raw_line.setAttribute("x1","0px");
-				raw_line.setAttribute("y1","0px");
-				raw_line.setAttribute("x2","400px");
-				raw_line.setAttribute("y2","400px");
-				raw_line.setAttribute("style","stroke:rgb(0,255,0);stroke-width:3;");
-
-				var tmp_line = $(raw_line);
-//				raw_svg.appendChild(raw_line);
-				var tmp_svg = $(raw_svg);
-				tmp_line.appendTo(tmp_svg)
-				tmp_svg.appendTo(tmp_div);
-				tmp_div
-					.draggable()				
-					.appendTo(el_screen_area);
 				var el_sandbox_screen_area = $('#sandbox_screen');
 				var el_saved_serialized = $('#saved_serialized');
 				var el_sandbox_hidden = $('#sandbox_hidden');
@@ -308,7 +289,7 @@
 				var el_history = $('#history');
 
 				// settings
-				var tag毎の入力規則 ={"input":{"require_s":["type"],"default":{"type":"text"}}};
+				var tag毎の入力規則 ={"input":{"require_s":["type"],"default":{"type":"text"}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
 				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul","svg"];
 				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
 				var サイズを持たせないタグ = ["tbody","thead","tr"];
@@ -343,12 +324,11 @@
 					}
 					var length_these_minus_1 = _these.length - 1;
 					_these.each(function(idx, in_this){
-						var _this = $(in_this);
+						var _this = myWrapElement(in_this);//$(in_this);//TODO
 						var my_obj_id = _this.data('my-obj-id');
 						var is_my_selected = _this.data('my-selected');
 						if(typeof is_my_selected === 'undefined' || is_my_selected === false){
 							addSelected(_this);
-
 							if(length_these_minus_1 === idx){
 								if( no_aster ){
 									el_selected_val_id.val(my_obj_id);
@@ -834,12 +814,13 @@
 				}
 
 				function myCreateElement(tag, is_svg){
-					console.log('myCreateElement '+JSON.stringify(arguments));
+					//console.log('myCreateElement '+JSON.stringify(arguments));
 					var raw;
 					var elm ;
 					if(is_svg){
 						raw = document.createElementNS(SVG_NS, tag);
 						elm = $(raw);
+						elm.data('my-is-svg',true);
 						elm.attr = function(key,val){
 							if( arguments.length === 1 ){
 								if( $.isPlainObject(key) ){
@@ -859,11 +840,68 @@
 								return this;
 							}
 						};
+						elm.addClass = function(clz){
+							var already =  raw.getAttribute('class');
+							if( already.indexOf(clz) === -1){
+								raw.setAttribute('class', already.trim()+' '+clz);
+							}
+							return this;
+						};
+						elm.removeClass = function(clz){
+							var already =  raw.getAttribute('class');
+							if( already.indexOf(clz) !== -1){
+								raw.setAttribute('class', already.replace(clz,''));
+							}
+							return this;
+						};
 					}else{
 						elm = $('<'+tag+'>');
+						elm.data('my-is-svg',false);
 					}					
 					return elm;
 				}
+
+				function myWrapElement(raw){
+					var elm = $(raw);
+					if(elm.data('my-is-svg')){
+						elm.attr = function(key,val){
+							if( arguments.length === 1 ){
+								if( $.isPlainObject(key) ){
+									for(var objKey in key){
+										raw.setAttribute(objKey, key[objKey]);
+									}
+									return this;
+								}else{
+									var rtn = raw.getAttribute(key);
+									if( rtn != null){
+										return rtn;
+									}
+									//return undefined
+								}
+							}else if( arguments.length >= 2 ){
+								raw.setAttribute(key,val);
+								return this;
+							}
+						};
+						elm.addClass = function(clz){
+							var already =  raw.getAttribute('class');
+							if( already.indexOf(clz) === -1){
+								raw.setAttribute('class', already.trim()+' '+clz);
+							}
+							return this;
+						};
+						elm.removeClass = function(clz){
+							var already =  raw.getAttribute('class');
+							if( already.indexOf(clz) !== -1){
+								raw.setAttribute('class', already.replace(clz,''));
+							}
+							return this;
+						};
+					}
+					
+					return elm;
+				}
+				
 				
 
 				/**
@@ -947,7 +985,7 @@
 							.attr({"id":user_input_id})
 							.on(MY_CLICK,select_handler)
 							.on(MY_CHANGE,function(ev){
-								var _this = $(this);
+								var _this = myWrapElement(this);
 								var val = _this.val()									
 									_this
 									.data('my-obj-val', val)
@@ -1020,7 +1058,7 @@
 				function select_handler(ev){// 選択処理実装
 					if(is_suspend) return;
 					ev.stopPropagation();
-					var _this = $(this);
+					var _this = myWrapElement(this);
 					var my_regular_id = _this.attr('data-my-obj-id');
 					if( not_click ){
 						//console.log(not_click);
@@ -1054,7 +1092,7 @@
 						target_css = '.'+target_css;
 					}
 					$(target_css).each(function(){
-						var my_regular_id = $(this).data('my-obj-id');
+						var my_regular_id = myWrapElement(this).data('my-obj-id');
 						mthd_delete_element_by_my_id(my_regular_id);
 					});
 					//console.log('delete css:'+target_css);
@@ -1081,7 +1119,7 @@
 				});
 
 				$('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
-					var _this = $(this);
+					var _this = myWrapElement(this);
 					var length_val = 0;
 					if(_this.get(0).localName === 'textarea'){
 						length_val = _this.html().length;
@@ -1184,7 +1222,7 @@
 						var org_prop_s = target.data('my-org-prop_s');
 						for( var p_key in prop_s){
 							var val = prop_s[p_key];
-							if( typeof val === 'undefined' || val == null || val == ''){
+							if( typeof val === 'undefined' || val == null || val === ''){
 								continue;
 							}
 							if( p_key !== 'style' && p_key !== 'class' && p_key !== 'html'){
@@ -1263,7 +1301,7 @@
 						$.each(互いに排他の機能_s,function(idx, name){
 							var now_class = CLASS_S[name];
 							$('.'+now_class).each(function(){
-								var _this = $(this);
+								var _this = myWrapElement(this);
 								var my_obj_id = _this.attr('data-my-obj-id');
 								if(typeof my_obj_id !== 'undefined'){
 									var root = get_child_tree_select_dom(my_obj_id).raw()[my_obj_id];
@@ -1309,7 +1347,7 @@
 
 				el_func_s['cxlselected'].on(MY_CLICK, function(){
 					$('.'+CLASS_SELECTED).each(function(){
-						removeSelected($(this));
+						removeSelected(myWrapElement(this));
 					});
 				});
 				
@@ -1385,7 +1423,7 @@
 					}
 				});
 				el_history.on(MY_CHANGE,function(){
-					var _this = $(this);
+					var _this = myWrapElement(this);
 					var saved = MY_STORAGE.select('save_s');
 					if(saved != null){
 						var selected = _this.val();
@@ -1395,7 +1433,7 @@
 
 
 				el_func_json_val.on(MY_CHANGE, function(){
-					var _this = $(this);
+					var _this = myWrapElement(this);
 					try{
 						if( typeof JSON.parse(_this.val()) === 'object' ){
 							_this.siblings('.menu_button').attr({"disabled":false});
@@ -1474,7 +1512,7 @@
 						tmp_el_list.on(MY_CHANGE,'input.key',function(){
 							var pre_height = tmp_el_list.height();
 							$('input.key', tmp_el_list).each(function(){
-								var _this = $(this);
+								var _this = myWrapElement(this);
 								if(_this.val().trim().length === 0){
 									_this.parent().remove();
 								}
@@ -1526,7 +1564,7 @@
 				function collect_some_list(parent_list){
 					var input_val = {}
 					$('li',parent_list).each(function(){
-						var _this = $(this);
+						var _this = myWrapElement(this);
 						var input_s = $('input',_this);
 						var key = input_s[0].value;
 						if(key != null && typeof key !== 'undefined' && key.length !== 0){
