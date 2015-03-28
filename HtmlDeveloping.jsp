@@ -840,6 +840,28 @@
 								return this;
 							}
 						};
+						if( tag === 'text'){
+							elm.html = function (txt){
+								if(typeof txt === 'undefined'){
+									var rtn = '';
+									$.each(raw.childNodes,function(idx,node){
+										if(node.noteType === 3){
+											rtn += note.textContent + ' ';
+										}
+									});																			
+								}else{
+									var txt_node = document.createTextNode(txt);
+									raw.appendChild(txt_node);
+									return this;
+								}
+							};
+							elm.appendTo = function (parent){
+								if(parent instanceof jQuery){
+									parent = parent[0];
+								};
+								parent.appendChild(raw);
+							}
+						}
 						elm.addClass = function(clz){
 							var already =  raw.getAttribute('class');
 							if( already.indexOf(clz) === -1){
@@ -928,6 +950,7 @@
 					var tag = _this['tag'];
 					if( tag.trim() === 'svg'){
 						is_svg = true;
+						is_resizable_draggable = false;
 					}else{
 						if( typeof is_svg === 'undefined'){
 							is_svg = false;
@@ -961,6 +984,7 @@
 						var target = myWrapElement(target_s[idx_tgt]);
 						if(target.data('my-is-svg')){
 							parent_is_svg = true;
+							is_resizable_draggable = false;
 						}else{
 							parent_is_svg = is_svg;
 						}
