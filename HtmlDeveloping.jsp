@@ -862,7 +862,17 @@
 				}
 
 				function myWrapElement(raw){
-					var elm = $(raw);
+					var elm;
+					if(raw instanceof jQuery){
+						if(raw.length > 1){
+							throw new TypeError('myWrapElement accepts one param.');
+						}
+						raw = raw[0];
+						elm = $(raw);
+					}else{
+						elm = $(raw);
+					}
+
 					if(elm.data('my-is-svg')){
 						elm.attr = function(key,val){
 							if( arguments.length === 1 ){
@@ -911,7 +921,7 @@
 				 * my_apply形式のデータが対象
 				 */
 				function display_onscreen(target_s, _this, is_resizable_draggable, is_svg){
-					//					console.log('display_onscreen : '+JSON.stringify(arguments));
+					console.log('display_onscreen : '+JSON.stringify(arguments));
 					if( typeof is_resizable_draggable === 'undefined' ){
 						is_resizable_draggable = true;
 					}
@@ -946,9 +956,15 @@
 
 					//console.log('tag : '+tag);
 					var length_target_s	 = target_s.length;
+					var parent_is_svg = false;
 					for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
-						var target = $(target_s[idx_tgt]);
-						var work_jq = tag.length == 0 ? target : myCreateElement(tag, is_svg);
+						var target = myWrapElement(target_s[idx_tgt]);
+						if(target.data('my-is-svg')){
+							parent_is_svg = true;
+						}else{
+							parent_is_svg = is_svg;
+						}
+						var work_jq = tag.length == 0 ? target : myCreateElement(tag, parent_is_svg);
 						for(var prop in prop_s)if(prop_s.hasOwnProperty(prop)){
 							prop = prop.trim();
 							if( prop === 'html'){//余計なお節介機能
