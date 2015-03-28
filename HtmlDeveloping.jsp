@@ -140,6 +140,32 @@
 				margin:10px;
 			}
 
+			.hukidasi{
+				width: 300px;
+				margin: 0 auto;
+				padding: 8px 0;
+				border: 1px solid #ff0000;
+				border-radius: 12px;
+				text-align: center;
+				position: relative;
+			}
+			.hukidasi:before{
+				content: "";
+				border: 12px solid transparent;
+				border-top: 12px solid #ffffff;
+				position: absolute;
+				right: 30%;
+				bottom: -23px;
+			}
+			.hukidasi:after{
+				content: "";
+				border: 12px solid transparent;
+				border-top: 12px solid #0000ff;
+				position: absolute;
+				right: 30%;
+				bottom: -24px;
+			}
+
 		</style>
 	</head>
 	<body>
@@ -154,13 +180,15 @@
 				<select id="history" ></select>
 			</section>
 		</header>
-		<section id="screen" style="position:absolute; top:44px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0"></section>
+		<section id="screen" style="position:absolute; top:44px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0">
+		</section>
 		<section id="side_menu_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:540px;z-index:101;right:10px;width:100px; height:300px;border-radius:20px;" >
 			<input type="button" value="Del" id="func_delete_element" /><br />
 			<input type="button" value="CxlSel" id="func_cxlselected_element" /><br />
 			<input type="button" value="Copy" id="func_copy_element" /><br />
 			<input type="button" value="Cut" id="func_cut_element" /><br />
 			<input type="button" value="Paste" id="func_paste_element" /><br />
+			<input type="button" value="EditToggle" id="func_edit_toggle_element" /><br />
 			<input type="button" value="Html" id="func_html_element" /><br />
 			<textarea id="sandbox_screen" rows="2" cols="5"></textarea><br />
 			<select id="parent_list" ></select>
@@ -210,11 +238,21 @@
 				var SBL_HLD = '+';
 				var DEFAULT_WIDTH = 100;
 				var DEFAULT_HEIGHT = 30;
+				
+				var SVG_NS = 'http://www.w3.org/2000/svg';
+				var XLink_NS = 'http://www.w3.org/1999/xlink';
 
+				// mode
+				var NMS_EDIT = '.edit';
+				// my events
+				var MY_CLICK = 'click'+NMS_EDIT;
+				var MY_CHANGE = 'change'+NMS_EDIT;
+				var MY_KEYUP = 'keyup'+NMS_EDIT;
+				var MY_MOUSEOUT = 'mouseout'+NMS_EDIT;
 
 				// Fields
 				// func
-				var func_name_s = ["copy","cut","paste","html","delete","insert","select","update","save","load","cxlselected"];
+				var func_name_s = ["copy","cut","paste","html","delete","insert","select","update","save","load","cxlselected","edit_toggle"];
 				var el_func_s = {};
 				$.each(func_name_s,function(idx, name){
 					el_func_s[name] = $('#func_'+name+'_element');
@@ -236,13 +274,32 @@
 				var el_some_func_suffix_s = ["reg","select","del","name"];
 
 				var el_parent_list = $('#parent_list');
-				el_parent_list.on('change click',function(ev, obj){
+				el_parent_list.on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
 					var _this = $(this);
 					el_selected_val_id.val(_this.val());
 				});
 
 				// screen area
 				var el_screen_area = $('#screen');
+				var tmp_div = $('<div class="wrapper" style="width:400px;height:400px;">');
+				var raw_svg = document.createElementNS(SVG_NS, "svg");
+				raw_svg.setAttribute("width","400px");
+				raw_svg.setAttribute("height","400px");
+				var raw_line = document.createElementNS(SVG_NS, "line");
+				raw_line.setAttribute("x1","0px");
+				raw_line.setAttribute("y1","0px");
+				raw_line.setAttribute("x2","400px");
+				raw_line.setAttribute("y2","400px");
+				raw_line.setAttribute("style","stroke:rgb(0,255,0);stroke-width:3;");
+
+				var tmp_line = $(raw_line);
+//				raw_svg.appendChild(raw_line);
+				var tmp_svg = $(raw_svg);
+				tmp_line.appendTo(tmp_svg)
+				tmp_svg.appendTo(tmp_div);
+				tmp_div
+					.draggable()				
+					.appendTo(el_screen_area);
 				var el_sandbox_screen_area = $('#sandbox_screen');
 				var el_saved_serialized = $('#saved_serialized');
 				var el_sandbox_hidden = $('#sandbox_hidden');
@@ -252,17 +309,17 @@
 
 				// settings
 				var tag毎の入力規則 ={"input":{"require_s":["type"],"default":{"type":"text"}}};
-				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul"];
+				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul","svg"];
 				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
 				var サイズを持たせないタグ = ["tbody","thead","tr"];
 				var resizableのみ対象のタグ = [];
 				var HTML5のタグには無い文字 = ["_","-","$",":",";","(",")","+","@","[","]","{","}","/",">","<",",",".","#","%","&","'",'"',"=","^","~"];
 				var 直接文字編集可能タグ = ["input","textarea"];
 
-				// status , state
+				// Global vars : status , state
 				var STATUS = getStatus();
-
 				var not_click = false;
+				var is_suspend = false;
 
 				// Implement_s
 				function select_element(raw_select_my_obj_id, input_this){
@@ -310,9 +367,9 @@
 									}
 									el_selected_val_tag.val(_this.get(0).localName);
 								}
-								el_selected_val_array_json.val(set_val).trigger('change');
+								el_selected_val_array_json.val(set_val).trigger(MY_CHANGE);
 								delete new_prop_s.html;
-								el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger('change');
+								el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger(MY_CHANGE);
 							}
 						}else{
 							removeSelected(_this);
@@ -776,18 +833,58 @@
 					}
 				}
 
+				function myCreateElement(tag, is_svg){
+					console.log('myCreateElement '+JSON.stringify(arguments));
+					var raw;
+					var elm ;
+					if(is_svg){
+						raw = document.createElementNS(SVG_NS, tag);
+						elm = $(raw);
+						elm.attr = function(key,val){
+							if( arguments.length === 1 ){
+								if( $.isPlainObject(key) ){
+									for(var objKey in key){
+										raw.setAttribute(objKey, key[objKey]);
+									}
+									return this;
+								}else{
+									var rtn = raw.getAttribute(key);
+									if( rtn != null){
+										return rtn;
+									}
+									//return undefined
+								}
+							}else if( arguments.length >= 2 ){
+								raw.setAttribute(key,val);
+								return this;
+							}
+						};
+					}else{
+						elm = $('<'+tag+'>');
+					}					
+					return elm;
+				}
+				
+
 				/**
 				 * {"tag":"table","prop_s":{},"child_s":[{loop...}]}を再帰処理する
 				 * データの二重加工を防ぐため､副作用処理一切禁止 そういった処理はconvert_to_displayに実装
 				 * _this.tag === ''の場合､targetのpropを_thisのpropで更新する
 				 * my_apply形式のデータが対象
 				 */
-				function display_onscreen(target_s, _this, is_resizable_draggable){
+				function display_onscreen(target_s, _this, is_resizable_draggable, is_svg){
 					//					console.log('display_onscreen : '+JSON.stringify(arguments));
 					if( typeof is_resizable_draggable === 'undefined' ){
 						is_resizable_draggable = true;
 					}
 					var tag = _this['tag'];
+					if( tag.trim() === 'svg'){
+						is_svg = true;
+					}else{
+						if( typeof is_svg === 'undefined'){
+							is_svg = false;
+						}
+					}
 					var prop_s = _this['prop_s'];
 					var child_s = _this['child_s'];
 					if( ! $.isArray(child_s)){
@@ -813,7 +910,7 @@
 					var length_target_s	 = target_s.length;
 					for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
 						var target = $(target_s[idx_tgt]);
-						var work_jq = tag.length == 0 ? target : $('<'+tag+'>');
+						var work_jq = tag.length == 0 ? target : myCreateElement(tag, is_svg);
 						for(var prop in prop_s)if(prop_s.hasOwnProperty(prop)){
 							prop = prop.trim();
 							if( prop === 'html'){//余計なお節介機能
@@ -848,29 +945,8 @@
 							.attr('data-my-obj-id', my_regular_id)
 							.data('my-obj-id', my_regular_id)
 							.attr({"id":user_input_id})
-							.on('click',function(ev){// 選択処理実装
-								ev.stopPropagation();
-								if( not_click ){
-									//console.log(not_click);
-									not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･
-									return;
-								}
-								select_element(my_regular_id, work_jq);
-								//analisys my-obj-id
-								var id_list = my_regular_id.split('_');
-								var concat_id = '';
-								var appendHtml = '';
-								$.each(id_list,function(idx,my_id){
-									concat_id += my_id;
-									var tmp = $('*[data-my-obj-id='+concat_id+']',el_screen_area).get(0);
-									if(typeof tmp !== 'undefined'){
-										appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
-									}
-									concat_id += '_';
-								});
-								el_parent_list.empty().append(appendHtml);
-							})
-							.on('change',function(ev,obj){
+							.on(MY_CLICK,select_handler)
+							.on(MY_CHANGE,function(ev){
 								var _this = $(this);
 								var val = _this.val()									
 									_this
@@ -879,7 +955,7 @@
 							});
 						var length_child_s = child_s.length;
 						for(var idx_child=0; idx_child < length_child_s; ++idx_child){
-							display_onscreen([work_jq], child_s[idx_child]);
+							display_onscreen([work_jq], child_s[idx_child],is_resizable_draggable, is_svg);
 						}
 
 						var resizableOption = {
@@ -941,6 +1017,32 @@
 							"autoHide":true, "handles":"all", "cancel":"option"});
 				}
 
+				function select_handler(ev){// 選択処理実装
+					if(is_suspend) return;
+					ev.stopPropagation();
+					var _this = $(this);
+					var my_regular_id = _this.attr('data-my-obj-id');
+					if( not_click ){
+						//console.log(not_click);
+						not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･
+						return;
+					}
+					select_element(my_regular_id, _this);
+					//analisys my-obj-id
+					var id_list = my_regular_id.split('_');
+					var concat_id = '';
+					var appendHtml = '';
+					$.each(id_list,function(idx,my_id){
+						concat_id += my_id;
+						var tmp = $('*[data-my-obj-id='+concat_id+']',el_screen_area).get(0);
+						if(typeof tmp !== 'undefined'){
+							appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
+						}
+						concat_id += '_';
+					});
+					el_parent_list.empty().append(appendHtml);
+				}				
+
 				function mthd_delete_element_impl(in_target_css){
 					var target_css ;
 					if( in_target_css !== null){
@@ -978,7 +1080,7 @@
 					default_width_setting_s[_this.attr('id')] = _this.width();
 				});
 
-				$('.menu_bar').on('keyup change mouseout','.autoExtend',function(){
+				$('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
 					var _this = $(this);
 					var length_val = 0;
 					if(_this.get(0).localName === 'textarea'){
@@ -999,12 +1101,12 @@
 				});
 
 				el_float_menu.resizable({"autoHide":true,"minWidth":80}).draggable();
-				el_screen_area.on('click',function(){
-					el_func_s['cxlselected'].trigger('click');
+				el_screen_area.on(MY_CLICK,function(){
+					el_func_s['cxlselected'].trigger(MY_CLICK);
 				});
 
 				// menu func
-				el_func_s['insert'].on('click', function(){
+				el_func_s['insert'].on(MY_CLICK, function(){
 					try{
 						var for_add_target_s = null;
 						var el_selected_s = $('.'+CLASS_SELECTED);
@@ -1030,7 +1132,7 @@
 				/**
 				 *
 				 */
-				el_func_s['update'].on('click', function(){
+				el_func_s['update'].on(MY_CLICK, function(){
 					var target_s;
 					var el_selected_s = $('.'+CLASS_SELECTED);
 					if( el_selected_s.length > 0){
@@ -1067,7 +1169,7 @@
 						//val
 						var tag = target.get(0).localName;
 						if(target.hasClass('wrapper')){
-							console.log('my-id : '+ target.attr('data-my-obj-id') + ' is wrapper. So skip.');
+							//console.log('my-id : '+ target.attr('data-my-obj-id') + ' is wrapper. So skip.');
 							return true;
 						}
 						if( func_val !== null){
@@ -1116,7 +1218,7 @@
 					});
 				});
 
-				el_func_s['select'].on('click', function(){
+				el_func_s['select'].on(MY_CLICK, function(){
 					var my_regular_id = el_selected_val_id.val();
 					select_element(my_regular_id);
 				});
@@ -1128,7 +1230,7 @@
 				 */
 				$.each(互いに排他の機能_s,function(idx, name){
 					var now_class = CLASS_S[name];
-					el_func_s[name].on('click', function(){
+					el_func_s[name].on(MY_CLICK, function(){
 						try{
 							var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
 							//TODO if hasClass('wrapped'), then cancel and select parent
@@ -1148,7 +1250,7 @@
 				/**
 				 * paste
 				 */
-				el_func_s['paste'].on('click', function(){
+				el_func_s['paste'].on(MY_CLICK, function(){
 					try{
 						var added_target_s = null;
 						var el_selected_s = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);//xxx
@@ -1175,7 +1277,7 @@
 					}
 				});
 
-				el_func_s['html'].on('click',function(){
+				el_func_s['html'].on(MY_CLICK,function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = JSON.parse(raw_child);
 					if( ! $.isArray(parsed)){
@@ -1196,16 +1298,16 @@
 					});
 					var output_html = el_sandbox_hidden.html();
 					//output_html = output_html.replace(/></g,'>\n<');
-					console.log('output html size : '+output_html.length);
+					//console.log('output html size : '+output_html.length);
 					el_sandbox_screen_area.html(output_html);
 				});
 
-				el_func_s['delete'].on('click', function(){
+				el_func_s['delete'].on(MY_CLICK, function(){
 					//console.log("delete");
 					mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
 				});
 
-				el_func_s['cxlselected'].on('click', function(){
+				el_func_s['cxlselected'].on(MY_CLICK, function(){
 					$('.'+CLASS_SELECTED).each(function(){
 						removeSelected($(this));
 					});
@@ -1225,10 +1327,19 @@
 				}
 				init_save_history();
 
+				el_func_s['edit_toggle']
+					.on(MY_CLICK,function(ev, obj){
+						console.log('toggle off ');
+						is_suspend = ! is_suspend;
+						if(is_suspend){
+							el_func_s['cxlselected'].trigger(MY_CLICK);
+						}
+					});
+
 				/**
 				 * saveされる対象はdata-my-obj-idが付与されているもの
 				 */
-				el_func_s['save'].on('click', function(){
+				el_func_s['save'].on(MY_CLICK, function(){
 					var mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
 					//console.log('mother id:'+mother_id);
 					var child_tree = get_child_tree_select_dom(mother_id);
@@ -1236,7 +1347,7 @@
 					el_saved_serialized.val(stringified);
 					var save_s = JSON.parse(MY_STORAGE.select('save_s'));
 					save_s = save_s == null ? {} : save_s;
-					++history_counter;
+						++history_counter;
 					var tmp_counter = 0;
 					while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
 						if(save_s.hasOwnProperty('save_'+tmp_counter)){
@@ -1245,7 +1356,7 @@
 						if(tmp_counter > 10000){
 							console.log('break');
 						}
-						++tmp_counter;
+							++tmp_counter;
 					}
 					save_s['save_'+history_counter] = stringified;
 					MY_STORAGE
@@ -1255,7 +1366,7 @@
 					init_save_history();
 				});
 
-				el_func_s['load'].on('click', function(){
+				el_func_s['load'].on(MY_CLICK, function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = [];
 					try{
@@ -1273,17 +1384,17 @@
 						display_onscreen(el_screen_area, parsed[i]);
 					}
 				});
-				el_history.on('change',function(){
+				el_history.on(MY_CHANGE,function(){
 					var _this = $(this);
 					var saved = MY_STORAGE.select('save_s');
 					if(saved != null){
 						var selected = _this.val();
 						el_saved_serialized.val(JSON.parse(saved)[selected]);
 					}
-				}).trigger('change');
+				}).trigger(MY_CHANGE);
 
 
-				el_func_json_val.on('change', function(){
+				el_func_json_val.on(MY_CHANGE, function(){
 					var _this = $(this);
 					try{
 						if( typeof JSON.parse(_this.val()) === 'object' ){
@@ -1329,7 +1440,7 @@
 					}
 					//pull down
 					refresh_select_list(some_key, el_some.select);
-					el_some.select.on('change',function(){
+					el_some.select.on(MY_CHANGE,function(){
 						var some_name = this.value;
 						var list_s_in_storage = JSON.parse(MY_STORAGE.select(some_key));
 						if(list_s_in_storage != null && typeof list_s_in_storage !== 'undefined'){
@@ -1360,7 +1471,7 @@
 						new_empty_line(tmp_el_list);
 						tmp_el_list.parent().height(tmp_el_list.height() + 100);
 
-						tmp_el_list.on('change','input.key',function(){
+						tmp_el_list.on(MY_CHANGE,'input.key',function(){
 							var pre_height = tmp_el_list.height();
 							$('input.key', tmp_el_list).each(function(){
 								var _this = $(this);
@@ -1373,13 +1484,13 @@
 							var parent = tmp_el_list.parent();
 							parent.height(parent.height() + added_height);
 						});
-						tmp_el_list.on('change','input',function(){
+						tmp_el_list.on(MY_CHANGE,'input',function(){
 							tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
 						});
 						tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
-					}).trigger('change');//end el_some.select
+					}).trigger(MY_CHANGE);//end el_some.select
 
-					el_some.reg.on('click',function(){
+					el_some.reg.on(MY_CLICK,function(){
 						var some_name = el_some.name.val();
 						var tmp_el_list = el_some_list[some_key]; //TODO dupe
 						var list_s_in_storage = JSON.parse(MY_STORAGE.select(some_key));
@@ -1391,7 +1502,7 @@
 						refresh_select_list(some_key, el_some.select);
 					});
 
-					el_some.del.on('click',function(){
+					el_some.del.on(MY_CLICK,function(){
 						alert('now coding');
 					});
 				});
@@ -1453,7 +1564,7 @@
 					obj.data('my-obj-val', set_val);
 					obj.attr('data-my-obj-val', set_val);
 					var _text = obj.text();
-					console.log('text : '+_text+', html : '+obj.html());
+					//console.log('text : '+_text+', html : '+obj.html());
 					var kept = $(' > *',obj).detach();
 					obj.text(set_val);
 					kept.appendTo(obj);
@@ -1806,13 +1917,13 @@
 																 || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 																	 stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 							}else if( op_idx === IDX_PAREN){
-										++i;
-										++_parent_counter;
+											++i;
+											++_parent_counter;
 								var pool_formula = "";
 								for(; i<length_formula; ++i){
 									c = formula.charAt(i);
 									if( c === '('){
-												++_parent_counter;
+													++_parent_counter;
 									}else if( c === ')'){
 										--_parent_counter;
 									}
