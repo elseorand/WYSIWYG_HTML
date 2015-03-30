@@ -1497,7 +1497,7 @@
 				var history_counter = 0;
 				function init_save_history(){
 					var appender = '';
-					var save_s = JSON.parse(MY_STORAGE.select('save_s'));
+					var save_s = MY_STORAGE.select('save_s');
 					history_counter = 0;
 					for(var key in save_s) if(save_s.hasOwnProperty(key)){
 						appender = '<option value="'+key+'">'+key+'</option>' + appender;
@@ -1526,7 +1526,7 @@
 					var child_tree = get_child_tree_select_dom(mother_id);
 					var stringified = child_tree.stringify_child_s();
 					el_saved_serialized.val(stringified);
-					var save_s = JSON.parse(MY_STORAGE.select('save_s'));
+					var save_s = MY_STORAGE.select('save_s');
 					save_s = save_s == null ? {} : save_s;
 						++history_counter;
 					var tmp_counter = 0;
@@ -1542,7 +1542,7 @@
 					save_s['save_'+history_counter] = stringified;
 					MY_STORAGE
 						.transaction()
-						.replace('save_s', JSON.stringify(save_s))
+						.replace('save_s', save_s)
 						.commit();
 					init_save_history();
 				});
@@ -1570,7 +1570,7 @@
 					var saved = MY_STORAGE.select('save_s');
 					if(saved != null){
 						var selected = _this.val();
-						el_saved_serialized.val(JSON.parse(saved)[selected]);
+						el_saved_serialized.val(saved[selected]);
 					}
 				}).trigger(MY_CHANGE);
 
@@ -1674,11 +1674,11 @@
 					el_some.reg.on(MY_CLICK,function(){
 						var some_name = el_some.name.val();
 						var tmp_el_list = el_some_list[some_key]; //TODO dupe
-						var list_s_in_storage = JSON.parse(MY_STORAGE.select(some_key));
+						var list_s_in_storage = MY_STORAGE.select(some_key);
 						list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
 						MY_STORAGE
 							.transaction()
-							.replace(some_key, JSON.stringify(list_s_in_storage))
+							.replace(some_key, list_s_in_storage)
 							.commit();
 						refresh_select_list(some_key, el_some.select);
 					});
@@ -1915,6 +1915,9 @@
 									return saved;
 								}
 							}else{
+								try{
+									pooled = JSON.parse(pooled);
+								}catch(e){}
 								return pooled;
 							}
 						},
