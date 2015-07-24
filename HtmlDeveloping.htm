@@ -174,15 +174,12 @@
 				<input type="button" value="Load" id="func_load_element" />
 				<input type="text" id="saved_serialized"	placeholder="click save => The data comes here" />
 				<select id="history" ></select>
+				<input type="button" value="Html" id="func_html_element" />
+				<textarea id="sandbox_screen" rows="1" cols="5" style="height:1.5em;"></textarea>
+				<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
 			</section>
 		</header>
 		<section id="screen" style="position:absolute; top:0px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0">
-		</section>
-		<section id="side_menu_bar" class="menu_bar side_menu_bar float_menu header_menu" style="position:absolute; top:540px;z-index:101;right:10px;width:100px; height:300px;border-radius:20px;" >
-			<input type="button" value="Html" id="func_html_element" /><br />
-			<textarea id="sandbox_screen" rows="2" cols="5"></textarea><br />
-			<select id="parent_list" ></select>
-			<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:100px;z-index:101;right:10px;width:400px;height:250px; border-radius:20px;overflow:hidden;" >
 			<label for="ValTag">Tag	 </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="" /><br />
@@ -210,6 +207,7 @@
 		<footer style="position:fixed; bottom:0px;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
 				<input type="button" value="Select" id="func_select_element" />
+				<select id="parent_list" ></select>
 				<label for="SelectedMyObjId">MyID</label><input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/>
 				<input type="button" value="UpSlctd" id="func_update_element" class="menu_button" />
 				<label for="SelectedValTag">Tag</label><input type="text" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
@@ -232,13 +230,13 @@
 				var CLASS_CUT = 'objCut';
 				var CLASS_HTMLIZE = 'htmlize';
 				var CLASS_S = {"selected":CLASS_SELECTED, "copy":CLASS_COPY,"cut":CLASS_CUT,"htmlize":CLASS_HTMLIZE};
-				
+
 				var LAYER_SEP = '>';
 				var LOOP_HLD = '*';
 				var SBL_HLD = '+';
 				var DEFAULT_WIDTH = 100;
 				var DEFAULT_HEIGHT = 30;
-				
+
 				var SVG_NS = 'http://www.w3.org/2000/svg';
 				var XLink_NS = 'http://www.w3.org/1999/xlink';
 
@@ -277,6 +275,7 @@
 				el_parent_list.on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
 					var _this = myWrapElement(this);
 					el_selected_val_id.val(_this.val());
+					// el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化
 				});
 
 				// screen area
@@ -354,7 +353,7 @@
 							removeSelected(_this);
 						}
 					});
-					
+
 				}
 
 				function removeSelected(jq_tgt){
@@ -604,7 +603,7 @@
 							if(parenthesis_first === -1){
 								parenthesis_first = idx;
 							}
-							++parenthesis_counter;
+								++parenthesis_counter;
 						}
 						if(c === ')' && nest_counter === 0){
 							--parenthesis_counter;
@@ -807,7 +806,7 @@
 					var my_height = DEFAULT_HEIGHT + 25 * (tag_size_s.length - my_layer_idx);
 					var my_width = (DEFAULT_WIDTH + 10 * (tag_size_s.length - my_layer_idx)) * tag_size_s[my_layer_idx];
 					if( tag.toUpperCase() === 'TD' || tag.toUpperCase() === 'TH'){
-						my_width = 30;
+						my_width = 20; my_height = 20;
 					}
 					if( typeof temp_prop_s.style === 'undefined'){
 						temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(my_layer_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
@@ -902,7 +901,7 @@
 										if(node.noteType === 3){
 											rtn += note.textContent + ' ';
 										}
-									});																			
+									});
 								}else{
 									var txt_node = document.createTextNode(txt);
 									raw.appendChild(txt_node);
@@ -933,7 +932,7 @@
 					}else{
 						elm = $('<'+tag+'>');
 						elm.data('my-is-svg',false);
-					}					
+					}
 					return elm;
 				}
 
@@ -984,11 +983,11 @@
 							return this;
 						};
 					}
-					
+
 					return elm;
 				}
-				
-				
+
+
 
 				/**
 				 * {"tag":"table","prop_s":{},"child_s":[{loop...}]}を再帰処理する
@@ -1000,9 +999,13 @@
 					if( typeof is_resizable_draggable === 'undefined' ){
 						is_resizable_draggable = true;
 					}
-					var tag = _this['tag'];
-					if( tag.trim() === 'svg'){
+					var tag = _this['tag'].trim().toLowerCase();
+					if( tag === 'svg'){
 						is_svg = true;
+						is_resizable_draggable = false;
+					}else if( tag === 'th' || tag === 'td'){
+						is_resizable_draggable = true;
+					}else if( tag === 'tr' || tag === 'tbody' || tag === 'thead'){
 						is_resizable_draggable = false;
 					}else{
 						if( typeof is_svg === 'undefined'){
@@ -1079,7 +1082,7 @@
 							.on(MY_CLICK,select_handler)
 							.on(MY_CHANGE,function(ev){
 								var _this = myWrapElement(this);
-								var val = _this.val()									
+								var val = _this.val()
 									_this
 									.data('my-obj-val', val)
 									.attr('data-my-obj-val', val);
@@ -1129,7 +1132,18 @@
 						if( wrapped_is_true ){
 							//nothing
 						}else if(必ず子要素のタグ.indexOf(tag) > -1 ){
-							work_jq.css({"top":"","left":"","position":"relative"});
+							work_jq.css({"top":"","left":""});
+							if( is_resizable_draggable ){
+								resizableOption["stop"] = function(ev, ui){
+									var _this = $(this);
+									draw_arrow_s(cached_arrow_factory, _this);
+									cached_arrow_factory = null;
+									work_jq.css({"left":0,"top":0});
+								};
+								work_jq
+									.resizable(resizableOption)
+									.data("resizable", resizableOption);
+							}
 						}else if(resizableのみ対象のタグ.indexOf(tag) > -1){
 							//nothing
 						}else{
@@ -1146,15 +1160,6 @@
 								.css('position','absolute');
 						}
 					}
-					$('td,th', el_screen_area).resizable(
-						{
-							"stop":function(ev, ui){
-								not_click = true;
-								$(this).css({"left":0,"top":0});// 中身が飛び出ても戻す対策
-							},
-							"start":function(ev, ui){not_click = true;},
-							"autoHide":true, "handles":"e,s,se", "cancel":"option"
-						});
 				}
 				var cached_arrow_factory = null;
 				function continuous_draw_arrow_s(){
@@ -1202,7 +1207,7 @@
 						return rtn + path;
 					}
 				};
-				
+
 				var BezierPathCmdFactory = function(){
 					var idx = 0;
 					var add = 1;
@@ -1227,7 +1232,7 @@
 						return rtn;
 					};
 				};
-				
+
 				function draw_arrow_s_factory(target_s, op_my_id){
 					if(typeof target_s === 'undefined' || target_s == null || ! arget_s.hasOwnProperty('member_s')){
 						target_s = {"member_s":$('svg.data-conns > *[data-conns]', el_screen_area)};
@@ -1274,7 +1279,7 @@
 						console.log('get_center_abs_coord : '+JSON.stringify(e));
 					}
 				}
-				
+
 				function select_handler(ev){// 選択処理実装
 					if(is_suspend) return;
 					ev.stopPropagation();
@@ -1298,8 +1303,9 @@
 						}
 						concat_id += MY_OBJ_SEP;
 					});
-					el_parent_list.empty().append(appendHtml);
-				}				
+					concat_id = concat_id.substring(0, concat_id.length - 1);
+					el_parent_list.empty().append(appendHtml).val(concat_id);
+				}
 
 				function mthd_delete_element_impl(in_target_css){
 					var target_css ;
@@ -1482,7 +1488,7 @@
 					var my_regular_id = el_selected_val_id.val();
 					select_element(my_regular_id);
 				});
-				
+
 				var 互いに排他の機能_s = ["copy","cut"];
 				var 互いに排他機能のCLASSを含まないセレクタ = '';
 				/**
@@ -1506,7 +1512,7 @@
 					});
 					互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
 				});
-				
+
 				/**
 				 * paste
 				 */
@@ -1573,7 +1579,7 @@
 						removeSelected(myWrapElement(this));
 					});
 				});
-				
+
 				var history_counter = 0;
 				function init_save_history(){
 					var appender = '';
@@ -1608,7 +1614,7 @@
 					el_saved_serialized.val(JSON.stringify(save));
 					var save_s = MY_STORAGE.select('save_s');
 					save_s = save_s == null ? {} : save_s;
-					++history_counter;
+						++history_counter;
 					var tmp_counter = 0;
 					while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
 						if(save_s.hasOwnProperty('save'+MY_OBJ_SEP+tmp_counter)){
@@ -1682,11 +1688,11 @@
 				MY_STORAGE
 					.transaction()
 					.ifelse(true
-							, ['merge',{"part_list":{"latest_example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)","table_cross_header":"table>thead_th($0)+tbody_th_td($0,$1)","svg_example":"svg.data-conns>path[data-conns=#hoge #fuga]+path[data-conns=#hoge #hage]+path[data-conns=#fuga #hage]","svg_example2":"svg.data-conns>path[data-conns=#hoge #fuga #hage]","svg_example3":"svg.data-conns>path[data-conns=#hoge #fuga #hage #hoge]","div_conned":"div#hoge+div#fuga+div#hage","svg_example4":"svg.data-conns>path[data-conns=div.htmlize:not(.wrapper)]"}}}]
+						, ['merge',{"part_list":{"latest_example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)","table_cross_header":"table>thead_th($0)+tbody_th_td($0,$1)","svg_example":"svg.data-conns>path[data-conns=#hoge #fuga]+path[data-conns=#hoge #hage]+path[data-conns=#fuga #hage]","svg_example2":"svg.data-conns>path[data-conns=#hoge #fuga #hage]","svg_example3":"svg.data-conns>path[data-conns=#hoge #fuga #hage #hoge]","div_conned":"div#hoge+div#fuga+div#hage","svg_example4":"svg.data-conns>path[data-conns=div.htmlize:not(.wrapper)]"}}}]
 						, []
 					)
 					.ifelse(true
-							, ['merge',{"prop_list":{"latest_example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"},"svg":{"xmlns":"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink","style":"height:800px;width:1200px;"},"path":{"fill":"black","stroke":"black","stroke-width":1,"d":""}}}}]
+						, ['merge',{"prop_list":{"latest_example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"},"svg":{"xmlns":"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink","style":"height:800px;width:1200px;"},"path":{"fill":"black","stroke":"black","stroke-width":1,"d":""}}}}]
 						,[]
 					)
 					.commit();
@@ -1819,12 +1825,22 @@
 							$('<input />').attr({"type":"button","value":part_list_func_s[idx]}).css({"width":"2.5em","margin-right":"4px","text-align":"center"})	//TODO style
 								.on(MY_CLICK,function (){
 									var now_val = el_val_tag.val();
+									var new_val = '';
 									now_val = typeof now_val === 'undefined' ? '' : now_val;
 									if(now_val !== '' && part_list_func_s.indexOf(now_val.slice(-1) !== -1)){
-										el_val_tag.val(now_val + $(this).val() + $(' ~ .key', this).val());										
+										new_val = $(this).val() + $(' ~ .key', this).val();
 									}else{
-										el_val_tag.val(now_val + $(' ~ .key', this).val() );
+										new_val = $(' ~ .key', this).val();
 									}
+									// extract param
+									var expression =  $(' ~ .val', this).val();
+									var counter = 0;
+									expression.split('').forEach(function(x,i,a){
+										if( x === '$' ) ++counter;
+									});
+									var params = counter > 0 ? '(,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,'.substring(0, counter) +')' : '';
+
+									el_val_tag.val(now_val + new_val + params);
 								}).appendTo(new_li);
 						}
 					}
@@ -1871,7 +1887,7 @@
 						console.log('get_offset_width_height : '+JSON.stringify(e));
 					}
 				}
-				
+
 				/**
 				 * override
 				 */
@@ -2219,17 +2235,17 @@
 										stack.push(num);
 									}
 								}
-							}else	if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN 
+							}else	if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN
 																 || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 																	 stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 							}else if( op_idx === IDX_PAREN){
-											++i;
-											++_parent_counter;
+												++i;
+												++_parent_counter;
 								var pool_formula = "";
 								for(; i<length_formula; ++i){
 									c = formula.charAt(i);
 									if( c === '('){
-													++_parent_counter;
+														++_parent_counter;
 									}else if( c === ')'){
 										--_parent_counter;
 									}
@@ -2253,7 +2269,7 @@
 								if($.isNumeric(key)){
 									throw new TypeError('Error '+key+' is not var. val is ' + val);
 								}
-								resolved_param_s[key] = val;								
+								resolved_param_s[key] = val;
 								stack.push(val);
 							}else{
 								pool += c;
