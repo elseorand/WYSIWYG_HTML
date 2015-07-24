@@ -292,7 +292,7 @@
 				var tag毎の入力規則 ={"input":{"require_s":["type"],"default":{"type":"text"}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
 				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul","svg"];
 				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
-				var サイズを持たせないタグ = ["tbody","thead","tr"];
+				var サイズを持たせないタグ = ["table","tbody","thead","tr"];
 				var resizableのみ対象のタグ = [];
 				var HTML5のタグには無い文字 = ["_","-","$",":",";","(",")","+","@","[","]","{","}","/",">","<",",",".","#","%","&","'",'"',"=","^","~"];
 				var 直接文字編集可能タグ = ["input","textarea"];
@@ -806,6 +806,9 @@
 					}
 					var my_height = DEFAULT_HEIGHT + 25 * (tag_size_s.length - my_layer_idx);
 					var my_width = (DEFAULT_WIDTH + 10 * (tag_size_s.length - my_layer_idx)) * tag_size_s[my_layer_idx];
+					if( tag.toUpperCase() === 'TD' || tag.toUpperCase() === 'TH'){
+						my_width = 30;
+					}
 					if( typeof temp_prop_s.style === 'undefined'){
 						temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(my_layer_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
 						//console.log('no style');
@@ -1097,7 +1100,7 @@
 								var my_id = $(this).attr('data-my-obj-id');
 								cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 							},
-							"autoHide":true, "handles":"all", "cancel":"option","minWidth":"10","minHeight":"10"
+							"autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
 						};
 						var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4",
 							"stop":function(ev, ui){
@@ -1143,12 +1146,15 @@
 								.css('position','absolute');
 						}
 					}
-					$('td,th', el_screen_area).resizable(//TODO test $('td,th', work_jq)
-						{	"stop":function(ev, ui){not_click = true;},
+					$('td,th', el_screen_area).resizable(
+						{
+							"stop":function(ev, ui){
+								not_click = true;
+								$(this).css({"left":0,"top":0});// 中身が飛び出ても戻す対策
+							},
 							"start":function(ev, ui){not_click = true;},
-							"autoHide":true, "handles":"all", "cancel":"option"});
-
-					
+							"autoHide":true, "handles":"e,s,se", "cancel":"option"
+						});
 				}
 				var cached_arrow_factory = null;
 				function continuous_draw_arrow_s(){
