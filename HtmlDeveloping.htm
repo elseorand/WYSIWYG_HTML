@@ -8,123 +8,21 @@
  		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
 
 		<style type="text/css" >
+			/* For this app */
 			* {
-				font-family: 'A-TTC 新ゴ M', 'ヒラギノ角ゴ Pro W3',
+				font-family: Ricty Diminished, Ricty, 'A-TTC 新ゴ R', 'ヒラギノ角ゴ Pro W3',
 				'Hiragino Kaku Gothic Pro W3', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif,
 				'ＭＳ ゴシック', monospace;
 			}
-
-			body {
-				margin: 0px;
-			}
-
-			.shadow {
-				padding: 6px;
-				box-shadow: 5px 5px 15px #000000;
-				background: black\9;
-				border-radius: 5px;
-			}
-
-			p,dl {
-				padding: 5px;
-			}
-
-			th {
-				white-space: nowrap;
-				word-break: keep-all;
-			}
-
-			input {
-				border-radius: 5px;
-			}
-
-			input[type=text] {
-				padding: 5px;
-			}
-
-			.shadow:not (:target ) {
-				filter: none;
-				background: rgba(128, 128, 128, 0.1);
-			}
-
-			#content_root {
-				width: 100%;
-			}
-
-			h1,h2,h3,h4 {
-				text-align: center;
-			}
-
-			h1 {
-				font-size: 4em;
-			}
-
-			h2 {
-				font-size: 3em;
-			}
-
-			h3 {
-				font-size: 2em;
-			}
-
-			.csssplite {
-				cursor: pointer;
-				background-position: -20px -4px;
-			}
-
-			.hide_mode_target {
-				width: 100%;
-			}
-
-			.menu_bar {
-				background-color: rgba(221, 221, 221, 0.5);
-				padding: 5px;
-				height: 50px;
-			}
-
-			.side_menu_bar>input {
-				margin: 4px;
-			}
-
-			.objSelected {
-				border:4px dotted red !important;
-				opacity: 0.6;
-			}
-
-			.objSelected * {
-				background-color: orange !important;
-				opacity: 0.6;
-			}
-
-			.objCut {
-				border:4px dotted blue !important;
-				opacity: 0.6;
-			}
-
-			.objCut *{
-				background-color: #aaccff !important;
-				opacity: 0.6;
-			}
-
-			.objCopy {
-				border:4px dotted green !important;
-				opacity: 0.6;
-			}
-
-			.objCopy *{
-				background-color: #aaffcc !important;
-				opacity: 0.6;
-			}
-
-			label {
-				padding-left: 5px;
-				padding-right: 5px;
-				white-space: nowrap;
-			}
-
-			.snap {
+			#screen *:not(input){
 				background-color: white;
-				border: 1px dotted gray;
+			}
+			.snap_border {
+				border: 1px dotted black !important;
+
+			}
+			.ui-resizable-e,.ui-resizable-s,.ui-resizable-se{
+				opacity: 0.2;
 			}
 
 			#header_menu_bar , #sub_header_menu_bar{
@@ -137,6 +35,90 @@
 				margin:6px;
 			}
 
+			#content_root {
+				width: 100%;
+			}
+
+			.hide_mode_target {
+				width: 100%;
+			}
+			.menu_bar {
+				background-color: rgba(221, 221, 221, 0.5);
+				padding: 5px;
+				height: 50px;
+			}
+			.snippets{
+				padding-left:20px;
+			}
+			.side_menu_bar>input {
+				margin: 4px;
+			}
+			.objSelected {
+				border:4px dotted red !important;
+				opacity: 0.6;
+			}
+			.objSelected * {
+				background-color: orange !important;
+				opacity: 0.6;
+			}
+			.objCut {
+				border:4px dotted blue !important;
+				opacity: 0.6;
+			}
+			.objCut *{
+				background-color: #aaccff !important;
+				opacity: 0.6;
+			}
+			.objCopy {
+				border:4px dotted green !important;
+				opacity: 0.6;
+			}
+			.objCopy *{
+				background-color: #aaffcc !important;
+				opacity: 0.6;
+			}
+
+			/* As you like */
+			body {
+				margin: 0px;
+			}
+			p,dl {
+				padding: 5px;
+			}
+			th {
+				white-space: nowrap;
+				word-break: keep-all;
+			}
+			input {
+				border-radius: 5px;
+			}
+			input[type=text] {
+				padding: 5px;
+			}
+			h1,h2,h3,h4 {
+				text-align: center;
+			}
+			h1 {
+				font-size: 4em;
+			}
+			h2 {
+				font-size: 3em;
+			}
+			h3 {
+				font-size: 2em;
+			}
+			label {
+				padding-left: 5px;
+				padding-right: 5px;
+				white-space: nowrap;
+			}
+
+			/* special */
+			.shadow {
+				padding: 6px;
+				box-shadow: 5px 5px 15px #000000;
+				border-radius: 5px;
+			}
 			.hukidasi{
 				width: 300px;
 				margin: 0 auto;
@@ -181,11 +163,11 @@
 		</header>
 		<section id="screen" style="position:absolute; top:0px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0">
 		</section>
-		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:100px;z-index:101;right:10px;width:400px;height:250px; border-radius:20px;overflow:hidden;" >
-			<label for="ValTag">Tag	 </label><input type="text" placeholder="tag tag*num like div>div*3" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="" /><br />
+		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:100px;z-index:101;right:10px;width:640px;height:250px; border-radius:20px;overflow:hidden;" >
+			<input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="" /><br />
 			<input type="hidden" id="part_list_input" class="json_val" value="" />
 			<input type="hidden" id="prop_list_input" class="json_val" value="" />
-			<label for="ValArrayJSON">vals	</label><input type="text" placeholder="val array JSON" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" /><br />
+			<input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" /><br />
 			<span style="white-space:nowrap;">
 				<input type="button" class="menu_button" value="Ins" id="func_insert_element" />
 				<input type="button" class="menu_button" value="Del" id="func_delete_element" />
@@ -198,11 +180,11 @@
 			<hr />
 			<span>part_list<input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
 				<select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" /></span>
-			<ul id="part_list"></ul>
+			<ul id="part_list" class="snippets"></ul>
 			<hr />
 			<span>prop_list<input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
 				<select id="prop_list_select"></select><input id="prop_list_del" type="button" value="Del" style="float:right;" /></span>
-			<ul id="prop_list"></ul>
+			<ul id="prop_list" class="snippets"></ul>
 		</section>
 		<footer style="position:fixed; bottom:0px;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
@@ -275,7 +257,7 @@
 				el_parent_list.on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
 					var _this = myWrapElement(this);
 					el_selected_val_id.val(_this.val());
-					// el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化
+					// el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
 				});
 
 				// screen area
@@ -383,10 +365,10 @@
 						//console.log('first:'+first_char+', last:'+last_char);
 						if( first_char === '[' && last_char === ']'){
 							formatted_val_s =	 JSON.parse(raw_val_s);
-						}else if(first_char === '"' && last_char === '"'){//[hoge]という文字列として渡したい場合の特殊事例ルート
+						}else if(first_char === '"' && last_char === '"' || first_char === "'" && last_char === "'"){//[" h o g e "]という文字列として渡したい場合の特殊事例ルート
 							formatted_val_s[0] = raw_val_s.substring(1, raw_val_s.length - 1);
 						}else{
-							formatted_val_s[0] = raw_val_s;
+							formatted_val_s = raw_val_s.split(' ');
 						}
 					}else if(raw_val_s === null){
 						formatted_val_s = null;
@@ -444,7 +426,7 @@
 				 * @param tag tag_2 tag_? tag1,tag2
 				 * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
 				 */
-				function format_raw_tag_s(raw_tag_s, _param_s){
+				function format_raw_tag_s(raw_tag_s, _param_s, length_val_s){
 					var param_s = {};
 					var resolved_param_s = {};
 					$.extend(true, param_s, _param_s);
@@ -463,13 +445,17 @@
 							var loop_num = 1;
 							if(tag_num.length > 1){
 								var raw_num = tag_num[1];
-								//								console.log("loop_raw_num : "+raw_num);
 								raw_num = param_s.hasOwnProperty(raw_num) ? param_s[raw_num] : raw_num;
 								if( ! $.isNumeric(raw_num)){
 									//									console.log('tag param_s : '+ sbl + ' :: ' + JSON.stringify(param_s));
-									var result = reverse_porlish_notation_logic(raw_num, param_s, resolved_param_s);
-									loop_num = result[0];
-									resolved_param_s = result[2];
+									if( raw_num === '?' ){
+										raw_num = length_val_s;
+										loop_num = raw_num;
+									}else{
+										var result = reverse_porlish_notation_logic(raw_num, param_s, resolved_param_s);
+										loop_num = result[0];
+										resolved_param_s = result[2];
+									}
 									//									console.log('formula : '+raw_num + ', loop num : '+loop_num + ', param_s : '+JSON.stringify(param_s) + ', resolved : '+JSON.stringify(resolved_param_s));
 								}else{
 									loop_num = parseInt(raw_num, 10);
@@ -762,7 +748,7 @@
 									//error check
 									check_input_data(tag, prop_s, infinite_loop_check);
 									infinite_loop_check.push(tag);//new
-									var child_last = convert_lineardata_to_child_s(format_raw_tag_s(part_map[tag], param_s), prop_map, part_map, param_map, param_s, infinite_loop_check);
+									var child_last = convert_lineardata_to_child_s(format_raw_tag_s(part_map[tag], param_s), prop_map, part_map, param_map, param_s, infinite_loop_check);//TODO XXX
 									infinite_loop_check[infinite_loop_check.indexOf(tag)] = "";//delete
 									$.merge(parent.child_s, child_last.child_s);
 									// child の一番下の子孫を新しい親とする
@@ -806,7 +792,7 @@
 					var my_height = DEFAULT_HEIGHT + 25 * (tag_size_s.length - my_layer_idx);
 					var my_width = (DEFAULT_WIDTH + 10 * (tag_size_s.length - my_layer_idx)) * tag_size_s[my_layer_idx];
 					if( tag.toUpperCase() === 'TD' || tag.toUpperCase() === 'TH'){
-						my_width = 20; my_height = 20;
+						my_width = 30; my_height = 30;
 					}
 					if( typeof temp_prop_s.style === 'undefined'){
 						temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(my_layer_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
@@ -842,7 +828,7 @@
 						var length_val_s = val_s.length;
 						var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
 						var part_map = format_raw_tag_holder_s(raw_tag_holder_s);
-						var linear_data = format_raw_tag_s(raw_tag_s, []);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
+						var linear_data = format_raw_tag_s(raw_tag_s, [], length_val_s);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
 						var param_map = {};
 						var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
 						var root = convert_lineardata_to_child_s(linear_data, prop_map, part_map, param_map, [], infinite_loop_check);
@@ -850,7 +836,7 @@
 						//値埋め
 						if(val_s !== null){
 							$.each(root.last_child_s, function(pIdx, parent){
-								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];//TODO valのループ仕様をDefaultは不自然だよね･･･
+								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];
 								if( parent.tag === 'input'){
 									parent.prop_s["value"] = setVal;
 								}else{
@@ -1066,7 +1052,7 @@
 							continue;
 						}
 
-						var my_obj_id = STATUS.getNewMyObjId();//TODO DIできるように
+						var my_obj_id = STATUS.getNewMyObjId();
 						var parent_id = target.attr('data-my-obj-id');
 						var my_regular_id = parent_id+MY_OBJ_SEP+ my_obj_id;
 						//console.log('parent my-obj-id:'+parent_id +', mine:'+my_regular_id);
@@ -1107,13 +1093,17 @@
 						};
 						var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4",
 							"stop":function(ev, ui){
-								draw_arrow_s(cached_arrow_factory, $(this));
+								var _this = $(this);
+								_this.removeClass('snap_border').parent().children('.snap').removeClass('snap_border');
+								draw_arrow_s(cached_arrow_factory, _this);
 								cached_arrow_factory = null;
 							},
 							"drag":continuous_draw_arrow_s,
 							"start":function(ev, ui){
 								not_click = true;
-								var my_id = $(this).attr('data-my-obj-id');
+								var _this = $(this);
+								_this.addClass('snap_border').parent().children('.snap').addClass('snap_border');
+								var my_id = _this.attr('data-my-obj-id');
 								cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 							}
 						};
@@ -1128,7 +1118,9 @@
 						}
 
 						removeSelected(work_jq)
-							.appendTo( target );
+							.appendTo( target )
+							.data('my-htmlize-target',true)
+							.attr('data-my-htmlize-target',true);
 						if( wrapped_is_true ){
 							//nothing
 						}else if(必ず子要素のタグ.indexOf(tag) > -1 ){
@@ -1149,8 +1141,6 @@
 						}else{
 							if( is_resizable_draggable ){
 								work_jq
-									.data('able-drag-resize',true)
-									.attr('data-able-drag-resize',true)
 									.draggable(draggableOption)
 									.resizable(resizableOption)
 									.data("resizable", resizableOption);
@@ -1352,11 +1342,11 @@
 					}else{
 						length_val = _this.val().length;
 					}
-					var length_for_eval = parseInt(length_val * 0.7, 10);
+					var length_for_eval = parseInt(length_val * 1.2, 10);
 					var has_width = _this.css('width');
 					var not_extended = typeof has_width === 'undefined' ? false : has_width !== '1000px';
 					if(length_for_eval > 20 && not_extended){
-						_this.animate({"width":"1000px"},200);
+						_this.animate({"width":"640px"},200);
 					}else if(! not_extended){
 						//nothing
 					}else{
@@ -1544,6 +1534,8 @@
 					}
 				});
 
+				var HTML出力時に削除するAttr_s = ["data-my-htmlize-target","data-my-obj-id","data-my-obj-val","data-conns"];
+				var HTML出力時に削除するclass_s = ["htmlize","snap","snap_border","data-conns","wrapped","wrapper","ui-resizable-autohide","ui-draggable","ui-draggable-handle","ui-resizable"];
 				el_func_s['html'].on(MY_CLICK,function(){
 					var raw_child = el_saved_serialized.val();
 					var parsed = JSON.parse(raw_child);
@@ -1555,18 +1547,32 @@
 					for(var i=0; i < len_parsed; ++i){
 						display_onscreen(el_sandbox_hidden, parsed[i]);
 					}
-					//console.log('destroy len:'+$('[data-able-drag-resize="true"]',el_sandbox_hidden).length);
-					var target_s = $('[data-able-drag-resize="true"]',el_sandbox_hidden);
-					target_s.draggable('destroy').resizable('destroy');
+
+					var target_s = $('[data-my-htmlize-target="true"]',el_sandbox_hidden);
 					target_s.each(function(idx, _target){
 						var target = $(_target);
-						target
-							.removeData('able-drag-resize').removeAttr('data-able-drag-resize')
+						try{target.draggable('destroy');}catch(e){/*kill error*/};
+						try{target.resizable('destroy');}catch(e){/*kill error*/};
+						HTML出力時に削除するAttr_s.forEach(function(attr,i,a){
+							//NS objectの処理もあるため、jQueryは使用しない
+							_target.removeAttribute(attr);
+						});
+						HTML出力時に削除するclass_s.forEach(function(cl,i,a){
+							_target.classList.remove(cl);
+						});
 					});
-					var output_html = el_sandbox_hidden.html();
-					//output_html = output_html.replace(/></g,'>\n<');
-					//console.log('output html size : '+output_html.length);
-					el_sandbox_screen_area.html(output_html);
+
+					var head_src = '';
+					try{
+						head_src = $('head').html();
+					}catch(e){console.log('head Error '+e)};
+						var output_html = el_sandbox_hidden.html();
+						output_html = '<!doctype html><html><head>' + head_src + '</head><body>' + output_html + '</body></html>';
+						output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;');
+						//console.log('output html size : '+output_html.length);
+					try{
+						el_sandbox_screen_area.html(output_html);
+					}catch(e){console.log('e '+e)};
 				});
 
 				el_func_s['delete'].on(MY_CLICK, function(){
