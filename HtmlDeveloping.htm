@@ -14,12 +14,16 @@
 				'Hiragino Kaku Gothic Pro W3', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif,
 				'ＭＳ ゴシック', monospace;
 			}
-			#screen *:not(input){
-				background-color: white;
+			#screen *{
+/*				opacity : 0.5;*/
+				background-color:white;
+			}
+			#screen td,#screen th{/* table の罫線を出すために必須の設定 */
+				background-color:transparent;
 			}
 			.snap_border {
 				border: 1px dotted black !important;
-
+				border-collapse:collapse;
 			}
 			.ui-resizable-e,.ui-resizable-s,.ui-resizable-se{
 				opacity: 0.2;
@@ -186,13 +190,13 @@
 				<select id="prop_list_select"></select><input id="prop_list_del" type="button" value="Del" style="float:right;" /></span>
 			<ul id="prop_list" class="snippets"></ul>
 		</section>
-		<footer style="position:fixed; bottom:0px;">
+		<footer style="position:fixed; bottom:0px;z-index:100;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
 				<input type="button" value="Select" id="func_select_element" />
 				<select id="parent_list" ></select>
 				<label for="SelectedMyObjId">MyID</label><input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/>
 				<input type="button" value="UpSlctd" id="func_update_element" class="menu_button" />
-				<label for="SelectedValTag">Tag</label><input type="text" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
+				<input type="hidden" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
 				<label for="SelectedValArrayJSON">vals</label><input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>
 				<label for="SelectedValPropJSON" >props</label><input type="text" id="SelectedValPropJSON" class="autoExtend json_val" style="width:15em" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
@@ -1094,7 +1098,9 @@
 						var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4",
 							"stop":function(ev, ui){
 								var _this = $(this);
-								_this.removeClass('snap_border').parent().children('.snap').removeClass('snap_border');
+								_this.removeClass('snap_border')
+									.parent().removeClass('snap_border')
+									.children('.snap').removeClass('snap_border');
 								draw_arrow_s(cached_arrow_factory, _this);
 								cached_arrow_factory = null;
 							},
@@ -1102,7 +1108,9 @@
 							"start":function(ev, ui){
 								not_click = true;
 								var _this = $(this);
-								_this.addClass('snap_border').parent().children('.snap').addClass('snap_border');
+								_this.addClass('snap_border')
+									.parent().addClass('snap_border')
+									.children('.snap').addClass('snap_border');
 								var my_id = _this.attr('data-my-obj-id');
 								cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 							}
