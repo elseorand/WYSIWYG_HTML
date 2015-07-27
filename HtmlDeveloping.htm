@@ -17,7 +17,7 @@
 			#screen {
 				opacity : 1 !important;
 			}
-			#screen *{
+			#screen *:not(input){
 				background-color:white;
 			}
 			#screen td,#screen th{/* table の罫線を出すために必須の設定 */
@@ -158,7 +158,7 @@
 		<header>
 			<section id="header_menu_bar" class="menu_bar hide_mode_target" data-fire-key-code="escape" style="display:none;position:fixed;top:0px ;left: 0px ;z-index:101;" >
 				<input type="button" value="Html" id="func_html_element" style="position:absolute;top:15px; left:10px ;" />
-				<textarea id="sandbox_screen" rows="1" cols="5" style="height:1.5em; position:absolute;top:10px; left:65px ;"></textarea>
+				<section id="sandbox_screen" style="height:2em;width:4em; position:absolute;top:10px; left:65px ;"></section>
 				<input type="button" value="Save" id="func_save_element" style="position:absolute;top:15px; left:150px ;" />
 				<select id="history" style="position:absolute;top:15px; left:210px ;" ></select>
 				<input type="text" id="saved_serialized"	placeholder="click save => The data comes here" style="position:absolute;top:10px; left:300px ;" />
@@ -276,7 +276,7 @@
 				var el_history = $('#history');
 
 				// settings
-				var tag毎の入力規則 ={"input":{"require_s":["type"],"default":{"type":"text"}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
+				var tag毎の入力規則 ={"input":{"require_s":["type", "value"],"default":{"type":"text", "value":""}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
 				var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul","svg"];
 				var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
 				var サイズを持たせないタグ = ["table","tbody","thead","tr"];
@@ -473,7 +473,6 @@
 								//console.log('loop_num:'+loop_num);
 							}
 							var tag = tag_num[0];
-							console.log('tag :' + tag);
 							//[] と {}の処理
 							
 							for(var l_idx=0; l_idx < loop_num; ++l_idx){
@@ -705,7 +704,6 @@
 					//TODO classについてprop_mapからextract
 
 					prop_s = $.extend(true, prop_s, analized_result['attr']);//汎用設定prop_listを個別設定tagで上書き
-					//console.log('prop_s '+JSON.stringify(prop_s));
 					return [tag, prop_s];
 				}
 
@@ -747,7 +745,6 @@
 								//tag_s.tag_s[i] :  tag#hoge.fuga.hage($col 4 =,5,0) //removed "*n"
 								var input_tag_param_s = extract_param_from(tag_s.tag_s[i], param_map, parent_param_s);//副作用 param_mapへ
 								var input_tag = input_tag_param_s[0];
-								console.log('input_tag :' + extract_param_from(input_tag, {},{}));
 								var param_s = input_tag_param_s[1];
 								//css selector
 								var tag_prop_s = extract_css_selector(input_tag, prop_map);
@@ -783,6 +780,7 @@
 						parent_s = new_parent_s;
 					});
 					root_s.last_child_s = parent_s;
+					//console.log('root_s :' + JSON.stringify(root_s));
 					return root_s;
 				};
 
@@ -843,12 +841,11 @@
 						var param_map = {};
 						var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
 						var root = convert_lineardata_to_child_s(linear_data, prop_map, part_map, param_map, [], infinite_loop_check);
-
 						//値埋め
 						if(val_s !== null){
 							$.each(root.last_child_s, function(pIdx, parent){
 								var setVal = val_s[parseInt(pIdx % val_s.length, 10)];
-								if( parent.tag === 'input'){
+								if( parent.tag === 'input' && setVal != null && setVal !== ''){
 									parent.prop_s["value"] = setVal;
 								}else{
 									parent.prop_s["html"] = setVal;
@@ -1016,7 +1013,6 @@
 						});
 					}
 
-					//console.log('tag : '+tag);
 					var length_target_s	 = target_s.length;
 					var parent_is_svg = false;
 					for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
@@ -1053,10 +1049,19 @@
 						for(var prop in prop_s)if(prop_s.hasOwnProperty(prop)){
 							prop = prop.trim();
 							if( prop === 'html'){//余計なお節介機能
-								if( tag === 'input'){
+								if( tag === 'input' && work_jq.val() === '' ){
 									work_jq.val(prop_s[prop]);
 								}else{
 									work_jq.html(prop_s[prop]);
+								}
+								work_jq
+								.data('my-obj-val', prop_s[prop])
+								.attr('data-my-obj-val', prop_s[prop]);
+							}else if( prop === 'value' ){
+								if( tag === 'textarea' ){
+									work_jq.html(prop_s[prop]);
+								}else{
+									work_jq.val(prop_s[prop]);
 								}
 								work_jq
 								.data('my-obj-val', prop_s[prop])
@@ -1182,11 +1187,15 @@
 									work_jq.css({"top":0, "left":0});
 								}
 							}
+							if(!is_relative禁止タグ){
+								work_jq.css('position','absolute');
+							}else{
+								work_jq.css('position','relative');
+							}
 							work_jq
 								.resizable(resizableOption)
 								.data("resizable", resizableOption)
-								.addClass('snap')
-								.css('position','absolute');
+								.addClass('snap');
 						}
 					}
 				}
@@ -1412,7 +1421,6 @@
 						if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
 							var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input['prop_list'].val(), el_some_input['part_list'].val() );
 
-							//console.log('root:'+JSON.stringify(root.child_s));
 							$.each(root.child_s, function(cIdx, child){
 								display_onscreen(for_add_target_s, child);
 							});
@@ -1604,13 +1612,11 @@
 					var head_src = '';
 					try{
 						head_src = $('head').html();
-					}catch(e){console.log('head Error '+e)};
 						var output_html = el_sandbox_hidden.html();
 						output_html = '<!doctype html><html><head>' + head_src + '</head><body>' + output_html + '</body></html>';
-						output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;');
-						//console.log('output html size : '+output_html.length);
-					try{
-						el_sandbox_screen_area.html(output_html);
+						output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+						el_sandbox_screen_area.empty();
+						$('<textarea>').html(output_html).appendTo(el_sandbox_screen_area);
 					}catch(e){console.log('e '+e)};
 				});
 
@@ -1666,8 +1672,6 @@
 							save.push(child_tree.self());
 						});
 					}
-					console.log('save :' + JSON.stringify(save));
-					
 					return save;
 				}
 
