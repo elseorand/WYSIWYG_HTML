@@ -6,7 +6,6 @@
  		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" />
  		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
-
 		<style type="text/css" >
 			/* For this app */
 			* {
@@ -170,11 +169,10 @@
 		<section id="screen" style="position:absolute; top:0px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="0">
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:100px;z-index:101;right:10px;width:640px;height:250px; border-radius:20px;overflow:hidden;" >
-			<input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="" /><br />
-			<input type="hidden" id="part_list_input" class="json_val" value="" />
-			<input type="hidden" id="prop_list_input" class="json_val" value="" />
-			<input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" /><br />
-			<span style="white-space:nowrap;">
+				<input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;" value="" /><br />
+				<input type="hidden" id="part_list_input" class="json_val" value="" />
+				<input type="hidden" id="prop_list_input" class="json_val" value="" />
+				<input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" /><br />
 				<input type="button" class="menu_button" value="Ins" id="func_insert_element" />
 				<input type="button" class="menu_button" value="Del" id="func_delete_element" />
 				<input type="button" class="menu_button" value="CxlSel" id="func_cxlselected_element" />
@@ -182,7 +180,6 @@
 				<input type="button" class="menu_button" value="Cut" id="func_cut_element" />
 				<input type="button" class="menu_button" value="Paste" id="func_paste_element" />
 				<input type="button" class="menu_button" value="EditToggle" id="func_edit_toggle_element" />
-			</span>
 			<hr />
 			<span>part_list<input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
 				<select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" /></span>
@@ -194,7 +191,7 @@
 		</section>
 		<footer style="position:fixed; bottom:0px;z-index:100;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
-				<input type="button" value="Select" id="func_select_element" />
+				<input type="button" value="Select" id="func_select_element" class="menu_button" />
 				<select id="parent_list" ></select>
 				<label for="SelectedMyObjId">MyID</label><input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/>
 				<input type="button" value="UpSlctd" id="func_update_element" class="menu_button" />
@@ -272,7 +269,6 @@
 				var el_saved_serialized = $('#saved_serialized');
 				var el_sandbox_hidden = $('#sandbox_hidden');
 				var el_float_menu = $('.float_menu');
-
 				var el_history = $('#history');
 
 				// settings
@@ -474,7 +470,7 @@
 							}
 							var tag = tag_num[0];
 							//[] と {}の処理
-							
+
 							for(var l_idx=0; l_idx < loop_num; ++l_idx){
 								pooled_tag_s.push(tag);
 							}
@@ -990,7 +986,7 @@
 				 * TODO position:relativeが無効なtd,th直下では､draggable 禁止
 				 */
 				function display_onscreen(target_s, _this, _is_draggable, is_svg){
-					var is_default_draggable = typeof _is_draggable === 'undefined' ;
+					var is_default_draggable = _is_draggable || typeof _is_draggable === 'undefined' ;
 					var tag = _this['tag'].trim().toLowerCase();
 					var prop_s = _this['prop_s'];
 					var child_s = _this['child_s'];
@@ -1007,7 +1003,7 @@
 									prop_s[require] = default_val_s[require];
 								}else{
 									console.log("This "+tag+" tag requires a "+require+" prop.")
-									throw new Error("This "+tag+" tag requires a "+require+" prop.");
+										throw new Error("This "+tag+" tag requires a "+require+" prop.");
 								}
 							}
 						});
@@ -1064,8 +1060,8 @@
 									work_jq.val(prop_s[prop]);
 								}
 								work_jq
-								.data('my-obj-val', prop_s[prop])
-								.attr('data-my-obj-val', prop_s[prop]);
+									.data('my-obj-val', prop_s[prop])
+									.attr('data-my-obj-val', prop_s[prop]);
 							}else{
 								work_jq.attr(prop,prop_s[prop]);
 							}
@@ -1153,8 +1149,8 @@
 							//nothing
 						}else if(必ず子要素のタグ.indexOf(tag) > -1 ){
 							work_jq
-								//.css({"top":"","left":"","position":"relative"});
-							  //CSS2.1の仕様により td, th にはposition relativeが効いてはいけない｡
+							//.css({"top":"","left":"","position":"relative"});
+							//CSS2.1の仕様により td, th にはposition relativeが効いてはいけない｡
 								.css({"top":"","left":""});
 							if( is_resizable || is_draggable ){
 								resizableOption["stop"] = function(ev, ui){
@@ -1402,9 +1398,41 @@
 					}
 				});
 
+				var menu;
 				el_float_menu.resizable({"autoHide":true,"minWidth":80}).draggable();
-				el_screen_area.on(MY_CLICK,function(){
+				el_screen_area.on('contextmenu',function(ev){
+					ev.preventDefault();
+					ev.stopPropagation();
+					if(!menu){ 
+						var parent = $('<ol>');
+						$('.menu_button').each(function(){
+							var _this = $(this);
+							var child = $('<li>');
+							child
+								.css({"border-bottom":"1px dotted grey","padding":"2px","opacity":1,"user-select":"none"})
+								.html(_this.val())
+								.data('kick',_this.attr('id').replace('func_','').replace('_element',''))
+								.hover(function(){
+									child.css({"opacity":1}).siblings().css({"opacity":0.4});
+								},function(){
+									child.siblings().css({"opacity":1});
+								})
+								.on('click',function(ev){
+									ev.stopPropagation();
+									el_func_s[child.data('kick')].trigger('click');
+								})
+								.appendTo(parent);
+						});
+							parent.css({"left":ev.pageX,"top":ev.pageY,"position":"absolute","z-index":1000,"padding-left":"2em"})
+							.addClass('shadow')
+							.appendTo(el_screen_area);
+						menu = parent;
+					}else	if(menu){
+						menu.css({"left":ev.pageX,"top":ev.pageY,"display":""})
+					}
+				}).on(MY_CLICK,function(ev){
 					el_func_s['cxlselected'].trigger(MY_CLICK);
+					if(menu){menu.css({"display":"none"});}
 				});
 
 				// menu func
@@ -1686,7 +1714,7 @@
 					/* delete old */
 					var save_s = MY_STORAGE.select('save_s');
 					save_s = save_s == null ? {} : save_s;
-						++history_counter;
+							++history_counter;
 					var tmp_counter = 0;
 					while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
 						if(save_s.hasOwnProperty('save'+MY_OBJ_SEP+tmp_counter)){
@@ -2315,13 +2343,13 @@
 																 || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 																	 stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 							}else if( op_idx === IDX_PAREN){
-												++i;
-												++_parent_counter;
+													++i;
+													++_parent_counter;
 								var pool_formula = "";
 								for(; i<length_formula; ++i){
 									c = formula.charAt(i);
 									if( c === '('){
-														++_parent_counter;
+															++_parent_counter;
 									}else if( c === ')'){
 										--_parent_counter;
 									}
