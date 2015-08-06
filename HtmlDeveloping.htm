@@ -869,12 +869,10 @@
 						var default_style = 各タグ毎の初期サイズ[tag];
 						my_height = default_style['height'];
 						my_width = default_style['width'];
-					}else{
-						my_height = 40; my_width = 40;
 					}
 
 					if( typeof temp_prop_s.style === 'undefined'){
-						temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(my_layer_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+						temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
 					}else {
 						if( temp_prop_s.style.indexOf('z-index') === -1){
 							temp_prop_s.style +='z-index:'+get_z_index(my_layer_idx)+';';
@@ -886,7 +884,7 @@
 							temp_prop_s.style +='height:'+my_height+'px;';
 						}
 						if( temp_prop_s.style.indexOf('top') === -1){
-							temp_prop_s.style +='top:'+get_top(my_layer_idx)+'px;';
+							temp_prop_s.style +='top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;';
 						}
 						if( temp_prop_s.style.indexOf('left') === -1){
 							temp_prop_s.style +='left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
@@ -949,14 +947,14 @@
 						}else{
 							var pools = innerObserveNumChilds(app.child_s, poolW, poolH);
 							var app_style = analysisCss(app.prop_s.style, {});
-							if(parseInt(app_style.width,10) < pools[0]){
-								poolW = pools[0] + 4;
-								app_style.width = pools[0]+'px';
-							}
-//							if(parseInt(app_style.height,10) < pools[1]){ 
-//								poolH = pools[1] + 4;
-//								app_style.height = pools[1]+'px';
+//							if(parseInt(app_style.width,10) < pools[0]){
+//								poolW = pools[0] + 4;
+//								app_style.width = pools[0]+'px';
 //							}
+							if(parseInt(app_style.height,10) < pools[1]){ 
+								poolH = pools[1] + 4;
+								app_style.height = pools[1]+'px';
+							}
 							app.prop_s.style = cssStringify(app_style);
 						}
 					});
@@ -2446,18 +2444,18 @@
 				function get_z_index(parent_layer_idx){
 					return 110 + parseInt(parent_layer_idx,10);
 				};
-				function get_top(parent_layer_idx){
+				function get_top(tag_size_s, parent_layer_idx, my_idx){
 					if( parent_layer_idx === 0){
 						return 100;
 					}else{
-						return 10 ;
+						return 10 + (DEFAULT_HEIGHT + 30 * (tag_size_s.length - parent_layer_idx) ) * (tag_size_s[parent_layer_idx] * (my_idx));
 					}
 				};
 				function get_left(tag_size_s, parent_layer_idx, my_idx){
 					if( parent_layer_idx === 0){
 						return 100;
 					}else{
-						return 10 + (DEFAULT_WIDTH + 12 * (tag_size_s.length - parent_layer_idx) ) * (tag_size_s[parent_layer_idx] * (my_idx));
+						return 10 ;
 					}
 				};
 
