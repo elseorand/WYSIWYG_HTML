@@ -925,9 +925,7 @@
 							});
 						}
 						delete root.last_child_s;
-						console.log('root :' + JSON.stringify(root));
 						adjustSize(root.child_s);
-						console.log('root :' + JSON.stringify(root));
 						return root;
 					}catch(e){
 						throw e;
@@ -958,7 +956,6 @@
 							app.prop_s.style = cssStringify(app_style);
 						}
 					});
-							console.log('pools :' + poolW+' : ' +poolH);
 					return [poolW, poolH];
 				}
 
@@ -2187,10 +2184,13 @@
 					var length_arguments = arguments.length;
 					for(var i=0; i < length_arguments; ++i){
 						var raw = arguments[i];
-						if( typeof raw !== 'string' || !raw.hasOwnProperty('style')){
+						if( typeof raw !== 'string'){
 							continue;
 						}
-						pool = analysisCss(raw.style, pool);
+						if(raw.hasOwnProperty('style')){
+							raw =raw.style
+						}
+						pool = analysisCss(raw, pool);
 					}
 					return cssStringify(pool);
 				}
@@ -2204,15 +2204,15 @@
 				}
 				function analysisCss(style, pool){
 					style.split(';').forEach(function(x){
-							var key_val = x.split(':');
-							if( key_val.length >= 2){
-								var val = key_val[1].trim();
-								if( typeof val === 'undefined' || val == null || val == 'null'){
-									return;
-								}
-								pool[key_val[0].trim()] = val;
+						var key_val = x.split(':');
+						if( key_val.length >= 2){
+							var val = key_val[1].trim();
+							if( typeof val === 'undefined' || val == null || val == 'null'){
+								return;
 							}
-						});
+							pool[key_val[0].trim()] = val;
+						}
+					});
 					return pool;
 				}
 
