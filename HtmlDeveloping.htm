@@ -3,9 +3,10 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>HTML Developing</title>
-		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css" />
- 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
- 		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="/default/css/jquery-ui-1.11.1.custom/jquery-ui.min.css" />
+		<script src="/default/js/jquery-2.1.1.min.js" ></script>
+ 		<script src="/default/css/jquery-ui-1.11.1.custom/jquery-ui.min.js"></script>
+		
 		<style type="text/css" >
 			/* For this app */
 			* {
@@ -55,7 +56,7 @@
 			}
 			.snippets{
 				padding-left:20px;
-<			}
+			}
 			.side_menu_bar>input {
 				margin: 4px;
 			}
@@ -129,7 +130,7 @@
 				width: 300px;
 				margin: 0 auto;
 				padding: 8px 0;
-				border: 1px solid #ff0000;
+				border: 1px solid #cccccc;
 				border-radius: 12px;
 				text-align: center;
 				position: relative;
@@ -145,7 +146,7 @@
 			.hukidasi:after{
 				content: "";
 				border: 12px solid transparent;
-				border-top: 12px solid #0000ff;
+				border-top: 12px solid #cccccc;
 				position: absolute;
 				right: 30%;
 				bottom: -24px;
@@ -189,7 +190,7 @@
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
 				<label for="SelectedMyObjId">MyID</label><input type="text" id="SelectedMyObjId" class="autoExtend" style="width:15em; ime-mode:disabled;"/>
 				<input type="hidden" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
-				<label for="SelectedValPropJSON" >props</label><input type="text" id="SelectedValPropJSON" class="autoExtend json_val" style="width:15em" value="{&quot;style&quot;:&quot&quot;}"	 />
+				<label for="SelectedValPropJSON" >props</label><input type="text" id="SelectedValPropJSON" class="json_val" style="width:2100px;" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
 		</footer>
 		<script>
@@ -199,8 +200,13 @@
 				var MAX_SAVE_SLOT_S = 16;
 				var MY_OBJ_SEP = '-';
 
+				// Global vars : status , state
+				var STATUS = getStatus();
+				var not_click = false;
+				var is_suspend = false;
+
 				//複数形はsufixとして_sまたは､_s1. 多重配列は_s_sではなく_s2
-				// Constatns
+				// Constants
 				var DEFAULT_GRID_SIZE = 32;
 				var CLASS_SELECTED = 'objSelected';
 				var CLASS_COPY = 'objCopy';
@@ -221,6 +227,7 @@
 
 				// mode
 				var NMS_EDIT = '.edit';
+				var MODE_EDIT = 'EditMode';
 				// my events
 				var MY_CLICK = 'click'+NMS_EDIT;
 				var MY_CHANGE = 'change'+NMS_EDIT;
@@ -250,13 +257,14 @@
 				var el_sandbox_hidden = $('#sandbox_hidden');
 				var el_float_menu = $('.float_menu');
 				var el_history = $('#history');
+				var el_edit_mode = $('#'+MODE_EDIT);
 
 				// Fields
 				// func
 				var func_name_s = [
 					{"name":"html", "label":"", "input":''},
 					{"name":"insert", "label":"Ins", "input":""},
-					{"name":"edit", "label":"Edit","input":""},
+					{"name":"edit", "label":"Edit","input":'<span id="EditMode"></span>'},
 					{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select>'},
 					{"name":"update_var", "label":"UpVar", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>'},
 					{"name":"update_prop", "label":"UpProp", "input":""},
@@ -272,7 +280,7 @@
 
 				var is_close_menu = true;
 				var el_func_s = {};
-				var menu = $('<ol>').css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2em","display":"none"})
+				var menu = $('<ol>').css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none"})
 					.addClass('shadow')
 					.appendTo(el_screen_area);
 				(function(){
@@ -312,6 +320,7 @@
 							},function(){
 								is_close_menu = true;
 							});
+					el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
 				})();
 				
 				var el_func_cancel_selected = $('#func_cxlselected_element');
@@ -338,11 +347,6 @@
 				var HTML出力時に削除するAttr_s = ["data-my-htmlize-target","data-my-obj-id","data-my-obj-val","data-conns"];
 				var HTML出力時に削除するclass_s = ["htmlize","snap","snap_border","data-conns","wrapped","wrapper","ui-resizable-autohide","ui-draggable","ui-draggable-handle","ui-resizable"];
 				var position_relative禁止タグ = ["th","td"];//IE Chromeniにバグあり｡FirefoxはOK
-
-				// Global vars : status , state
-				var STATUS = getStatus();
-				var not_click = false;
-				var is_suspend = false;
 
 				// Implement_s
 				function select_element(raw_select_my_obj_id, input_this){
@@ -923,10 +927,41 @@
 							});
 						}
 						delete root.last_child_s;
+						console.log('root :' + JSON.stringify(root));
+						adjustSize(root.child_s);
+						console.log('root :' + JSON.stringify(root));
 						return root;
 					}catch(e){
 						throw e;
 					}
+				}
+
+				function adjustSize(myApply){
+					return innerObserveNumChilds(myApply,0, 0);
+				}
+
+				function innerObserveNumChilds(app_s, poolW, poolH){
+					app_s.forEach(function(app,i,a){
+						if(app.child_s.length === 0){
+							var style = analysisCss(app.prop_s.style, {});
+							poolW += parseInt(style.width,10);
+							poolH += parseInt(style.height,10);
+						}else{
+							var pools = innerObserveNumChilds(app.child_s, poolW, poolH);
+							var app_style = analysisCss(app.prop_s.style, {});
+							if(parseInt(app_style.width,10) < pools[0]){
+								poolW = pools[0] + 4;
+								app_style.width = pools[0]+'px';
+							}
+//							if(parseInt(app_style.height,10) < pools[1]){ 
+//								poolH = pools[1] + 4;
+//								app_style.height = pools[1]+'px';
+//							}
+							app.prop_s.style = cssStringify(app_style);
+						}
+					});
+							console.log('pools :' + poolW+' : ' +poolH);
+					return [poolW, poolH];
 				}
 
 				function myCreateElement(tag, is_svg){
@@ -1168,16 +1203,54 @@
 							display_onscreen([work_jq], child_s[idx_child], is_draggable, is_svg);
 						}
 
+						var is_table_cell = false;
+						var original_coord = null;
+						var x_sibl = null;
+						var y_sibl = null;
 						var resizableOption = {
 							"stop":function(ev, ui){
-								draw_arrow_s(cached_arrow_factory, $(this));
+								is_table_cell = false;
+//								draw_arrow_s(cached_arrow_factory, _this);
 								cached_arrow_factory = null;
 							},
-							"resize":continuous_draw_arrow_s,
+							"resize":function(ev, ui){
+								if(is_table_cell){
+									var _this = $(this);
+									x_sibl.width(original_coord.x + ev.pageX);
+									y_sibl.height(original_coord.y + ev.pageY);
+								}
+								continuous_draw_arrow_s();
+							},
 							"start":function(ev, ui){
 								not_click = true;
-								var my_id = $(this).attr('data-my-obj-id');
+								var _this = $(this);
+								var my_id = _this.attr('data-my-obj-id');
 								cached_arrow_factory = draw_arrow_s_factory(null, my_id);
+								var tag = _this[0].localName;
+								x_sibl = null; y_sibl = null;
+								if(tag === 'td' || tag === 'th'){
+									var parent = _this.parent();
+									var parent_id = parent.attr('data-my-obj-id');
+									is_table_cell = true;
+									original_coord = {"x": _this.width() - ev.pageX  ,"y":_this.height() - ev.pageY};
+									$(' > td, > th',parent).each(function(idx,obj){
+										var _id = $(this).attr('data-my-obj-id');
+										if(my_id === _id){
+											++idx;
+											x_sibl = $(' tr[data-my-obj-id!="'+parent_id+'"] > *:nth-child('+idx+')', parent.parent().parent());
+											return false;
+										}
+									});
+									x_sibl.width(10);
+									y_sibl = _this.siblings().height(10);
+									x_sibl.each(function(){
+										var _this = $(this);
+										console.log('_this :' + _this.attr('data-my-obj-id'));
+									});
+								}else{
+									original_coord = null;
+									is_table_cell = false;
+								}
 							},
 							"autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
 						};
@@ -1231,10 +1304,11 @@
 								};
 								work_jq
 									.resizable(resizableOption)
-									.data("resizable", resizableOption);
+									.data('resizable', resizableOption);
 							}
 							if( is_draggable ){
 								work_jq.draggable(draggableOption)
+									.data('draggable', draggableOption);
 							}
 						}else if(resizableのみ対象のタグ.indexOf(tag) > -1){
 							work_jq.css({"top":0, "left":0});
@@ -1243,6 +1317,7 @@
 							if( is_draggable ){
 								if(!is_relative禁止タグ){
 									work_jq.draggable(draggableOption)
+										.data('draggable', draggableOption);
 								}else{
 									work_jq.css({"top":0, "left":0});
 								}
@@ -1260,7 +1335,7 @@
 							}
 							work_jq
 								.resizable(resizableOption)
-								.data("resizable", resizableOption)
+								.data('resizable', resizableOption)
 								.addClass('snap');
 						}
 					}
@@ -1458,7 +1533,7 @@
 					var has_width = _this.css('width');
 					var not_extended = typeof has_width === 'undefined' ? false : has_width !== '1000px';
 					if(length_for_eval > 20 && not_extended){
-						_this.animate({"width":"40em"},200);
+						_this.animate({"width":"90em"},200);
 					}else if(! not_extended){
 						//nothing
 					}else{
@@ -1723,24 +1798,42 @@
 				el_func_s.edit
 					.on(MY_CLICK,function(ev, obj){
 						is_suspend = ! is_suspend;
+						el_edit_mode.html(is_suspend.toString());
 						if(is_suspend){
 							var NOW_SELECTED = $('.'+CLASS_SELECTED, el_screen_area)
 								.addClass(CLASS_ON_EDIT)
 								.each(function(idx,obj){
 									var _this = $(this);
-									console.log('_this.html() :' + _this.attr('data-my-obj-val'));
-									$('<textarea class="'+CLASS_EDIT_DATA+'">').append(_this.attr('data-my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
+									var parent = _this.parent();
+									$('<textarea class="'+CLASS_EDIT_DATA+'" >').append(_this.attr('data-my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
 								});
 							el_func_s['cxlselected'].trigger(MY_CLICK);
 						}else{
 							$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, el_screen_area)
 								.each(function(idx,obj){
 									var _this = $(this);
-									var conv = _this.val()
-										.replace(/\n/g,'<br>');//
-									console.log('conv :' + conv);
-									call_safe_html(_this.parent(), conv);
+									var conv = _this.val().replace(/\n/g,'<br>');
+									var parent = _this.parent();
+									var resizableOption = parent.data('resizable');
+									if(typeof resizableOption !== 'undefined'){parent.resizable('destroy');}
+									var draggableOption = parent.data('draggable');
+									if(typeof draggableOption !== 'undefined'){parent.draggable('destroy');}
+									call_html(parent, conv);
 									_this.remove();
+									try{
+										if(typeof resizableOption !== 'undefined'){
+											parent
+												.data('resizable', resizableOption)
+												.resizable(resizableOption);
+										}
+									}catch(e){console.log('resizable error :' + e);};
+									try{
+										if(typeof draggableOption !== 'undefined'){
+											parent
+												.data('draggable', draggableOption)
+												.draggable(draggableOption);
+										}
+									}catch(e){console.log('draggable error :' + e);};
 								})
 								.removeClass(CLASS_ON_EDIT);
 						}
@@ -1787,7 +1880,7 @@
 						if(tmp_counter > 10000){
 							console.log('break');
 						}
-							++tmp_counter;
+							++tmp_counter;
 					}
 
 					/* save this */
@@ -2061,7 +2154,7 @@
 				function call_safe_text(obj, set_val){
 					obj.data('my-obj-val', set_val);
 					obj.attr('data-my-obj-val', set_val);
-					var kept = $(' > *',obj).detach();
+					var kept = $(' *',obj).detach();
 					obj.text(set_val);
 					kept.appendTo(obj);
 				}
@@ -2096,31 +2189,33 @@
 					var length_arguments = arguments.length;
 					for(var i=0; i < length_arguments; ++i){
 						var raw = arguments[i];
-						if( typeof raw !== 'string'){
+						if( typeof raw !== 'string' || !raw.hasOwnProperty('style')){
 							continue;
 						}
-						if(raw.hasOwnProperty('style')){
-							raw = raw.style;
-						}
-						var raw_el_s = raw.split(';');
-						var length_el_s = raw_el_s.length;
-						for(var j=0; j < length_el_s; ++j){
-							var key_val = raw_el_s[j].split(':');
-							if( key_val.length >= 2){
-								var key = key_val[0].trim();
-								var val = key_val[1].trim();
-								if( typeof val === 'undefined' || val == null || val == 'null'){
-									continue;
-								}
-								pool[key] = val;
-							}
-						}
+						pool = analysisCss(raw.style, pool);
 					}
+					return cssStringify(pool);
+				}
+
+				function cssStringify(pool){
 					var rtn = '';
 					for(var css_key in pool){
 						rtn += css_key+':'+pool[css_key]+';';
 					}
 					return rtn;
+				}
+				function analysisCss(style, pool){
+					style.split(';').forEach(function(x){
+							var key_val = x.split(':');
+							if( key_val.length >= 2){
+								var val = key_val[1].trim();
+								if( typeof val === 'undefined' || val == null || val == 'null'){
+									return;
+								}
+								pool[key_val[0].trim()] = val;
+							}
+						});
+					return pool;
 				}
 
 				function force_stringify(obj){
