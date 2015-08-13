@@ -1,15 +1,17 @@
 $(function(){
     /**TODO
      * 1. undo / redo
-     * 2. screen tab
      * 5. tree diagram
      * 7. position left,bottom,top,right
-     * 8. style manager
+     * 9. include resource json
+     * a. wizard
      */
     /**COMP
      * 3. grid 
      * 4. style editor
      * 6. css selector 
+     * 8. style manager
+     * 2. screen tab
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -20,6 +22,7 @@ $(function(){
     var STATUS = getStatus();
     var not_click = false;
     var is_suspend = false;
+    var page_s = {};
 
     //複数形はsufixとして_sまたは､_s1. 多重配列は_s_sではなく_s2
     // Constants
@@ -51,148 +54,10 @@ $(function(){
     var MY_KEYUP = 'keyup'+NMS_EDIT;
     var MY_MOUSEOUT = 'mouseout'+NMS_EDIT;
     var MY_INIT = FUNC_ID + 'INIT';
-    
-    // input area
-    var el_basic_menu = $('#basic_menu');
-    var el_basic_menu_operator = $('#basic_menu_operator');
-    var el_basic_menu_forward = $('#basic_menu_forward')
-	    .on(MY_INIT, function(){
-		var _this = $(this);
-		el_basic_menu.data('right', parseInt(el_basic_menu.css('right'), 10));
-	    })
-    	    .on(MY_CLICK, function(){
-		var now = el_basic_menu.data('right');
-		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
-		if(btn_posi < 720){
-		    now += 240;//TODO magic
-		}else{ return;}
-		el_basic_menu.css({"right":now+'px', "left":"auto"}).data('right', now);
-		el_basic_menu_operator.css('left', btn_posi + 240);
-	    }).trigger(MY_INIT);
-    var el_basic_menu_backward = $('#basic_menu_backward')
-    	    .on(MY_CLICK, function(){
-		var now = el_basic_menu.data('right');
-		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
-		if(btn_posi > 0){
-		    now -= 240;
-		}else{ return;}
-		el_basic_menu.css({"right":now+'px', "left":"auto"}).data('right', now);
-		console.log(parseInt(el_basic_menu.css('right'), 10) + 240);
-		el_basic_menu_operator.css('left', btn_posi - 240);
-	    });
-    var el_header_menu_bar = $('#header_menu_bar');
-    var el_val_tag = $('#ValTag');
-    var el_val_array_json = $('#ValArrayJSON');
-
-    var el_selector = $('#SelectedMyObjId');
-    var el_selected_val_tag = $('#SelectedValTag');
-    var el_selected_val_prop_json = $('#SelectedValPropJSON');
-    var el_selected_val_array_json = $('#SelectedValArrayJSON');
-
-    var el_some_list = {"part_list":$('#part_list'), "prop_list":$('#prop_list')};
-    var el_some_input = {"part_list":$('#part_list_input'), "prop_list":$('#prop_list_input')};
-    var el_some_func_suffix_s = ["reg","select","del","name","new"];
-
-    var el_parent_list = $('#parent_list');
-    
-    // screen area
-    var el_screen_area = $('#screen');
-    var el_sandbox_screen_area = $('#sandbox_screen');
-    var el_sandbox_style_screen_area = $('#sandbox_style_screen');
-    var el_saved_serialized = $('#saved_serialized');
-    var el_sandbox_hidden = $('#sandbox_hidden');
-    var el_float_menu = $('.float_menu');
-    var el_history = $('#history');
-    var el_edit_mode = $('#'+MODE_EDIT);
-
-    // Fields
-    // func
-    var func_name_s = [
-	{"name":"html", "label":"", "input":'', "style":""},
-	{"name":"style", "label":"", "input":'', "style":""},
-	{"name":"insert", "label":"Ins", "input":'', "style":""},
-	{"name":"edit", "label":"Edit","input":'<span id="EditMode"></span>', "style":""},
-	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:10em; ime-mode:disabled;"/><br><input type="text" id="AppendCssSelector" class="" style="width:21em; ime-mode:disabled;margin-left:-5em;" placeholder="append css selector" />', "style":"height:4em;"},
-	{"name":"update_var", "label":"UpVar", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":""},
-	{"name":"update_prop", "label":"UpProp", "input":'', "style":""},
-	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":""},
-	{"name":"copy", "label":"Cp", "input":'', "style":""},
-	{"name":"cut", "label":"Mv", "input":'', "style":""},
-	{"name":"paste", "label":"Paste", "input":'', "style":""},
-	{"name":"delete", "label":"Del", "input":'', "style":""},
-	{"name":"save", "label":"", "input":'', "style":""},
-	{"name":"load", "label":"", "input":'', "style":""},
-	{"name":"register_part", "label":"RegPart", "input":'', "style":""},
-	{"name":"stop_dra_res", "label":"tglDr&Rs", "input":'', "style":""},
-    ];
-
-    var el_func_s = {};
-    var el_screen_obj_s = {};
-    var is_close_menu = true;
-    el_screen_obj_s.context_menu = $('<ol id="context_menu">')
-	.css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none"})
-	.addClass('shadow')
-	.appendTo(el_screen_area);
-    (function(){
-	func_name_s.forEach(function(obj,a){
-	    if(obj.label === ''){
-		el_func_s[obj.name] = $('#func_'+obj.name+'_element');
-		return;
-	    }
-	    var _this = $('<input type="button" id="func_'+obj.name+'_element" value="'+obj.label+'" class="menu_button" style="display:none;">');
-	    _this.appendTo(el_header_menu_bar);
-	    el_func_s[obj.name] = _this;
-	    var child = $('<li>').attr("style", merge_css("width:20em;height:2em;", obj.style));
-	    var btn = $('<div style="width:4em;float:left;height:2em;">');
-	    var context_menu = el_screen_obj_s.context_menu;
-	    child.append(btn).append(obj.input).appendTo(context_menu)
-		.css({"border-bottom":"1px dotted grey","padding":"2px","opacity":1,"user-select":"none"})
-		.hover(function(){
-		    child.css({"opacity":1}).siblings().css({"opacity":0.4});
-		},function(){
-		    child.siblings().css({"opacity":1});
-		})
-		.on(MY_CLICK,function(ev){
-		    ev.stopPropagation();
-		    el_func_s[obj.name].trigger(MY_CLICK);
-		});
-	    btn.html(obj.label);
-	});
-	//TODO まとめる
-	el_sandbox_screen_area = $('#sandbox_screen');
-	el_saved_serialized = $('#saved_serialized');
-	el_sandbox_hidden = $('#sandbox_hidden');
-	el_float_menu = $('.float_menu');
-	el_history = $('#history');
-	el_parent_list = $('#parent_list');
-	el_selected_val_array_json = $('#SelectedValArrayJSON')
-	    .hover(function(){
-		is_close_menu = false;
-	    },function(){
-		is_close_menu = true;
-	    });
-	el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
-	el_selector = $('#SelectedMyObjId').on(MY_CLICK, function(ev){
-	    ev.stopPropagation();
-	});
-	el_screen_obj_s.append_css_selector = $('#AppendCssSelector').on(MY_CLICK, function(ev){
-	    ev.stopPropagation();
-	});
-    })();
-    
-    var el_func_cancel_selected = $('#func_cxlselected_element');
-    var el_func_json_val = $('.json_val');
-
-    el_parent_list.on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
-	ev.stopPropagation();
-	var _this = myWrapElement(this);
-	el_selector.val(_this.val());
-	// el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
-    });
 
     // settings
     var tag毎の入力規則 ={"input":{"require_s":["type", "value"],"default":{"type":"text", "value":""}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
-    var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input"	,"select","textarea","ol" ,"ul","svg"];
+    var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input","select","textarea","ol" ,"ul","svg"];
     var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
     var サイズを持たせないタグ = ["table","tbody","thead","tr"];
     var resizableのみ対象のタグ = [];
@@ -205,7 +70,507 @@ $(function(){
     var HTML出力時に削除するclass_s = ["htmlize","snap","snap_border","data-conns","wrapped","wrapper","ui-resizable-autohide","ui-draggable","ui-draggable-handle","ui-resizable"];
     var position_relative禁止タグ = ["th","td"];//IE Chromeniにバグあり｡FirefoxはOK
 
-    // Implement_s
+    // util
+    var el_func_json_val = $('.json_val');
+    
+    // main menu
+    var el_basic_menu = $('body > #basic_menu');
+    var el_basic_menu_operator = $('#basic_menu_operator', el_basic_menu);
+    var el_basic_menu_forward = $('#basic_menu_forward', el_basic_menu)
+	    .on(MY_INIT, function(){
+		var _this = $(this);
+		el_basic_menu.data('right', parseInt(el_basic_menu.css('right'), 10));
+	    })
+    	    .on(MY_CLICK, function(){
+		var original = el_basic_menu.data('right');
+		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
+		if(btn_posi < 720){
+		    var new_width = 480;
+		    btn_posi += new_width;
+		}
+		el_basic_menu.css({"right":original+'px', "left":"auto", "width":"+="+new_width});
+		el_basic_menu_operator.css('left', btn_posi);
+	    }).trigger(MY_INIT);
+    var el_basic_menu_backward = $('#basic_menu_backward', el_basic_menu)
+    	    .on(MY_CLICK, function(){
+		var original = el_basic_menu.data('right');
+		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
+		if(btn_posi > 0){
+		    var new_width = 480;
+		    btn_posi -= new_width;
+		}
+		el_basic_menu.css({"right":original+'px', "left":"auto", "width":"-="+new_width});
+		el_basic_menu_operator.css('left', btn_posi);
+	    });
+    var el_header_menu_bar = $('#header_menu_bar');
+    var el_val_tag = $('#ValTag', el_basic_menu);
+    var el_del_val_tag = $('#delValTag', el_basic_menu).on(MY_CLICK, function(){
+	el_val_tag.val('');
+    });
+    var el_val_array_json = $('#ValArrayJSON', el_basic_menu);
+    var el_del_val_array_json = $('#delValArrayJSON', el_basic_menu).on(MY_CLICK, function(){
+	el_val_array_json.val('');
+    });
+    var el_selected_val_tag = $('#footer_menu_bar > #SelectedValTag');
+    var el_selected_val_prop_json = $('#footer_menu_bar > #SelectedValPropJSON');
+
+    var el_some_key_s = ["part_list", "prop_list", "style_list"];
+    var el_some_list = [];
+    var el_some_input = [];
+    var el_some_func_suffix_s = ["reg","select","del","name","new"];
+    el_some_key_s.forEach(function(x,i,a){
+	el_some_list[x] = $('#'+x);
+	el_some_input[x] = $('#'+x+'_input');
+    });
+    var el_sandbox_style_screen_area = $('#sandbox_style', el_basic_menu);
+    var el_saved_serialized = $('#header_menu_bar > #saved_serialized');
+    var el_sandbox_hidden = $('header_menu_bar > #sandbox_hidden');
+    var el_float_menu = $('.float_menu');
+    var el_history = $('#history');
+    var el_edit_mode = $('#'+MODE_EDIT);
+    var el_sandobox_screen =  $('#sandobox_screen');
+    var el_func_new_page_element = $('#func_new_page_element').on(MY_CLICK, function(){
+	page = create_page(el_new_page_element.val());
+    });
+    var el_new_page_element = $('#new_page_element');
+    
+    // context menu
+    var context_menu = $('#context_menu');
+    var el_func_cancel_selected = $('#func_cxlselected_element', context_menu);
+    var el_selector = $('#SelectedMyObjId', context_menu);
+    var el_selected_val_array_json = $('#SelectedValArrayJSON', context_menu);
+
+    // Fields
+    // func
+    var func_name_s = [
+	{"name":"html", "label":"", "input":'', "style":""},
+	{"name":"style", "label":"", "input":'', "style":""},
+	{"name":"insert", "label":"Ins", "input":'', "style":"", "col2":false},
+	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
+	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:13em; ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:21em; ime-mode:disabled;margin-left:1em; float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
+	{"name":"update_var", "label":"UpVar", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
+	{"name":"update_prop", "label":"UpProp", "input":'', "style":"", "col2":false},
+	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":"", "col2":false},
+	{"name":"copy", "label":"Cp", "input":'', "style":"", "col2":false},
+	{"name":"cut", "label":"Mv", "input":'', "style":"", "col2":false},
+	{"name":"paste", "label":"Paste", "input":'', "style":"", "col2":false},
+	{"name":"delete", "label":"Del", "input":'', "style":"", "col2":false},
+	{"name":"save", "label":"", "input":'', "style":""},
+	{"name":"load", "label":"", "input":'', "style":""},
+	{"name":"register_part", "label":"RegPart", "input":'', "style":"", "col2":false},
+	{"name":"stop_dra_res", "label":"tglDr&Rs", "input":'', "style":"", "col2":false},
+    ];
+
+    //init
+    // page
+    var el_HtmlDeveloping = $('#HtmlDeveloping');
+    var page;
+    var el_func_s = {};
+    (function(){
+	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none"})
+	    .addClass('shadow');
+	page = create_page('Default');
+	var child;
+	var isNewChild = true;
+	var li_s;
+	func_name_s.forEach(function(obj,a){
+	    if(obj.label === ''){
+		el_func_s[obj.name] = $('#func_'+obj.name+'_element');
+		return;
+	    }
+	    var _this = $('<input type="button" id="func_'+obj.name+'_element" value="'+obj.label+'" class="menu_button" style="display:none;">');
+	    _this.appendTo(el_header_menu_bar);
+	    el_func_s[obj.name] = _this;
+	    if(isNewChild){
+		child = $('<li style="clear:both;">');
+		child.appendTo(context_menu); 
+	    }
+	    var defa_size = 10;
+	    if(obj.col2){
+		defa_size *= 2;
+	    }
+	    if(!obj.col2){
+		isNewChild = !isNewChild;
+	    }
+
+	    var btn = $('<div>').attr("style", merge_css('float:left;width:'+defa_size+'em;height:2em;', obj.style));
+	    child.append(btn
+			 .append(obj.label)
+			 .append(obj.input)
+			 .css({"border-bottom":"1px dotted grey","padding":"2px","opacity":1,"user-select":"none"})
+			 .hover(function(){
+			     li_s.css({"opacity":0.4});
+			     btn.parent().css({"opacity":1.0});
+			 },function(){
+			     li_s.css({"opacity":1.0});
+			 })
+			 .on(MY_CLICK,function(ev){
+			     ev.stopPropagation();
+			     el_func_s[obj.name].trigger(MY_CLICK);
+			 }));
+	});
+	li_s = $(' > li', context_menu);
+	//TODO まとめる
+	el_sandobox_screen = $('#sandbox_screen');
+	el_saved_serialized = $('#saved_serialized');
+	el_sandbox_hidden = $('#sandbox_hidden');
+	el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable();;
+	el_history = $('#history');
+	el_selected_val_array_json = $('#SelectedValArrayJSON')
+	    .hover(function(){
+		context_menu.is_close_menu = false;
+	    },function(){
+		context_menu.is_close_menu = true;
+	    });
+	el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
+	el_selector = $('#SelectedMyObjId').on(MY_CLICK, function(ev){
+	    ev.stopPropagation();
+	});
+	context_menu.append_css_selector = $('#AppendCssSelector').on(MY_CLICK, function(ev){
+	    ev.stopPropagation();
+	});
+	context_menu.parent_list = $('#parent_list').on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
+	    ev.stopPropagation();
+	    var _this = myWrapElement(this);
+	    el_selector.val(_this.val());
+	    // el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
+	});
+    })();
+
+    function create_page(name){
+	if(page_s.hasOwnProperty(name)){
+	    console.log('There are the same name:' + name + ' .');
+	    return page_s[name];
+	}
+	var _page = {};
+	if(typeof page !== 'undefined' && page !== null){
+	    page.screen.css({"display":"none"});
+	}
+	page_s['screen'+name] = _page;
+	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="'+STATUS.getNewMyObjId()+'">');
+	context_menu.is_close_menu = true;
+	
+	move_page_singleton(page, _page);
+	_page.screen.on('contextmenu',function(ev){
+	    console.log('context click' );
+	    ev.preventDefault();
+	    ev.stopPropagation();
+	    context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
+	}).on(MY_CLICK,function(ev){
+	    if(context_menu.is_close_menu){
+		context_menu.css({"display":"none"});
+	    }
+	    el_func_s['cxlselected'].trigger(MY_CLICK);
+	});
+	var _btn_name = name;
+	$('<input class="func_scrn_change" type="button" value="'+_btn_name+'">').data('page', _page).appendTo(el_header_menu_bar);
+	el_HtmlDeveloping.append(_page.screen);
+	return _page;
+    }
+    function move_page_singleton(now, new_page){
+    }
+
+    el_header_menu_bar.on(MY_CLICK, '.func_scrn_change', function(){
+	var _this = $(this);
+	var _page = _this.data('page');
+	if(page === _page){return;}
+	move_page_singleton(page, _page);
+	_page.screen.css({"display":""});
+	var now_screen = page.screen.css({"display":"none"});
+	page = _page;
+    });
+
+    // screen util setting
+    var default_width_setting_s = {};
+    var el_auto_extend = $('.autoExtend');
+    el_auto_extend.each(function(idx,obj){
+	var _this = $(obj);
+	default_width_setting_s[_this.attr('id')] = _this.width();
+    });
+
+    $('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
+	var _this = myWrapElement(this);
+	var length_val = 0;
+	if(_this.get(0).localName === 'textarea'){
+	    length_val = _this.html().length;
+	}else{
+	    length_val = _this.val().length;
+	}
+	var length_for_eval = parseInt(length_val * 1.2, 10);
+	var has_width = _this.css('width');
+	var not_extended = typeof has_width === 'undefined' ? false : has_width !== '1000px';
+	if(length_for_eval > 20 && not_extended){
+	    _this.animate({"width":"90em"},200);
+	}else if(! not_extended){
+	    //nothing
+	}else{
+	    _this.animate({"width":default_width_setting_s[_this.attr('id')]},200);
+	}
+    });
+
+    // menu func
+    el_func_s.insert.on(MY_CLICK, function(){
+	try{
+	    var for_add_target_s = null;
+	    var el_selected_s = $('.'+CLASS_SELECTED, page.screen);
+	    if( el_selected_s.length > 0){
+		for_add_target_s = el_selected_s;
+	    }else{
+		for_add_target_s = [page.screen];//追加先のデフォルトはscreen
+	    }
+	    var raw_tag_s = el_val_tag.val();
+	    if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
+		var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val() );
+		$.each(root.child_s, function(cIdx, child){
+		    display_onscreen(for_add_target_s, child);
+		});
+	    }
+	    draw_arrow_s();
+	}catch(e){
+	    console.log(e);
+	}
+    });
+
+    el_func_s.update_var.on(MY_CLICK, function(){
+	var target_s = $('.'+CLASS_SELECTED, page.screen);
+	if( target_s.length === 0){ return;}
+	var raw_val_s = el_selected_val_array_json.val();
+	var func_val = null;
+	var length_val_s = 1;
+	if( raw_val_s !== null){raw_val_s = raw_val_s.trim();}
+	if(raw_val_s === 'null'){
+	    raw_val_s = [null];
+	    func_val = do_void;
+	}else if(raw_val_s === '"null"'){
+	    raw_val_s = ['null'];
+	}else if( raw_val_s[0] === '[' && raw_val_s[raw_val_s.length - 1] === ']'){
+	    raw_val_s = JSON.parse(raw_val_s);
+	    length_val_s = raw_val_s.length;
+	}else{
+	    raw_val_s = [raw_val_s];
+	}
+
+	$.each(target_s, function(idx, _target){
+	    var target = $(_target);
+	    //val
+	    var tag = target.get(0).localName;
+	    if(target.hasClass('wrapper')){return true;}
+	    if( func_val !== null){
+		// do nothing
+	    }else if( tag === 'input'){
+		func_val = call_val;
+	    }else{
+		func_val = call_safe_text;
+	    }
+	    func_val(target, raw_val_s[parseInt(idx % length_val_s, 10)] );
+	});
+    });
+
+    /**
+     *
+     */
+    el_func_s.update_prop.on(MY_CLICK, function(){
+	var target_s = $('.'+CLASS_SELECTED, page.screen);
+	if( target_s.length === 0){ return;}
+
+	var prop_s = JSON.parse( el_selected_val_prop_json.val() );
+	if( ! $.isPlainObject(prop_s)){throw new TypeError('prop is not JSON style.');}
+
+	$.each(target_s, function(idx, _target){
+	    var target = $(_target);
+	    //val
+	    var tag = target.get(0).localName;
+	    if(target.hasClass('wrapper')){return true;}
+	    //prop
+	    var org_prop_s = target.data('my-org-prop_s');
+	    for( var _p_key in prop_s){
+		var p_key = _p_key.toLowerCase();
+		var val = prop_s[p_key];
+		if( typeof val === 'undefined' || val == null || val === ''){continue;}
+		if( p_key !== 'style' && p_key !== 'class' && p_key !== 'html'){
+		    target.attr(p_key, val);
+		    org_prop_s[p_key] = val;
+		}else if( p_key === 'class'){
+		    var p_class_s = val.trim().split(' ');
+		    var new_org_class = '';
+		    $.each(p_class_s,function(idx,p_class){
+			if(p_class[0] === '-'){
+			    target.removeClass( p_class.substring(1) );
+			}else if(p_class[0] === '+'){
+			    new_org_class += ' ' + p_class.substring(1) ;
+			    target.addClass( p_class.substring(1) );
+			}else{
+			    new_org_class += ' ' + p_class;
+			    target.addClass(p_class);
+			}
+		    });
+		    org_prop_s['class'] = new_org_class.length > 1 ? new_org_class.substring(1) : new_org_class;
+		}else if( p_key === 'style'){
+		    var val = merge_css( target.attr('style'), prop_s.style );
+		    target.attr('style', val);
+		    org_prop_s['style'] = val;
+		}else if( p_key === 'html'){
+		    if(target.get(0).localName === 'input'){
+			target.val(val);
+		    }else{
+			target.html(val);
+		    }
+		}
+	    }
+	    target.data('my-org-prop_s', org_prop_s);
+	});
+	draw_arrow_s();
+    });
+
+    el_func_s.select.on(MY_CLICK, function(){
+	var my_selector = el_selector.val();
+	var append_css_selector = context_menu.append_css_selector.val();
+	select_element(true, my_selector, append_css_selector);
+    });
+
+    var 互いに排他の機能_s = ["copy","cut"];
+    var 互いに排他機能のCLASSを含まないセレクタ = '';
+    /**
+     * copy : no recursive , mono layer
+     */
+    $.each(互いに排他の機能_s,function(idx, name){
+	var now_class = CLASS_S[name];
+	el_func_s[name].on(MY_CLICK, function(){
+	    try{
+		var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
+		//TODO if hasClass('wrapped'), then cancel and select menu
+		//新規選択分があれば､それのみを処理し､既存分は触らない
+		if(new_targeted.length > 0){
+		    new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
+		}else{//新規選択分がなければ､全解除し選択状態に
+		    $('.'+now_class).removeClass(now_class).addClass(CLASS_SELECTED);
+		}
+	    }catch(e){
+		console.log(e);
+	    }
+	});
+	互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
+    });
+
+    /**
+     * paste
+     */
+    el_func_s.paste.on(MY_CLICK, function(){
+	try{
+	    var added_target_s = null;
+	    var el_selected_s = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ, page.screen);//xxx
+	    var added_candidate_s;
+	    if( el_selected_s.length > 0){
+		added_candidate_s = el_selected_s;
+	    }else{
+		added_candidate_s = page.screen;//追加先のデフォルトはscreen
+	    }
+	    var len_added_candidate_s = added_candidate_s.length;
+	    //TODO bug infinite loop
+	    $.each( 互いに排他の機能_s,function(idx, name){
+		var now_class = CLASS_S[name];
+		$('.'+now_class).each(function(){//コピー元は全ページ対象
+		    var _this = myWrapElement(this);
+		    var my_obj_id = _this.attr('data-my-obj-id');
+		    if(typeof my_obj_id !== 'undefined'){
+			var root = get_child_tree_select_dom(my_obj_id).raw()[my_obj_id];
+			var target_s = added_candidate_s.filter(function(){
+			    var rtn = null;
+			    try{
+				var _this = $(this);
+				var another_id = _this.attr('data-my-obj-id');
+				if(typeof another_id !== 'undefined'){
+				    rtn = ! (another_id+'-').startsWith(my_obj_id+'-');
+				}
+				if(rtn === false){console.log('ウロボロス検知 :' + my_obj_id +' : '+another_id);}
+			    }catch(e){console.log(e);}
+			    return rtn;
+			});
+			if(target_s.length > 0){
+			    if(name === 'cut') {mthd_delete_element_by_my_id(my_obj_id);}//TODO
+			    display_onscreen(target_s, root);
+			}
+		    }
+		});
+	    });
+	    draw_arrow_s();
+	}catch(e){
+	    console.log(e);
+	}
+    });
+
+    el_func_s.html.on(MY_CLICK,function(){
+	//var raw_child = el_saved_serialized.val();
+	var parsed = getSelectedOrRoot();
+	if( ! $.isArray(parsed)){
+	    parsed = [parsed];
+	}
+	var len_parsed = parsed.length;
+	el_sandbox_hidden.empty();
+	for(var i=0; i < len_parsed; ++i){
+	    display_onscreen(el_sandbox_hidden, parsed[i]);
+	}
+
+	var target_s = $('[data-my-htmlize-target="true"]',el_sandbox_hidden);
+	target_s.each(function(idx, _target){
+	    var target = $(_target);
+	    try{target.draggable('destroy');}catch(e){/*kill error*/};
+	    try{target.resizable('destroy');}catch(e){/*kill error*/};
+	    HTML出力時に削除するAttr_s.forEach(function(attr,i,a){
+		//NS objectの処理もあるため、jQueryは使用しない
+		_target.removeAttribute(attr);
+	    });
+	    HTML出力時に削除するclass_s.forEach(function(cl,i,a){
+		_target.classList.remove(cl);
+	    });
+	});
+
+	var head_src = '';
+	try{
+	    head_src = $('head').html();
+	    var output_html = el_sandbox_hidden.html();
+	    output_html = '<!doctype html><html><head>' + head_src + '</head><body>' + output_html + '</body></html>';
+	    output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+	    el_sandobox_screen.empty();
+	    $('<textarea rows="1" style="height:1em;width:8em;">').html(output_html).appendTo(el_sandobox_screen);
+	}catch(e){console.log('e '+e);};
+    });
+
+    var el_style = $('style#MyEditableStyle');
+    
+    el_func_s.style
+	.on(MY_CLICK, function(){
+	    el_some_list.style_list.empty();
+	    var style_html = el_sandbox_style_screen_area.val().trim();
+	    if(typeof style_html !== 'undefined' && style_html.length > 0){
+		el_style.html(style_html);
+	    }
+	    style_html = style_html.replace(/\n/g, '');
+	    var css_keyval = style_html.split('}');
+	    css_keyval.forEach(function(x,i,a){
+		var k_v = x.split('{');
+		if(k_v.length === 2){
+		    new_empty_line(el_some_list.style_list, k_v[0].trim(), k_v[1].trim(), false);
+		}
+	    });
+	})
+	.on(MY_INIT, function(){
+	    el_sandbox_style_screen_area.val(el_style.html().replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+	})
+	.trigger(MY_INIT);
+    
+    el_func_s.delete.on(MY_CLICK, function(){
+//	mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
+	mthd_delete_element_impl(CLASS_SELECTED);//TODO
+    });
+
+    el_func_s.cxlselected.on(MY_CLICK, function(){
+	$('.'+CLASS_SELECTED, page.screen).each(function(){
+	    removeSelected(myWrapElement(this));
+	});
+    });
+
+        // Implement_s
     function select_element(keep_raw_selector, raw_selector, append_css_selector){
 	var _these;
 	var selector = '';
@@ -215,7 +580,7 @@ $(function(){
 	}else if(type_raw_selector !== 'string'){
 	    _these = raw_selector;
 	}else{
-	    if(raw_selector.startsWith(el_screen_area.data('my-obj-id')+'-')){//case my_id
+	    if(raw_selector.startsWith(page.screen.data('my-obj-id')+'-')){//case my_id
 		var idx_aster = raw_selector.lastIndexOf(MY_OBJ_SEP+'*');
 		if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
 		    selector = '*[data-my-obj-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
@@ -229,11 +594,12 @@ $(function(){
 	    if(typeof append_css_selector === 'string' && append_css_selector !== '' ){
 		selector += ' ' + append_css_selector;
 	    }
-	    _these = $(selector +'.htmlize', el_screen_area);
+	    _these = $(selector +'.htmlize', page.screen);
 	}
 	var length_these_minus_1 = _these.length - 1;
 	_these.each(function(idx, in_this){
 	    var _this = myWrapElement(in_this);
+	    if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
 	    var my_obj_id = _this.data('my-obj-id');
 	    var is_my_selected = _this.data('my-selected');
 	    if(typeof is_my_selected === 'undefined' || is_my_selected === false){
@@ -264,27 +630,29 @@ $(function(){
 		removeSelected(_this);
 	    }
 	});
-
     }
 
     function removeSelected(jq_tgt){
-	var adjust_border = jq_tgt.data("adjust-border");
-	console.log('adjust_border :' + adjust_border);
+	var adjust_width = jq_tgt.data("adjust-width");
+	var adjust_height = jq_tgt.data("adjust-height");
 	jq_tgt
 	    .data('my-selected', false)
+	    .css({"width":"+="+adjust_width, "height":"+="+adjust_height})
 	    .removeClass(CLASS_SELECTED)
-	    .css({"width":"+="+adjust_border, "height":"+="+adjust_border});//TODO 8 means objSelected border size * 2 - original border size
+	;
 	return jq_tgt;
     }
     function addSelected(jq_tgt){
-	var adjust_border = - jq_tgt.outerWidth() + jq_tgt.innerWidth();//for grid mode adjust
+	var adjust_width = - jq_tgt.outerWidth() ;//for grid mode adjust
+	var adjust_height = - jq_tgt.outerHeight() ;//for grid mode adjust
 	jq_tgt
 	    .data("my-selected", true)
 	    .addClass(CLASS_SELECTED);
-	adjust_border = jq_tgt.outerWidth() - jq_tgt.innerWidth() + adjust_border;//for grid adjust
+	adjust_width = jq_tgt.outerWidth()  + adjust_width;//for grid adjust
+	adjust_height = jq_tgt.outerHeight() + adjust_height;//for grid adjust
 	jq_tgt
-	    .css({"width":"-="+adjust_border, "height":"-="+adjust_border})
-	    .data("adjust-border", adjust_border);
+	    .css({"width":"-="+adjust_width, "height":"-="+adjust_height})
+	    .data({"adjust-width": adjust_width, "adjust-height": adjust_height});
 	return jq_tgt;
     }
 
@@ -344,7 +712,6 @@ $(function(){
 		tmp_str += char;
 		continue;
 	    }
-
 	    if(splitter === char){
 		result.push(tmp_str);
 		tmp_str = '';
@@ -609,14 +976,14 @@ $(function(){
     }
 
     function check_input_data(tag, prop_s, infinite_loop_check){
-	var length_forbidden = 関数タグの対象外css_selector.length;
-	for(var i=0; i < length_forbidden; ++i){
-	    var tgt = 関数タグの対象外css_selector[i];
-	    if(prop_s.hasOwnProperty(tgt) && prop_s[tgt] != ''){
-		alert("Sorry. parts in Tag don't support #.[]");
-		throw new TypeError("Sorry. parts in Tag don't support #.[]");
-	    }
-	}
+	// var length_forbidden = 関数タグの対象外css_selector.length;
+	// for(var i=0; i < length_forbidden; ++i){
+	//     var tgt = 関数タグの対象外css_selector[i];
+	//     if(prop_s.hasOwnProperty(tgt) && prop_s[tgt] != ''){
+	// 	alert("Sorry. parts in Tag don't support #.[]");
+	// 	throw new TypeError("Sorry. parts in Tag don't support #.[]");
+	//     }
+	// }
 	var index_tag = infinite_loop_check.indexOf(tag);
 	if(index_tag > -1){
 	    alert('Error : '+tag+' : infinite loop detected !');
@@ -967,7 +1334,7 @@ $(function(){
 		    if( default_val_s.hasOwnProperty(require)){
 			prop_s[require] = default_val_s[require];
 		    }else{
-			console.log("This "+tag+" tag requires a "+require+" prop.")
+			console.log("This "+tag+" tag requires a "+require+" prop.");
 			throw new Error("This "+tag+" tag requires a "+require+" prop.");
 		    }
 		}
@@ -1117,7 +1484,7 @@ $(function(){
 				      _this.removeClass('snap_border')
 					  .parent().removeClass('snap_border')
 					  .children('.snap').removeClass('snap_border');
-				      if(this.localName === 'table'){
+				      if(this.localName === 'table' || this.localName === 'ol'){
 					  _this.css({"width":"auto", "height":"auto"});
 				      }
 				      draw_arrow_s(cached_arrow_factory, _this);
@@ -1274,7 +1641,7 @@ $(function(){
 
     function draw_arrow_s_factory(target_s, op_my_id){
 	if(typeof target_s === 'undefined' || target_s == null || ! arget_s.hasOwnProperty('member_s')){
-	    target_s = {"member_s":$('svg.data-conns > *[data-conns]', el_screen_area)};
+	    target_s = {"member_s":$('svg.data-conns > *[data-conns]', page.screen)};
 	}
 	if(typeof op_my_id !== 'undefined' && op_my_id != null && op_my_id !== ''){
 	    target_s['my_id'] = op_my_id;
@@ -1291,7 +1658,7 @@ $(function(){
 	    var path_d_idx = 0;
 	    for(var idx = 0; idx < length_selector_s; ++idx){
 		var node_selector = selector_s[idx].trim();
-		var node_s = $(node_selector,el_screen_area);
+		var node_s = $(node_selector,page.screen);
 		if(typeof node_s === 'undefined' || node_s == null || node_s.length === 0){
 		    continue;
 		}
@@ -1336,14 +1703,14 @@ $(function(){
 	var appendHtml = '';
 	$.each(id_list,function(idx,my_id){
 	    concat_id += my_id;
-	    var tmp = $('*[data-my-obj-id='+concat_id+']',el_screen_area).get(0);
+	    var tmp = $('*[data-my-obj-id='+concat_id+']',page.screen).get(0);
 	    if(typeof tmp !== 'undefined'){
 		appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
 	    }
 	    concat_id += MY_OBJ_SEP;
 	});
 	concat_id = concat_id.substring(0, concat_id.length - 1);
-	el_parent_list.empty().append(appendHtml).val(concat_id);
+	context_menu.parent_list.empty().append(appendHtml).val(concat_id);
     }
 
     function mthd_delete_element_impl(in_target_css){
@@ -1361,8 +1728,11 @@ $(function(){
 	    mthd_delete_element_by_my_id(my_regular_id);
 	});
     }
+    /**
+     * 削除する。但し現スクリーンのみ
+     */
     function mthd_delete_element_by_my_id(my_regular_id){
-	$('[data-my-obj-id="'+my_regular_id+'"]', el_screen_area).empty().remove();
+	$('[data-my-obj-id="'+my_regular_id+'"]', page.screen).empty().remove();
     }
 
     function getStatus(){
@@ -1373,299 +1743,6 @@ $(function(){
 	    }
 	};
     }
-
-    // screen util setting
-    var default_width_setting_s = {};
-    var el_auto_extend = $('.autoExtend');
-    el_auto_extend.each(function(idx,obj){
-	var _this = $(obj);
-	default_width_setting_s[_this.attr('id')] = _this.width();
-    });
-
-    $('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
-	var _this = myWrapElement(this);
-	var length_val = 0;
-	if(_this.get(0).localName === 'textarea'){
-	    length_val = _this.html().length;
-	}else{
-	    length_val = _this.val().length;
-	}
-	var length_for_eval = parseInt(length_val * 1.2, 10);
-	var has_width = _this.css('width');
-	var not_extended = typeof has_width === 'undefined' ? false : has_width !== '1000px';
-	if(length_for_eval > 20 && not_extended){
-	    _this.animate({"width":"90em"},200);
-	}else if(! not_extended){
-	    //nothing
-	}else{
-	    _this.animate({"width":default_width_setting_s[_this.attr('id')]},200);
-	}
-    });
-
-    el_float_menu.resizable({"autoHide":true,"minWidth":80}).draggable();
-    el_screen_area.on('contextmenu',function(ev){
-	ev.preventDefault();
-	ev.stopPropagation();
-	el_screen_obj_s.context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
-    }).on(MY_CLICK,function(ev){
-	if(is_close_menu){
-	    el_func_s['cxlselected'].trigger(MY_CLICK);
-	    el_screen_obj_s.context_menu.css({"display":"none"});
-	}
-    });
-
-    // menu func
-    el_func_s.insert.on(MY_CLICK, function(){
-	try{
-	    var for_add_target_s = null;
-	    var el_selected_s = $('.'+CLASS_SELECTED, el_screen_area);
-	    if( el_selected_s.length > 0){
-		for_add_target_s = el_selected_s;
-	    }else{
-		for_add_target_s = [el_screen_area];//追加先のデフォルトはscreen
-	    }
-	    var raw_tag_s = el_val_tag.val();
-	    if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
-		var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val() );
-		$.each(root.child_s, function(cIdx, child){
-		    display_onscreen(for_add_target_s, child);
-		});
-	    }
-	    draw_arrow_s();
-	}catch(e){
-	    console.log(e);
-	}
-    });
-
-    el_func_s.update_var.on(MY_CLICK, function(){
-	var target_s = $('.'+CLASS_SELECTED, el_screen_area);
-	if( target_s.length === 0){ return;}
-	var raw_val_s = el_selected_val_array_json.val();
-	var func_val = null;
-	var length_val_s = 1;
-	if( raw_val_s !== null){raw_val_s = raw_val_s.trim();}
-	if(raw_val_s === 'null'){
-	    raw_val_s = [null];
-	    func_val = do_void;
-	}else if(raw_val_s === '"null"'){
-	    raw_val_s = ['null'];
-	}else if( raw_val_s[0] === '[' && raw_val_s[raw_val_s.length - 1] === ']'){
-	    raw_val_s = JSON.parse(raw_val_s);
-	    length_val_s = raw_val_s.length;
-	}else{
-	    raw_val_s = [raw_val_s];
-	}
-
-	$.each(target_s, function(idx, _target){
-	    var target = $(_target);
-	    //val
-	    var tag = target.get(0).localName;
-	    if(target.hasClass('wrapper')){return true;}
-	    if( func_val !== null){
-		// do nothing
-	    }else if( tag === 'input'){
-		func_val = call_val;
-	    }else{
-		func_val = call_safe_text;
-	    }
-	    func_val(target, raw_val_s[parseInt(idx % length_val_s, 10)] );
-	});
-    });
-
-    /**
-     *
-     */
-    el_func_s.update_prop.on(MY_CLICK, function(){
-	var target_s = $('.'+CLASS_SELECTED, el_screen_area);
-	if( target_s.length === 0){ return;}
-
-	var prop_s = JSON.parse( el_selected_val_prop_json.val() );
-	if( ! $.isPlainObject(prop_s)){throw new TypeError('prop is not JSON style.');}
-
-	$.each(target_s, function(idx, _target){
-	    var target = $(_target);
-	    //val
-	    var tag = target.get(0).localName;
-	    if(target.hasClass('wrapper')){return true;}
-	    //prop
-	    var org_prop_s = target.data('my-org-prop_s');
-	    for( var _p_key in prop_s){
-		var p_key = _p_key.toLowerCase();
-		var val = prop_s[p_key];
-		if( typeof val === 'undefined' || val == null || val === ''){continue;}
-		if( p_key !== 'style' && p_key !== 'class' && p_key !== 'html'){
-		    target.attr(p_key, val);
-		    org_prop_s[p_key] = val;
-		}else if( p_key === 'class'){
-		    var p_class_s = val.trim().split(' ');
-		    var new_org_class = '';
-		    $.each(p_class_s,function(idx,p_class){
-			if(p_class[0] === '-'){
-			    target.removeClass( p_class.substring(1) );
-			}else if(p_class[0] === '+'){
-			    new_org_class += ' ' + p_class.substring(1) ;
-			    target.addClass( p_class.substring(1) );
-			}else{
-			    new_org_class += ' ' + p_class;
-			    target.addClass(p_class);
-			}
-		    });
-		    org_prop_s['class'] = new_org_class.length > 1 ? new_org_class.substring(1) : new_org_class;
-		}else if( p_key === 'style'){
-		    var val = merge_css( target.attr('style'), prop_s.style );
-		    target.attr('style', val);
-		    org_prop_s['style'] = val;
-		}else if( p_key === 'html'){
-		    if(target.get(0).localName === 'input'){
-			target.val(val);
-		    }else{
-			target.html(val);
-		    }
-		}
-	    }
-	    target.data('my-org-prop_s', org_prop_s);
-	});
-	draw_arrow_s();
-    });
-
-    el_func_s.select.on(MY_CLICK, function(){
-	var my_selector = el_selector.val();
-	var append_css_selector = el_screen_obj_s.append_css_selector.val();
-	select_element(true, my_selector, append_css_selector);
-    });
-
-    var 互いに排他の機能_s = ["copy","cut"];
-    var 互いに排他機能のCLASSを含まないセレクタ = '';
-    /**
-     * copy : no recursive , mono layer
-     */
-    $.each(互いに排他の機能_s,function(idx, name){
-	var now_class = CLASS_S[name];
-	el_func_s[name].on(MY_CLICK, function(){
-	    try{
-		var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
-		//TODO if hasClass('wrapped'), then cancel and select menu
-		//新規選択分があれば､それのみを処理し､既存分は触らない
-		if(new_targeted.length > 0){
-		    new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
-		}else{//新規選択分がなければ､全解除し選択状態に
-		    $('.'+now_class).removeClass(now_class).addClass(CLASS_SELECTED);
-		}
-	    }catch(e){
-		console.log(e);
-	    }
-	});
-	互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
-    });
-
-    /**
-     * paste
-     */
-    el_func_s.paste.on(MY_CLICK, function(){
-	try{
-	    var added_target_s = null;
-	    var el_selected_s = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);//xxx
-	    if( el_selected_s.length > 0){
-		added_candidate_s = el_selected_s;
-	    }else{
-		added_candidate_s = el_screen_area;//追加先のデフォルトはscreen
-	    }
-	    var len_added_candidate_s = added_candidate_s.length;
-	    //TODO bug infinite loop
-	    $.each( 互いに排他の機能_s,function(idx, name){
-		var now_class = CLASS_S[name];
-		$('.'+now_class, el_screen_area).each(function(){
-		    var _this = myWrapElement(this);
-		    var my_obj_id = _this.attr('data-my-obj-id');
-		    if(typeof my_obj_id !== 'undefined'){
-			var root = get_child_tree_select_dom(my_obj_id).raw()[my_obj_id];
-			var target_s = added_candidate_s.filter(function(){
-			    var rtn = null;
-			    try{
-				var _this = $(this);
-				var another_id = _this.attr('data-my-obj-id');
-				if(typeof another_id !== 'undefined'){
-				    rtn = ! _this.attr('data-my-obj-id').startsWith(my_obj_id);
-				}
-				if(rtn === false){console.log('ウロボロス検知 :' + my_obj_id );}
-			    }catch(e){console.log(e);}
-			    return rtn;
-			});
-			if(target_s.length > 0){
-			    if(name === 'cut') {mthd_delete_element_by_my_id(my_obj_id);}//TODO
-			    display_onscreen(target_s, root);
-			}
-		    }
-		});
-	    });
-	    draw_arrow_s();
-	}catch(e){
-	    console.log(e);
-	}
-    });
-
-    el_func_s.html.on(MY_CLICK,function(){
-	//var raw_child = el_saved_serialized.val();
-	var parsed = getSelectedOrRoot();
-	if( ! $.isArray(parsed)){
-	    parsed = [parsed];
-	}
-	var len_parsed = parsed.length;
-	el_sandbox_hidden.empty();
-	for(var i=0; i < len_parsed; ++i){
-	    display_onscreen(el_sandbox_hidden, parsed[i]);
-	}
-
-	var target_s = $('[data-my-htmlize-target="true"]',el_sandbox_hidden);
-	target_s.each(function(idx, _target){
-	    var target = $(_target);
-	    try{target.draggable('destroy');}catch(e){/*kill error*/};
-	    try{target.resizable('destroy');}catch(e){/*kill error*/};
-	    HTML出力時に削除するAttr_s.forEach(function(attr,i,a){
-		//NS objectの処理もあるため、jQueryは使用しない
-		_target.removeAttribute(attr);
-	    });
-	    HTML出力時に削除するclass_s.forEach(function(cl,i,a){
-		_target.classList.remove(cl);
-	    });
-	});
-
-	var head_src = '';
-	try{
-	    head_src = $('head').html();
-	    var output_html = el_sandbox_hidden.html();
-	    output_html = '<!doctype html><html><head>' + head_src + '</head><body>' + output_html + '</body></html>';
-	    output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-	    el_sandbox_screen_area.empty();
-	    $('<textarea rows="1" style="height:1em;width:8em;">').html(output_html).appendTo(el_sandbox_screen_area);
-	}catch(e){console.log('e '+e);};
-    });
-
-    var el_style = $('style#MyEditableStyle');
-    
-    el_func_s.style
-	.on(MY_CLICK,function(){
-	    $(' > textarea', el_sandbox_style_screen_area).each(function(){
-		var _this = $(this);
-		if(_this.val().trim().length > 0){
-		    el_style.html(_this.val().trim());
-		}
-	    }).html(el_style.html().replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
-	})
-	.on(MY_INIT, function(){
-	    $(' > textarea', el_sandbox_style_screen_area).empty();
-	})
-	.trigger(MY_INIT).trigger(MY_CLICK);
-    
-    el_func_s.delete.on(MY_CLICK, function(){
-	mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
-    });
-
-    el_func_s['cxlselected'].on(MY_CLICK, function(){
-	$('.'+CLASS_SELECTED, el_screen_area).each(function(){
-	    removeSelected(myWrapElement(this));
-	});
-    });
 
     var history_counter = 0;
     function init_save_history(){
@@ -1706,7 +1783,6 @@ $(function(){
 	    }
 	}catch(e){console.log('draggable error :' + e);};
     }
-
     function preserve_destroy_remove_recovery_dr_rs(obj, conv, removed, callback){
 	var d_r_opt_s = preserve_destroy_dr_rs(obj);
 	callback(obj, conv);
@@ -1719,16 +1795,16 @@ $(function(){
 	    is_suspend = ! is_suspend;
 	    el_edit_mode.html(is_suspend.toString());
 	    if(is_suspend){
-		var NOW_SELECTED = $('.'+CLASS_SELECTED, el_screen_area)
+		var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
 			.addClass(CLASS_ON_EDIT)
 			.each(function(idx,obj){
 			    var _this = $(this);
 			    var parent = _this.parent();
-			    $('<textarea class="'+CLASS_EDIT_DATA+'" >').append(_this.attr('data-my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
+			    $('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.attr('data-my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
 			});
 		el_func_s['cxlselected'].trigger(MY_CLICK);
 	    }else{
-		$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, el_screen_area)
+		$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
 		    .each(function(idx,obj){
 			var _this = $(this);
 			var conv = _this.val().replace(/\n/g,'<br>');
@@ -1740,15 +1816,15 @@ $(function(){
 
     function getSelectedOrRoot(){
 	var mother_id = null;
-	var NOW_SELECTED = $('.'+CLASS_SELECTED, el_screen_area);
+	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
 	var save = null;
 	/* create new */
 	if(NOW_SELECTED.length === 0){
-	    mother_id = el_screen_area.attr('data-my-obj-id');//attrだと文字, dataだとobj
+	    mother_id = page.screen.attr('data-my-obj-id');//attrだと文字, dataだとobj
 	    var child_tree = get_child_tree_select_dom(mother_id);
-	    var save = child_tree.child_s();
+	    save = child_tree.child_s();
 	}else{
-	    var save = [];
+	    save = [];
 	    NOW_SELECTED.each(function(){
 		var _this = $(this);
 		mother_id = _this.attr('data-my-obj-id');
@@ -1800,14 +1876,14 @@ $(function(){
     });
 
     el_func_s.stop_dra_res.on(MY_CLICK, function(){
-	var NOW_OFF_DS = $('.'+CLASS_DRAG_RESIZE+'.'+CLASS_SELECTED, el_screen_area)
+	var NOW_OFF_DS = $('.'+CLASS_DRAG_RESIZE+'.'+CLASS_SELECTED, page.screen)
 		.removeClass(CLASS_DRAG_RESIZE)
 		.each(function(obj, idx){
 		    var _this = $(this);
 		    removeSelected(_this);
 		    recovery_dr_rs(_this);
 		});
-	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_DRAG_RESIZE+')', el_screen_area)
+	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_DRAG_RESIZE+')', page.screen)
 		.addClass(CLASS_DRAG_RESIZE)
 		.each(function(obj, idx){
 		    var _this = $(this);
@@ -1831,7 +1907,7 @@ $(function(){
 	}
 	var len_parsed = parsed.length;
 	for(var i=0; i < len_parsed; ++i){
-	    display_onscreen(el_screen_area, parsed[i]);
+	    display_onscreen(page.screen, parsed[i]);
 	}
 	draw_arrow_s();
     });
@@ -1880,13 +1956,13 @@ $(function(){
 	       )
 	.commit();
 
-    //part_list, prop_list
-    $.each(Object.keys(el_some_list), function(idx, some_key){
+    //part_list, prop_list, style_list
+    $.each(el_some_key_s, function(idx, some_key){
 	var el_some = {};
 	var length_el_some_func_suffix_s = el_some_func_suffix_s.length;
 	for(var f=0; f < length_el_some_func_suffix_s; ++f){
 	    var suffix = el_some_func_suffix_s[f];
-	    el_some[suffix] = $('#'+some_key+'_'+suffix);
+	    el_some[suffix] = $('#'+some_key+'_'+suffix, el_basic_menu);
 	}
 	var tmp_el_list = el_some_list[some_key].sortable();
 	var tmp_el_input = el_some_input[some_key];
@@ -1948,17 +2024,32 @@ $(function(){
 		    var parent = tmp_el_list.parent();
 		    parent.height(parent.height() + added_height);
 		})
-		.on(MY_CLICK +','+ MY_CLICK,'input',function(){
-		    console.log(some_key + ' changed');
+		.on(MY_CLICK +','+ MY_CHANGE,'input',function(){
 		    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
+		    el_some.name.animate({"background-color":"#ffaaaa"}, 500).animate({"background-color":""}, 500);
 		});
 	    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
+	    if(some_key === 'style_list'){//TODO 個別処理
+		var style_html = '';
+		$('>li.p_list_child', el_some_list[some_key]).each(function(){
+		    var _this = $(this);
+		    var key = $('>input.key', _this).val().trim();
+		    var val = $('>input.val', _this).val().trim().replace(/\t/g, '');
+		    if(key.length > 0){
+			style_html += key+'{\n'+val.replace(/;/g, ';\n')+'}\n';
+		    }
+		});
+		el_sandbox_style_screen_area.val(style_html);
+	    }
 	}).trigger(MY_CHANGE);//end el_some.select
 
 	el_some.reg.on(MY_CLICK,function(){
 	    var some_name = el_some.name.val();
 	    var tmp_el_list = el_some_list[some_key];
 	    var list_s_in_storage = MY_STORAGE.select(some_key);
+	    if(list_s_in_storage === null ){
+		list_s_in_storage = [];
+	    }
 	    list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
 	    MY_STORAGE
 		.transaction()
@@ -1972,8 +2063,9 @@ $(function(){
 	    var some_name = el_some.name.val();
 	    MY_STORAGE
 		.transaction()
-		.remove(some_key)
+		.remove(some_key, el_some.select.val())
 		.commit();
+	    el_some.select.find('[value='+el_some.select.val()+']').remove();
 	    el_some.new.trigger(MY_CLICK);
 	});
 	el_some.new.on(MY_CLICK,function(){
@@ -2000,7 +2092,7 @@ $(function(){
     }
 
     function collect_some_list(parent_list){
-	var input_val = {}
+	var input_val = {};
 	$('.p_list_child',parent_list).each(function(){
 	    var _this = myWrapElement(this);
 	    var input_s = $('input.key,input.val',_this);
@@ -2266,10 +2358,21 @@ $(function(){
 		$.extend(true, uncommit_pool, key_val);//deep copy
 		return this;
 	    },
-	    "remove":function(key){
-		if(typeof key !== 'undefined' && typeof uncommit_pool[key] !== 'undefined'){
-		    delete uncommit_pool[key];
-		}else{console.log('nokey : '+key);}
+	    "remove":function(){
+		var loop = arguments.length - 1;
+		var target_pool = uncommit_pool;
+		for(var i=0; i <= loop; ++i){
+		    var key = arguments[i];
+		    if(typeof key !== 'undefined' && typeof target_pool[key] !== 'undefined'){
+			if(i === loop){
+			    delete target_pool[key];
+			}
+		    }else{
+			console.log('nokey : '+key);
+			break;
+		    }
+		    target_pool = target_pool[key];
+		}
 		return this;
 	    },
 	    "truncate":function(){
@@ -2402,6 +2505,9 @@ $(function(){
 	return reverse_porlish_notation_logic(formula, param_s, {})[0];
     }
     function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
+	console.log('_formula :' + _formula);
+	console.log('_param_s :' + JSON.stringify(_param_s));
+	console.log('_resolved_param_s :' + JSON.stringify(_resolved_param_s));
 	var param_s = {}; $.extend(true,param_s, _param_s);
 	var resolved_param_s = {}; $.extend(true,resolved_param_s, _resolved_param_s);
 	var formula = _formula;
@@ -2434,7 +2540,7 @@ $(function(){
 			    stack.push(num);
 			}
 		    }
-		}else	if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN
+		}else if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN
 			   || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 		    stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 		}else if( op_idx === IDX_PAREN){
