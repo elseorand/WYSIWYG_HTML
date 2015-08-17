@@ -1,17 +1,26 @@
 $(function(){
     /**TODO
-     * 1. undo / redo
-     * 5. tree diagram
-     * 7. position left,bottom,top,right
-     * 9. include resource json
-     * a. wizard
+     * undo / redo オブジェクト自身がヒストリーを持ち、ユーザー観点でのUNDO REDOとしない。
+     * position fix,left,bottom,top,right
+     * scalatest seleniumのコードの生成
+     * autocomplete
+     * wizard, easy contextmenu
+     * Append Func supports char
+     * save biz obj arr
+     * psuedo link
+     * split window => iframe support
+     * dot by dot move
+     * Edit supports ordinary wysiwyg html editors
      */
-    /**COMP
-     * 3. grid 
-     * 4. style editor
-     * 6. css selector 
-     * 8. style manager
-     * 2. screen tab
+    /**DONE
+     * grid 
+     * style editor
+     * css selector 
+     * style manager
+     * screen tab
+     * include resource json
+     * tree diagram(using browser dev tool)
+     * insert element
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -19,7 +28,7 @@ $(function(){
     var MY_OBJ_SEP = '-';
 
     // Global vars : status , state
-    var STATUS = getStatus();
+    var STATUS = getStatus();//get_child_tree_select_domがmy-obj-idがユニークであることに依存している
     var not_click = false;
     var is_suspend = false;
     var page_s = {};
@@ -34,13 +43,14 @@ $(function(){
     var CLASS_S = {"selected":CLASS_SELECTED, "copy":CLASS_COPY,"cut":CLASS_CUT,"htmlize":CLASS_HTMLIZE};
     var CLASS_ON_EDIT = 'objOnEdit';
     var CLASS_EDIT_DATA = 'objEditData';
-    var CLASS_DRAG_RESIZE = 'objDraggableResizable';
+    var CLASS_POSITION = 'objPositioning';
 
     var LAYER_SEP = '>';
     var LOOP_HLD = '*';
     var SBL_HLD = '+';
     var DEFAULT_WIDTH = 100;
     var DEFAULT_HEIGHT = 30;
+    var DISTANT_HEIGHT = 45;
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
     var XLink_NS = 'http://www.w3.org/1999/xlink';
@@ -61,7 +71,7 @@ $(function(){
     var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
     var サイズを持たせないタグ = ["table","tbody","thead","tr"];
     var resizableのみ対象のタグ = [];
-    var HTML5のタグには無い文字 = ["_","-","$",":",";","(",")","+","@","[","]","{","}","/",">","<",",",".","#","%","&","'",'"',"=","^","~"];
+    var HTML5のタグには無い文字 = ["_","-","$",":",";","(",")","+","@","[","]","{","}","/","\\",">","<",",",".","#","%","&","'",'"',"=","^","~","|"];
     var 直接文字編集可能タグ = ["input","textarea"];
     var 単一タグ = ["input","br","hr","img"];
     var 各タグ毎の初期サイズ = {"input":{"width":70,"height":30},"td":{"width":70,"height":30},"th":{"width":70,"height":30}};
@@ -69,40 +79,55 @@ $(function(){
     var HTML出力時に削除するAttr_s = ["data-my-htmlize-target","data-my-obj-id","data-my-obj-val","data-conns"];
     var HTML出力時に削除するclass_s = ["htmlize","snap","snap_border","data-conns","wrapped","wrapper","ui-resizable-autohide","ui-draggable","ui-draggable-handle","ui-resizable"];
     var position_relative禁止タグ = ["th","td"];//IE Chromeniにバグあり｡FirefoxはOK
+    var 互いに排他の機能_s = ["copy","cut"];
+    var 互いに排他機能のCLASSを含まないセレクタ = '';// 初期化がなされる
+    var css結合子 = [" ", "+", "~", ">"];
 
     // util
     var el_func_json_val = $('.json_val');
     
-    // main menu
+
+    // main menu singleton
+    var new_width = 480;
     var el_basic_menu = $('body > #basic_menu');
     var el_basic_menu_operator = $('#basic_menu_operator', el_basic_menu);
     var el_basic_menu_forward = $('#basic_menu_forward', el_basic_menu)
 	    .on(MY_INIT, function(){
 		var _this = $(this);
-		el_basic_menu.data('right', parseInt(el_basic_menu.css('right'), 10));
+		el_basic_menu
+		    .data('right', parseInt(el_basic_menu.css('right'), 10))
+		    .data('original-height', el_basic_menu.height());
 	    })
     	    .on(MY_CLICK, function(){
 		var original = el_basic_menu.data('right');
 		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
 		if(btn_posi < 720){
-		    var new_width = 480;
 		    btn_posi += new_width;
+		    el_basic_menu_operator.css('left', "+="+new_width);
+		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"+="+new_width});
 		}
-		el_basic_menu.css({"right":original+'px', "left":"auto", "width":"+="+new_width});
-		el_basic_menu_operator.css('left', btn_posi);
+		if(parseInt(el_basic_menu.height(), 10) <= 20){
+		    el_basic_menu
+			.css({"height":el_basic_menu.data('original-height')+'px'});
+		}
 	    }).trigger(MY_INIT);
     var el_basic_menu_backward = $('#basic_menu_backward', el_basic_menu)
     	    .on(MY_CLICK, function(){
 		var original = el_basic_menu.data('right');
 		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
 		if(btn_posi > 0){
-		    var new_width = 480;
-		    btn_posi -= new_width;
+		    el_basic_menu_operator.css('left', "-="+new_width);
+		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"-="+new_width});
+		}else if(parseInt(el_basic_menu.height(), 10) > 20){
+		    el_basic_menu
+			.data('original-height', el_basic_menu.height())
+			.css({"height":"20px"});
+		}else{
+		    el_basic_menu
+			.css({"height":el_basic_menu.data('original-height')+'px'});
 		}
-		el_basic_menu.css({"right":original+'px', "left":"auto", "width":"-="+new_width});
-		el_basic_menu_operator.css('left', btn_posi);
 	    });
-    var el_header_menu_bar = $('#header_menu_bar');
+    var el_header_menu_bar = $('body > header > #header_menu_bar');
     var el_val_tag = $('#ValTag', el_basic_menu);
     var el_del_val_tag = $('#delValTag', el_basic_menu).on(MY_CLICK, function(){
 	el_val_tag.val('');
@@ -111,28 +136,58 @@ $(function(){
     var el_del_val_array_json = $('#delValArrayJSON', el_basic_menu).on(MY_CLICK, function(){
 	el_val_array_json.val('');
     });
-    var el_selected_val_tag = $('#footer_menu_bar > #SelectedValTag');
-    var el_selected_val_prop_json = $('#footer_menu_bar > #SelectedValPropJSON');
+    var el_footer_menu_bar = $('body > footer > #footer_menu_bar', el_footer_menu_bar);
+    var el_selected_val_tag = $('#SelectedValTag', el_footer_menu_bar);
+    var el_selected_val_prop_json = $('#SelectedValPropJSON', el_footer_menu_bar);
 
     var el_some_key_s = ["part_list", "prop_list", "style_list"];
-    var el_some_list = [];
-    var el_some_input = [];
+    var el_some_list = {};
+    var el_some_input = {};
+    var el_some_name = {};
     var el_some_func_suffix_s = ["reg","select","del","name","new"];
     el_some_key_s.forEach(function(x,i,a){
 	el_some_list[x] = $('#'+x);
 	el_some_input[x] = $('#'+x+'_input');
+	el_some_name[x] = $('#'+x+'_name');
     });
     var el_sandbox_style_screen_area = $('#sandbox_style', el_basic_menu);
-    var el_saved_serialized = $('#header_menu_bar > #saved_serialized');
-    var el_sandbox_hidden = $('header_menu_bar > #sandbox_hidden');
+    var el_saved_serialized = $('#saved_serialized', el_header_menu_bar);
+    var el_sandbox_hidden = $('#sandbox_hidden', el_header_menu_bar);
     var el_float_menu = $('.float_menu');
     var el_history = $('#history');
     var el_edit_mode = $('#'+MODE_EDIT);
     var el_sandobox_screen =  $('#sandobox_screen');
     var el_func_new_page_element = $('#func_new_page_element').on(MY_CLICK, function(){
-	page = create_page(el_new_page_element.val());
+	var name = el_new_page_element.val().trim();
+	page = create_page(name);
+	el_some_name.style_list.val(name);
+	if(name.endsWith('.json')){//TODO now Developing
+	    $.getJSON(name)
+		.done(function(res){
+		    if(res.hasOwnProperty('style')){
+			var pool = '';
+			res.style.forEach(function(selector_attr_val,i,a){
+			    Object.keys(selector_attr_val).forEach(function(selector,i,a){
+				pool += selector+'{\n';
+				var attr_val = selector_attr_val[selector];
+				Object.keys(attr_val).forEach(function(attr,i,a){
+				    pool += '  '+attr+':'+attr_val[attr]+';\n';
+				});
+				pool+='}\n';
+			    });
+			});
+			el_sandbox_style_screen_area.val(pool);
+		    }
+		    if(res.hasOwnProperty('child_s')){  
+			res.child_s.forEach(function(data,i,a){
+			    display_onscreen('appendTo', page.screen, data);
+			});
+		    }
+		});
+	}
     });
     var el_new_page_element = $('#new_page_element');
+    var el_style = $('style#MyEditableStyle');
     
     // context menu
     var context_menu = $('#context_menu');
@@ -145,20 +200,25 @@ $(function(){
     var func_name_s = [
 	{"name":"html", "label":"", "input":'', "style":""},
 	{"name":"style", "label":"", "input":'', "style":""},
-	{"name":"insert", "label":"Ins", "input":'', "style":"", "col2":false},
+	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
+
 	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
 	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:13em; ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:21em; ime-mode:disabled;margin-left:1em; float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
 	{"name":"update_var", "label":"UpVar", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
-	{"name":"update_prop", "label":"UpProp", "input":'', "style":"", "col2":false},
-	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":"", "col2":false},
+	{"name":"update_prop", "label":"UpProp", "input":'', "style":"", "col2":true},
 	{"name":"copy", "label":"Cp", "input":'', "style":"", "col2":false},
 	{"name":"cut", "label":"Mv", "input":'', "style":"", "col2":false},
-	{"name":"paste", "label":"Paste", "input":'', "style":"", "col2":false},
+	{"name":"pastePrepend", "label":"PstPrep", "input":'', "style":"", "col2":false},
+	{"name":"pasteInsertBefore", "label":"PstBefore", "input":'', "style":"", "col2":false},
+	{"name":"pasteAppend", "label":"PstAppend", "input":'', "style":"", "col2":false},
+	{"name":"pasteInsertAfter", "label":"PstAfter", "input":'', "style":"", "col2":false},
 	{"name":"delete", "label":"Del", "input":'', "style":"", "col2":false},
 	{"name":"save", "label":"", "input":'', "style":""},
 	{"name":"load", "label":"", "input":'', "style":""},
 	{"name":"register_part", "label":"RegPart", "input":'', "style":"", "col2":false},
-	{"name":"stop_dra_res", "label":"tglDr&Rs", "input":'', "style":"", "col2":false},
+	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":"", "col2":false},
+	{"name":"positionFix", "label":"Position Fix", "input":'', "style":"", "col2":false},
+	{"name":"positionRelative", "label":"Pos Relative", "input":'<section style="float:right;"><select id="positionRelativeTopBottom"><option value="top">top</option><option value="bottom">bottom</option></select><input type="text" id="positionRelativeTopBottomValue" style="width:8em;" /><br><select id="positionRelativeLeftRight"><option value="left">left</option><option value="right">right&nbsp;</option></select><input id="positionRelativeLeftRightValue" type="text" style="width:8em;" /></section>', "style":"height:4em;", "col2":true},
     ];
 
     //init
@@ -167,7 +227,7 @@ $(function(){
     var page;
     var el_func_s = {};
     (function(){
-	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none"})
+	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
 	page = create_page('Default');
 	var child;
@@ -210,7 +270,7 @@ $(function(){
 			 }));
 	});
 	li_s = $(' > li', context_menu);
-	//TODO まとめる
+	//TODO cotext_menuにまとめる
 	el_sandobox_screen = $('#sandbox_screen');
 	el_saved_serialized = $('#saved_serialized');
 	el_sandbox_hidden = $('#sandbox_hidden');
@@ -223,7 +283,7 @@ $(function(){
 		context_menu.is_close_menu = true;
 	    });
 	el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
-	el_selector = $('#SelectedMyObjId').on(MY_CLICK, function(ev){
+	el_selector = $('#SelectedMyObjId', context_menu).on(MY_CLICK, function(ev){
 	    ev.stopPropagation();
 	});
 	context_menu.append_css_selector = $('#AppendCssSelector').on(MY_CLICK, function(ev){
@@ -235,48 +295,55 @@ $(function(){
 	    el_selector.val(_this.val());
 	    // el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
 	});
+	context_menu.relativeTopBottom = $('#positionRelativeTopBottom');
+	context_menu.relativeTopBottomValue = $('#positionRelativeTopBottomValue');
+	context_menu.relativeLeftRight = $('#positionRelativeLeftRight');
+	context_menu.relativeLeftRightValue = $('#positionRelativeLeftRightValue');
     })();
 
-    function create_page(name){
+    function create_page(name, width, height){
+	if(arguments.length <= 2){ height = '1440px';}//TODO
+	if($.isNumeric(width)){ width +='px';}//TODO
+	if(arguments.length ===  1){ width = '100%';}//TODO 
 	if(page_s.hasOwnProperty(name)){
 	    console.log('There are the same name:' + name + ' .');
 	    return page_s[name];
 	}
 	var _page = {};
-	if(typeof page !== 'undefined' && page !== null){
-	    page.screen.css({"display":"none"});
-	}
 	page_s['screen'+name] = _page;
-	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;z-index:100;background-color:LemonChiffon;width:100%; height:1440px;" data-my-obj-id="'+STATUS.getNewMyObjId()+'">');
+	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-obj-id="'+STATUS.getNewMyObjId()+'">');
 	context_menu.is_close_menu = true;
-	
-	move_page_singleton(page, _page);
-	_page.screen.on('contextmenu',function(ev){
-	    console.log('context click' );
-	    ev.preventDefault();
-	    ev.stopPropagation();
-	    context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
-	}).on(MY_CLICK,function(ev){
+	_page.screen.on('contextmenu',display_contextmenu)
+	    .on(MY_CLICK,function(ev){
 	    if(context_menu.is_close_menu){
 		context_menu.css({"display":"none"});
 	    }
 	    el_func_s['cxlselected'].trigger(MY_CLICK);
+	    page = _page;
 	});
 	var _btn_name = name;
 	$('<input class="func_scrn_change" type="button" value="'+_btn_name+'">').data('page', _page).appendTo(el_header_menu_bar);
 	el_HtmlDeveloping.append(_page.screen);
 	return _page;
-    }
-    function move_page_singleton(now, new_page){
-    }
+ }
 
+    function display_contextmenu(ev){
+	ev.preventDefault();
+	ev.stopPropagation();
+	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
+    };
+	
     el_header_menu_bar.on(MY_CLICK, '.func_scrn_change', function(){
 	var _this = $(this);
-	var _page = _this.data('page');
-	if(page === _page){return;}
-	move_page_singleton(page, _page);
-	_page.screen.css({"display":""});
-	var now_screen = page.screen.css({"display":"none"});
+	var _page = _this.data('page');//TODO page_sに変更??
+	if(_page.screen.attr('id') === 'screenDefault'){
+	    _page.screen.css({"width":"100%", "display":""}).siblings().css({"display":"none"});
+	    //TODO observe siblings except self
+	}else{
+	    _page.screen
+		.css({"display":"", "width":"70%"})
+		.siblings(':not("#screenDefault")').css({"display":"none"});
+	}
 	page = _page;
     });
 
@@ -309,7 +376,7 @@ $(function(){
     });
 
     // menu func
-    el_func_s.insert.on(MY_CLICK, function(){
+    el_func_s.append.on(MY_CLICK, function(){
 	try{
 	    var for_add_target_s = null;
 	    var el_selected_s = $('.'+CLASS_SELECTED, page.screen);
@@ -322,7 +389,7 @@ $(function(){
 	    if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
 		var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val() );
 		$.each(root.child_s, function(cIdx, child){
-		    display_onscreen(for_add_target_s, child);
+		    display_onscreen('appendTo', for_add_target_s, child);
 		});
 	    }
 	    draw_arrow_s();
@@ -425,11 +492,30 @@ $(function(){
     el_func_s.select.on(MY_CLICK, function(){
 	var my_selector = el_selector.val();
 	var append_css_selector = context_menu.append_css_selector.val();
-	select_element(true, my_selector, append_css_selector);
+	var selected_s = select_element(my_selector, append_css_selector);
+	var length_these_minus_1 = selected_s.length - 1;
+	var last = selected_s[length_these_minus_1];
+	if(typeof last !== 'undefined'){
+	    var new_prop_s = if_nullOrUndef_then_return_init(last.data('my-org-prop_s'),{"style":""});
+	    new_prop_s.style = merge_css( new_prop_s.style, last.attr('style') );
+	    var set_val ;
+	    if( length_these_minus_1 > 0){
+		// 一度に複数選択された場合は 選択順の制御ができないため､valとして値の配列ではなく､updateを見越してnullを設定する
+		set_val = 'null';
+		el_selected_val_tag.val('');
+	    }else{
+		set_val = new_prop_s.html;
+		if( typeof set_val === 'undefined'){
+		    set_val = last.data('my-obj-val');
+		}
+		el_selected_val_tag.val(last.get(0).localName);
+	    }
+	    el_selected_val_array_json.val(set_val).trigger(MY_CHANGE);
+	    delete new_prop_s.html;
+	    el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger(MY_CHANGE);
+	}
     });
 
-    var 互いに排他の機能_s = ["copy","cut"];
-    var 互いに排他機能のCLASSを含まないセレクタ = '';
     /**
      * copy : no recursive , mono layer
      */
@@ -443,7 +529,7 @@ $(function(){
 		if(new_targeted.length > 0){
 		    new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
 		}else{//新規選択分がなければ､全解除し選択状態に
-		    $('.'+now_class).removeClass(now_class).addClass(CLASS_SELECTED);
+		    addSelected($('.'+now_class).removeClass(now_class));
 		}
 	    }catch(e){
 		console.log(e);
@@ -452,10 +538,20 @@ $(function(){
 	互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
     });
 
-    /**
-     * paste
-     */
-    el_func_s.paste.on(MY_CLICK, function(){
+    el_func_s.pastePrepend.on(MY_CLICK, function(){
+	paste_method('prependTo');
+    });
+    el_func_s.pasteInsertBefore.on(MY_CLICK, function(){
+	paste_method('insertBefore');
+    });
+    el_func_s.pasteAppend.on(MY_CLICK, function(){
+	paste_method('appendTo');
+    });
+    el_func_s.pasteInsertAfter.on(MY_CLICK, function(){
+	paste_method('insertAfter');
+    });
+
+    function paste_method(add_method){
 	try{
 	    var added_target_s = null;
 	    var el_selected_s = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ, page.screen);//xxx
@@ -469,11 +565,12 @@ $(function(){
 	    //TODO bug infinite loop
 	    $.each( 互いに排他の機能_s,function(idx, name){
 		var now_class = CLASS_S[name];
-		$('.'+now_class).each(function(){//コピー元は全ページ対象
+		$('.'+now_class).each(function(){//paste元は全ページ対象
 		    var _this = myWrapElement(this);
 		    var my_obj_id = _this.attr('data-my-obj-id');
 		    if(typeof my_obj_id !== 'undefined'){
 			var root = get_child_tree_select_dom(my_obj_id).raw()[my_obj_id];
+			//TODO 補正 固定補正: root.prop_s.style = merge_css(root.prop_s.style, 'left:16px;top:32px;');
 			var target_s = added_candidate_s.filter(function(){
 			    var rtn = null;
 			    try{
@@ -488,7 +585,7 @@ $(function(){
 			});
 			if(target_s.length > 0){
 			    if(name === 'cut') {mthd_delete_element_by_my_id(my_obj_id);}//TODO
-			    display_onscreen(target_s, root);
+			    display_onscreen(add_method, target_s, root);
 			}
 		    }
 		});
@@ -497,7 +594,49 @@ $(function(){
 	}catch(e){
 	    console.log(e);
 	}
-    });
+    }
+
+    function absoluteCoord(){
+
+    }
+
+    function Coord(){
+	if(arguments.length === 1){
+	    var raw = arguments[0];
+	    if(raw.hasOwnProperty('prop_s') && raw.prop_s.hasOwnProperty('style')){
+		raw = raw.prop_s.style;
+	    }else if(raw.hasOwnProperty('style')){
+		raw = raw.style;
+	    }
+	    var style = analysisCss(raw, {});
+	    return arguments.callee(style.left, style.top, style.right, style.bottom);//XXX
+	}else if(arguments.length === 2){
+	    return {
+		"left":parseInt(arguments[0], 10),
+		"top":parseInt(arguments[1], 10),
+		"right":'auto', 
+		"bottom":'auto'
+	    };
+	}else if(arguments.length === 4){
+	    var x = arguments[0];
+	    var y = arguments[1];
+	    var cx = arguments[2];
+	    var cy = arguments[3];
+	    if(typeof x !== 'undefined' && typeof y !== 'undefined'
+	       && $.isNumeric(parseInt(x, 10)) && $.isNumeric(parseInt(y, 10))){
+		return arguments.callee(x, y);
+	    }else{
+		return {
+		    "left":x, 
+		    "top":y, 
+		    "right":cx, 
+		    "bottom":cy
+		};
+	    }
+	}else{
+	    return null;
+	}
+    }
 
     el_func_s.html.on(MY_CLICK,function(){
 	//var raw_child = el_saved_serialized.val();
@@ -508,7 +647,7 @@ $(function(){
 	var len_parsed = parsed.length;
 	el_sandbox_hidden.empty();
 	for(var i=0; i < len_parsed; ++i){
-	    display_onscreen(el_sandbox_hidden, parsed[i]);
+	    display_onscreen('appendTo', el_sandbox_hidden, parsed[i]);
 	}
 
 	var target_s = $('[data-my-htmlize-target="true"]',el_sandbox_hidden);
@@ -536,8 +675,6 @@ $(function(){
 	}catch(e){console.log('e '+e);};
     });
 
-    var el_style = $('style#MyEditableStyle');
-    
     el_func_s.style
 	.on(MY_CLICK, function(){
 	    el_some_list.style_list.empty();
@@ -547,9 +684,21 @@ $(function(){
 	    }
 	    style_html = style_html.replace(/\n/g, '');
 	    var css_keyval = style_html.split('}');
+	    var pool = [];
 	    css_keyval.forEach(function(x,i,a){
-		var k_v = x.split('{');
+		var k_v = x.trim().split('{');
 		if(k_v.length === 2){
+		    var attr_val_s = k_v[1].trim().split(';');
+		    var pool_v = {};
+		    attr_val_s.forEach(function(acv,i,a){
+			var a_v = acv.split(':');
+			if(a_v !== null && a_v.length === 2){
+			    pool_v[a_v[0].trim()] = a_v[1].trim();//後勝ち
+			}
+		    });
+		    var tmp = {};
+		    tmp[k_v[0]] = pool_v;
+		    pool.push(tmp);
 		    new_empty_line(el_some_list.style_list, k_v[0].trim(), k_v[1].trim(), false);
 		}
 	    });
@@ -570,89 +719,73 @@ $(function(){
 	});
     });
 
-        // Implement_s
-    function select_element(keep_raw_selector, raw_selector, append_css_selector){
-	var _these;
-	var selector = '';
-	var type_raw_selector = typeof raw_selector;
-	if(type_raw_selector === undefined){
-	    return;
-	}else if(type_raw_selector !== 'string'){
-	    _these = raw_selector;
-	}else{
-	    if(raw_selector.startsWith(page.screen.data('my-obj-id')+'-')){//case my_id
-		var idx_aster = raw_selector.lastIndexOf(MY_OBJ_SEP+'*');
-		if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
-		    selector = '*[data-my-obj-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
-		}else{
-		    selector = '*[data-my-obj-id="'+raw_selector+'"]';
-		}
-	    }else{//case css
-		selector = raw_selector;
-	    }
-	    selector = selector.trim();
-	    if(typeof append_css_selector === 'string' && append_css_selector !== '' ){
-		selector += ' ' + append_css_selector;
-	    }
-	    _these = $(selector +'.htmlize', page.screen);
-	}
-	var length_these_minus_1 = _these.length - 1;
-	_these.each(function(idx, in_this){
-	    var _this = myWrapElement(in_this);
-	    if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
-	    var my_obj_id = _this.data('my-obj-id');
-	    var is_my_selected = _this.data('my-selected');
-	    if(typeof is_my_selected === 'undefined' || is_my_selected === false){
-		addSelected(_this);
-		if(length_these_minus_1 === idx){
-		    if( ! keep_raw_selector ){
-			el_selector.val(my_obj_id);
-		    }
-		    var new_prop_s = if_nullOrUndef_then_return_init(_this.data('my-org-prop_s'),{"style":""});
-		    new_prop_s.style = merge_css( new_prop_s.style, _this.attr('style') );
-		    var set_val ;
-		    if( length_these_minus_1 > 0){
-			// 一度に複数選択された場合は 選択順の制御ができないため､valとして値の配列ではなく､updateを見越してnullを設定する
-			set_val = 'null';
-			el_selected_val_tag.val('');
-		    }else{
-			set_val = new_prop_s.html;
-			if( typeof set_val === 'undefined'){
-			    set_val = _this.data('my-obj-val');
-			}
-			el_selected_val_tag.val(_this.get(0).localName);
-		    }
-		    el_selected_val_array_json.val(set_val).trigger(MY_CHANGE);
-		    delete new_prop_s.html;
-		    el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger(MY_CHANGE);
-		}
-	    }else{
-		removeSelected(_this);
-	    }
-	});
-    }
-
+    // Implement_s
+   function select_element(raw_selector, append_css_selector){
+       var rtn = [];
+       var _these;
+       var selector = '';
+       var type_raw_selector = typeof raw_selector;
+       if(type_raw_selector === undefined){
+	   return rtn;
+       }else if(type_raw_selector !== 'string'){
+	   _these = raw_selector;
+       }else{
+	   if(raw_selector.startsWith(page.screen.data('my-obj-id')+'-')){//case my_id
+	       var idx_aster = raw_selector.lastIndexOf(MY_OBJ_SEP+'*');
+	       if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
+		   selector = '*[data-my-obj-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
+	       }else{
+		   selector = '*[data-my-obj-id="'+raw_selector+'"]';
+	       }
+	   }else{//case css
+	       selector = raw_selector;
+	   }
+	   selector = selector.trim();
+	   if(typeof append_css_selector === 'string' && append_css_selector !== '' ){
+	       append_css_selector = append_css_selector.trim();
+	       var pool = '';
+	       var target = append_css_selector;
+	       css結合子.forEach(function(cc,i,a){//TODO bug:case: nth-child(2n+1)
+		   var lastIndex = target.lastIndexOf(cc);
+		   if(lastIndex < 0){return true;}
+		   ++lastIndex;
+		   pool += target.substr(0, lastIndex);
+		   target = target.substring(lastIndex);
+	       });
+	       var indexPsuedo = target.indexOf(':');
+	       if(indexPsuedo > -1){
+		   target = target.substr(0, indexPsuedo) + '.htmlize' + target.substring(indexPsuedo);
+	       }
+	       selector += ' ' + pool+target;
+	   }
+	   _these = $(selector, page.screen);
+       }
+       _these.each(function(idx, in_this){
+	   var _this = myWrapElement(in_this);
+	   if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
+	   var my_obj_id = _this.data('my-obj-id');
+	   var is_my_selected = _this.data('my-selected');
+	   if(typeof is_my_selected === 'undefined' || is_my_selected === false){
+	       addSelected(_this);
+	       rtn.push(_this);
+	   }else{
+	       removeSelected(_this);
+	   }
+       });
+       return rtn;
+   }
+    
     function removeSelected(jq_tgt){
-	var adjust_width = jq_tgt.data("adjust-width");
-	var adjust_height = jq_tgt.data("adjust-height");
 	jq_tgt
 	    .data('my-selected', false)
-	    .css({"width":"+="+adjust_width, "height":"+="+adjust_height})
 	    .removeClass(CLASS_SELECTED)
 	;
 	return jq_tgt;
     }
     function addSelected(jq_tgt){
-	var adjust_width = - jq_tgt.outerWidth() ;//for grid mode adjust
-	var adjust_height = - jq_tgt.outerHeight() ;//for grid mode adjust
 	jq_tgt
 	    .data("my-selected", true)
 	    .addClass(CLASS_SELECTED);
-	adjust_width = jq_tgt.outerWidth()  + adjust_width;//for grid adjust
-	adjust_height = jq_tgt.outerHeight() + adjust_height;//for grid adjust
-	jq_tgt
-	    .css({"width":"-="+adjust_width, "height":"-="+adjust_height})
-	    .data({"adjust-width": adjust_width, "adjust-height": adjust_height});
 	return jq_tgt;
     }
 
@@ -741,7 +874,7 @@ $(function(){
 	$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
 	    var trimed_tag = tag.trim();
 	    var pooled_tag_s = [];
-	    $.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibiling
+	    $.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibling
 		var tag_num = split_ignore_nest(sbl.trim(), LOOP_HLD,[["(",")"]]);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 		var loop_num = 1;
 		if(tag_num.length > 1){
@@ -913,6 +1046,7 @@ $(function(){
 	var tmp_attr_split = null;
 	var tmp_attr_s = {};
 	var nest_counter = 0;
+	var tag;
 	for(var ic=0; ic <= length_input_tag; ++ic){
 	    var c = input_tag[ic];
 	    if(c === ']')	--nest_counter;
@@ -943,7 +1077,7 @@ $(function(){
 	    }
 	    if(c === '[')	++nest_counter;
 	}
-	return {"tag":tag,"id":tmp_id,"class":tmp_cl_s,"attr":tmp_attr_s};
+	return {"tag":tag,"class":tmp_cl_s,"attr":tmp_attr_s};
     }
 
     function extract_css_selector(input_tag, prop_map){
@@ -1073,7 +1207,6 @@ $(function(){
 	return root_s;
     };
 
-    var DISTANT_HEIGHT = 45;
     /**
      * 1pxサイズの操作不能オブジェクトを産まないために､
      * Defaultサイズを設定する
@@ -1284,12 +1417,12 @@ $(function(){
 			if( rtn != null){
 			    return rtn;
 			}
-			//return undefined
 		    }
 		}else if( arguments.length >= 2 ){
 		    raw.setAttribute(key,val);
 		    return this;
 		}
+		return elm;
 	    };
 	    elm.addClass = function(clz){
 		var already =  raw.getAttribute('class');
@@ -1317,7 +1450,7 @@ $(function(){
      * my_apply形式のデータが対象
      * TODO position:relativeが無効なtd,th直下では､draggable 禁止
      */
-    function display_onscreen(target_s, _this, _is_draggable, is_svg){
+    function display_onscreen(add_method, target_s, _this, _is_draggable, is_svg){
 	var is_default_draggable = _is_draggable || typeof _is_draggable === 'undefined' ;
 	var tag = _this['tag'].trim().toLowerCase();
 	var prop_s = _this['prop_s'];
@@ -1356,10 +1489,13 @@ $(function(){
 	    }else if( tag === 'th' || tag === 'td'){
 		if(parent_tag !== 'tr') throw new Error(' td,th should be under tr.');
 		is_draggable = false;
+	    }else if( tag === 'li'){
+		if(parent_tag !== 'ol' || parent_tag !== 'ul') throw new Error('li should be under ul or ol.');
+		is_draggable = false;
 	    }else if( tag === 'tr' || tag === 'tbody' || tag === 'thead'){
 		is_draggable = false;
 		is_resizable = false;
-	    }else	if( typeof is_svg === 'undefined'){
+	    }else if( typeof is_svg === 'undefined'){
 		is_svg = false;
 	    }
 
@@ -1406,25 +1542,27 @@ $(function(){
 	    var parent_id = target.attr('data-my-obj-id');
 	    var my_regular_id = parent_id+MY_OBJ_SEP+ my_obj_id;
 	    var user_input_id = work_jq.attr('id');
-	    if( typeof user_input_id === 'undefined' || $('#'+user_input_id).length !== 0 ){
-		user_input_id = my_regular_id;
+	    if( typeof user_input_id === 'undefined' || user_input_id.length === 0 ){
+		user_input_id = my_regular_id;//TODO
+	    }else{
+		work_jq.attr({"id":user_input_id});
 	    }
 	    work_jq
 		.addClass(CLASS_HTMLIZE)
 		.attr('data-my-obj-id', my_regular_id)
 		.data('my-obj-id', my_regular_id)
-		.attr({"id":user_input_id})
-		.on(MY_CLICK,select_handler)
+		.on(MY_CLICK,select_handler_factory(true))
+	    	.on('contextmenu',select_handler_factory(false, display_contextmenu))
 		.on(MY_CHANGE,function(ev){
 		    var _this = myWrapElement(this);
-		    var val = _this.val()
+		    var val = _this.val();
 		    _this
 			.data('my-obj-val', val)
 			.attr('data-my-obj-val', val);
 		});
 	    var length_child_s = child_s.length;
 	    for(var idx_child=0; idx_child < length_child_s; ++idx_child){
-		display_onscreen([work_jq], child_s[idx_child], is_draggable, is_svg);
+		display_onscreen('appendTo', [work_jq], child_s[idx_child], is_draggable, is_svg);
 	    }
 
 	    var is_table_cell = false;
@@ -1434,7 +1572,7 @@ $(function(){
 	    var resizableOption = {
 		"stop":function(ev, ui){
 		    is_table_cell = false;
-		    //								draw_arrow_s(cached_arrow_factory, _this);
+		    //draw_arrow_s(cached_arrow_factory, _this);
 		    cached_arrow_factory = null;
 		},
 		"resize":function(ev, ui){
@@ -1477,14 +1615,15 @@ $(function(){
 		    }
 		},
 		"autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
+		, "containment":page.screen
 	    };
-	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4",
+	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":page.screen, 
 				  "stop":function(ev, ui){
 				      var _this = $(this);
 				      _this.removeClass('snap_border')
 					  .parent().removeClass('snap_border')
 					  .children('.snap').removeClass('snap_border');
-				      if(this.localName === 'table' || this.localName === 'ol'){
+				      if(this.localName === 'table' || this.localName === 'ol'){//TODO sizeを持たせないタグ
 					  _this.css({"width":"auto", "height":"auto"});
 				      }
 				      draw_arrow_s(cached_arrow_factory, _this);
@@ -1495,7 +1634,7 @@ $(function(){
 				      not_click = true;
 				      var _this = $(this);
 				      _this.addClass('snap_border')
-					  .parent(':not(#screen)').addClass('snap_border')
+					  .parent(':not(.screen)').addClass('snap_border')
 					  .children('.snap').addClass('snap_border');
 				      var my_id = _this.attr('data-my-obj-id');
 				      cached_arrow_factory = draw_arrow_s_factory(null, my_id);
@@ -1512,7 +1651,7 @@ $(function(){
 	    }
 
 	    removeSelected(work_jq)
-		.appendTo( target )
+		[add_method]( target )
 		.data('my-htmlize-target',true)
 		.attr('data-my-htmlize-target',true);
 	    if( wrapped_is_true ){
@@ -1567,6 +1706,7 @@ $(function(){
 	    }
 	}
     }
+    
     var cached_arrow_factory = null;
     function continuous_draw_arrow_s(){
 	try{
@@ -1687,30 +1827,37 @@ $(function(){
 	}
     }
 
-    function select_handler(ev){// 選択処理実装
-	if(is_suspend) return;
-	ev.stopPropagation();
-	var _this = myWrapElement(this);
-	var my_regular_id = _this.attr('data-my-obj-id');
-	if( not_click ){
-	    not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･
-	    return;
-	}
-	select_element(false, _this);
-	//analisys my-obj-id
-	var id_list = my_regular_id.split(MY_OBJ_SEP);
-	var concat_id = '';
-	var appendHtml = '';
-	$.each(id_list,function(idx,my_id){
-	    concat_id += my_id;
-	    var tmp = $('*[data-my-obj-id='+concat_id+']',page.screen).get(0);
-	    if(typeof tmp !== 'undefined'){
-		appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
+    function select_handler_factory(isAddSelected, callbacks){
+	return function (ev){// 選択処理実装
+	    if(is_suspend) return;
+	    ev.preventDefault();
+	    ev.stopPropagation();
+	    var _this = myWrapElement(this);
+	    var my_regular_id = _this.attr('data-my-obj-id');
+	    if( not_click ){
+		not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･ => dragの閾値を設定
+		return;
 	    }
-	    concat_id += MY_OBJ_SEP;
-	});
-	concat_id = concat_id.substring(0, concat_id.length - 1);
-	context_menu.parent_list.empty().append(appendHtml).val(concat_id);
+	    el_selector.val(my_regular_id);
+	    if(isAddSelected){select_element(_this);}
+	    //analisys my-obj-id
+	    var id_list = my_regular_id.split(MY_OBJ_SEP);
+	    var concat_id = '';
+	    var appendHtml = '';
+	    $.each(id_list,function(idx,my_id){
+		concat_id += my_id;
+		var tmp = $('*[data-my-obj-id='+concat_id+']',page.screen).get(0);
+		if(typeof tmp !== 'undefined'){
+		    appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
+		}
+		concat_id += MY_OBJ_SEP;
+	    });
+	    concat_id = concat_id.substring(0, concat_id.length - 1);
+	    context_menu.parent_list.empty().append(appendHtml).val(concat_id);
+	    if(typeof callbacks !== 'undefined' && callbacks !== null) {
+		callbacks(ev);
+	    }
+	};
     }
 
     function mthd_delete_element_impl(in_target_css){
@@ -1736,7 +1883,7 @@ $(function(){
     }
 
     function getStatus(){
-	var obj_id = 1;
+	var obj_id = 0;
 	return {
 	    "getNewMyObjId":function(){
 		return obj_id++;
@@ -1758,22 +1905,22 @@ $(function(){
     }
     init_save_history();
 
-    function preserve_destroy_dr_rs(obj){
+    function preserve_destroied(obj){
 	var resizableOption = obj.data('resizableOption');
 	var draggableOption = obj.data('draggableOption');
-	if(typeof resizableOption !== 'undefined'){obj.data('resizableOption', resizableOption).resizable('destroy');}
+//	if(typeof resizableOption !== 'undefined'){obj.data('resizableOption', resizableOption).resizable('destroy');}
 	if(typeof draggableOption !== 'undefined'){obj.draggable('destroy');}
 	return {"resizableOption":resizableOption, "draggableOption":draggableOption};	
     }
-    function recovery_dr_rs(obj, resizableOption, draggableOption){
-	try{
-	    if(typeof resizableOption !== 'undefined'){
-		obj.resizable(resizableOption);
-	    }else{
-		var rOption = obj.data('resizableOption');
-		if(typeof rOption !== 'undefined'){obj.resizable(rOption);}
-	    }
-	}catch(e){console.log('resizable error :' + e);};
+    function recovery_position(obj, resizableOption, draggableOption){
+	// try{
+	//     if(typeof resizableOption !== 'undefined'){
+	// 	obj.resizable(resizableOption);
+	//     }else{
+	// 	var rOption = obj.data('resizableOption');
+	// 	if(typeof rOption !== 'undefined'){obj.resizable(rOption);}
+	//     }
+	// }catch(e){console.log('resizable error :' + e);};
 	try{
 	    if(typeof draggableOption !== 'undefined'){
 		obj.draggable(draggableOption);
@@ -1783,11 +1930,11 @@ $(function(){
 	    }
 	}catch(e){console.log('draggable error :' + e);};
     }
-    function preserve_destroy_remove_recovery_dr_rs(obj, conv, removed, callback){
-	var d_r_opt_s = preserve_destroy_dr_rs(obj);
+    function preserve_destroy_remove_recovery_position(obj, conv, removed, callback){
+	var d_r_opt_s = preserve_destroied(obj);
 	callback(obj, conv);
 	removed.remove();
-	recovery_dr_rs(obj, d_r_opt_s.resizableOption, d_r_opt_s.draggableOption);
+	recovery_position(obj, d_r_opt_s.resizableOption);//, d_r_opt_s.draggableOption);
     }
 
     el_func_s.edit
@@ -1809,7 +1956,7 @@ $(function(){
 			var _this = $(this);
 			var conv = _this.val().replace(/\n/g,'<br>');
 			var parent = _this.parent();
-			preserve_destroy_remove_recovery_dr_rs(parent, conv, _this, call_safe_html);
+			preserve_destroy_remove_recovery_position(parent, conv, _this, call_safe_html);
 		    }).removeClass(CLASS_ON_EDIT);
 	    }
 	});
@@ -1875,21 +2022,30 @@ $(function(){
 	$('.p_list_child:last-child > .val', el_some_list.part_list).val(JSON.stringify(save));
     });
 
-    el_func_s.stop_dra_res.on(MY_CLICK, function(){
-	var NOW_OFF_DS = $('.'+CLASS_DRAG_RESIZE+'.'+CLASS_SELECTED, page.screen)
-		.removeClass(CLASS_DRAG_RESIZE)
+    el_func_s.positionFix.on(MY_CLICK, function(){
+	var NOW_OFF_DS = $('.'+CLASS_POSITION+'.'+CLASS_SELECTED, page.screen)
+		.removeClass(CLASS_POSITION)
 		.each(function(obj, idx){
 		    var _this = $(this);
 		    removeSelected(_this);
-		    recovery_dr_rs(_this);
+		    recovery_position(_this);
 		});
-	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_DRAG_RESIZE+')', page.screen)
-		.addClass(CLASS_DRAG_RESIZE)
+	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_POSITION+')', page.screen)
+		.addClass(CLASS_POSITION)
 		.each(function(obj, idx){
 		    var _this = $(this);
 		    removeSelected(_this);
-		    preserve_destroy_dr_rs(_this);
+		    preserve_destroied(_this);
 		});
+    });
+    el_func_s.positionRelative.on(MY_CLICK, function(){
+	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
+	NOW_SELECTED.each(function(){
+	    var _this = $(this);
+	    console.log('porela clicked');
+	    //TODO how to use ??	    _this.position({"my":"right bottom","at": "right bottom"});
+	    
+	});
     });
 
     el_func_s.load.on(MY_CLICK, function(){
@@ -1907,7 +2063,7 @@ $(function(){
 	}
 	var len_parsed = parsed.length;
 	for(var i=0; i < len_parsed; ++i){
-	    display_onscreen(page.screen, parsed[i]);
+	    display_onscreen('appendTo', page.screen, parsed[i]);
 	}
 	draw_arrow_s();
     });
@@ -2189,7 +2345,7 @@ $(function(){
     }
 
     /**
-     * override
+     * 後勝ちoverride
      */
     function merge_css(){
 	var pool = {};
@@ -2214,9 +2370,12 @@ $(function(){
 	}
 	return rtn;
     }
+    /**
+     * styleがpoolを上書き
+     */
     function analysisCss(style, pool){
 	style.split(';').forEach(function(x){
-	    var key_val = x.split(':');
+	    var key_val = x.trim().split(':');
 	    if( key_val.length >= 2){
 		var val = key_val[1].trim();
 		if( typeof val === 'undefined' || val == null || val == 'null'){
