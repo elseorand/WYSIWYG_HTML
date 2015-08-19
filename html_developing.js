@@ -1,7 +1,6 @@
 $(function(){
     /**TODO
      * undo / redo オブジェクト自身がヒストリーを持ち、ユーザー観点でのUNDO REDOとしない。
-     * position fix,left,bottom,top,right
      * scalatest seleniumのコードの生成
      * autocomplete
      * wizard, easy contextmenu
@@ -21,11 +20,12 @@ $(function(){
      * include resource json
      * tree diagram(using browser dev tool)
      * insert element
+     * position fix,left,bottom,top,right
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
     var MAX_SAVE_SLOT_S = 16;
-    var MY_OBJ_SEP = '-';
+    var MY_NODE_SEP = '-';
 
     // Global vars : status , state
     var STATUS = getStatus();//get_child_tree_select_domがmy-obj-idがユニークであることに依存している
@@ -76,7 +76,7 @@ $(function(){
     var 単一タグ = ["input","br","hr","img"];
     var 各タグ毎の初期サイズ = {"input":{"width":70,"height":30},"td":{"width":70,"height":30},"th":{"width":70,"height":30}};
     var 関数タグの対象外css_selector = ["id","class","type"];
-    var HTML出力時に削除するAttr_s = ["data-my-htmlize-target","data-my-obj-id","data-my-obj-val","data-conns"];
+    var HTML出力時に削除するAttr_s = ["data-my-htmlize-target","data-my-node-id","data-my-obj-id","data-my-obj-val","data-conns"];
     var HTML出力時に削除するclass_s = ["htmlize","snap","snap_border","data-conns","wrapped","wrapper","ui-resizable-autohide","ui-draggable","ui-draggable-handle","ui-resizable"];
     var position_relative禁止タグ = ["th","td"];//IE Chromeniにバグあり｡FirefoxはOK
     var 互いに排他の機能_s = ["copy","cut"];
@@ -191,9 +191,6 @@ $(function(){
     
     // context menu
     var context_menu = $('#context_menu');
-    var el_func_cancel_selected = $('#func_cxlselected_element', context_menu);
-    var el_selector = $('#SelectedMyObjId', context_menu);
-    var el_selected_val_array_json = $('#SelectedValArrayJSON', context_menu);
 
     // Fields
     // func
@@ -271,19 +268,20 @@ $(function(){
 	});
 	li_s = $(' > li', context_menu);
 	//TODO cotext_menuにまとめる
+	context_menu.el_func_cancel_selected = $('#func_cxlselected_element', context_menu);
 	el_sandobox_screen = $('#sandbox_screen');
 	el_saved_serialized = $('#saved_serialized');
 	el_sandbox_hidden = $('#sandbox_hidden');
 	el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable();;
 	el_history = $('#history');
-	el_selected_val_array_json = $('#SelectedValArrayJSON')
+	context_menu.el_selected_val_array_json = $('#SelectedValArrayJSON', context_menu)
 	    .hover(function(){
 		context_menu.is_close_menu = false;
 	    },function(){
 		context_menu.is_close_menu = true;
 	    });
 	el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
-	el_selector = $('#SelectedMyObjId', context_menu).on(MY_CLICK, function(ev){
+	context_menu.el_selector = $('#SelectedMyObjId', context_menu).on(MY_CLICK, function(ev){
 	    ev.stopPropagation();
 	});
 	context_menu.append_css_selector = $('#AppendCssSelector').on(MY_CLICK, function(ev){
@@ -292,10 +290,10 @@ $(function(){
 	context_menu.parent_list = $('#parent_list').on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
 	    ev.stopPropagation();
 	    var _this = myWrapElement(this);
-	    el_selector.val(_this.val());
+	    context_menu.el_selector.val(_this.val());
 	    // el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
 	});
-	context_menu.relativeTopBottom = $('#positionRelativeTopBottom');
+	context_menu.relativeTopBottom = $('#positionRelativeTopBottom');//敢えてstopPropagationしない
 	context_menu.relativeTopBottomValue = $('#positionRelativeTopBottomValue');
 	context_menu.relativeLeftRight = $('#positionRelativeLeftRight');
 	context_menu.relativeLeftRightValue = $('#positionRelativeLeftRightValue');
@@ -311,7 +309,7 @@ $(function(){
 	}
 	var _page = {};
 	page_s['screen'+name] = _page;
-	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-obj-id="'+STATUS.getNewMyObjId()+'">');
+	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-node-id="'+STATUS.getNewMyObjId()+'">');
 	context_menu.is_close_menu = true;
 	_page.screen.on('contextmenu',display_contextmenu)
 	    .on(MY_CLICK,function(ev){
@@ -401,7 +399,7 @@ $(function(){
     el_func_s.update_var.on(MY_CLICK, function(){
 	var target_s = $('.'+CLASS_SELECTED, page.screen);
 	if( target_s.length === 0){ return;}
-	var raw_val_s = el_selected_val_array_json.val();
+	var raw_val_s = context_menu.el_selected_val_array_json.val();
 	var func_val = null;
 	var length_val_s = 1;
 	if( raw_val_s !== null){raw_val_s = raw_val_s.trim();}
@@ -434,7 +432,7 @@ $(function(){
     });
 
     /**
-     *
+     * 
      */
     el_func_s.update_prop.on(MY_CLICK, function(){
 	var target_s = $('.'+CLASS_SELECTED, page.screen);
@@ -450,11 +448,22 @@ $(function(){
 	    if(target.hasClass('wrapper')){return true;}
 	    //prop
 	    var org_prop_s = target.data('my-org-prop_s');
+	    var kept_prop_s = {};
 	    for( var _p_key in prop_s){
 		var p_key = _p_key.toLowerCase();
 		var val = prop_s[p_key];
 		if( typeof val === 'undefined' || val == null || val === ''){continue;}
-		if( p_key !== 'style' && p_key !== 'class' && p_key !== 'html'){
+		if( p_key === 'html'){
+		    kept_prop_s(p_key, target.attr(p_key));
+		    if(target.get(0).localName === 'input'){
+			target.val(val);
+		    }else{
+			target.html(val);
+		    }
+		    continue;
+		}
+		kept_prop_s(p_key, target.attr(p_key));
+		if( p_key !== 'style' && p_key !== 'class'){
 		    target.attr(p_key, val);
 		    org_prop_s[p_key] = val;
 		}else if( p_key === 'class'){
@@ -473,15 +482,9 @@ $(function(){
 		    });
 		    org_prop_s['class'] = new_org_class.length > 1 ? new_org_class.substring(1) : new_org_class;
 		}else if( p_key === 'style'){
-		    var val = merge_css( target.attr('style'), prop_s.style );
+		    val = merge_css( target.attr('style'), prop_s.style );
 		    target.attr('style', val);
 		    org_prop_s['style'] = val;
-		}else if( p_key === 'html'){
-		    if(target.get(0).localName === 'input'){
-			target.val(val);
-		    }else{
-			target.html(val);
-		    }
 		}
 	    }
 	    target.data('my-org-prop_s', org_prop_s);
@@ -490,32 +493,11 @@ $(function(){
     });
 
     el_func_s.select.on(MY_CLICK, function(){
-	var my_selector = el_selector.val();
-	var append_css_selector = context_menu.append_css_selector.val();
-	var selected_s = select_element(my_selector, append_css_selector);
-	var length_these_minus_1 = selected_s.length - 1;
-	var last = selected_s[length_these_minus_1];
-	if(typeof last !== 'undefined'){
-	    var new_prop_s = if_nullOrUndef_then_return_init(last.data('my-org-prop_s'),{"style":""});
-	    new_prop_s.style = merge_css( new_prop_s.style, last.attr('style') );
-	    var set_val ;
-	    if( length_these_minus_1 > 0){
-		// 一度に複数選択された場合は 選択順の制御ができないため､valとして値の配列ではなく､updateを見越してnullを設定する
-		set_val = 'null';
-		el_selected_val_tag.val('');
-	    }else{
-		set_val = new_prop_s.html;
-		if( typeof set_val === 'undefined'){
-		    set_val = last.data('my-obj-val');
-		}
-		el_selected_val_tag.val(last.get(0).localName);
-	    }
-	    el_selected_val_array_json.val(set_val).trigger(MY_CHANGE);
-	    delete new_prop_s.html;
-	    el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger(MY_CHANGE);
-	}
+	var sel_s = select_element(context_menu.el_selector.val(), context_menu.append_css_selector.val());
+	var length_these_minus_1 = sel_s.length - 1;
+	setProps(sel_s[length_these_minus_1], length_these_minus_1 > 0);
     });
-
+    
     /**
      * copy : no recursive , mono layer
      */
@@ -551,6 +533,28 @@ $(function(){
 	paste_method('insertAfter');
     });
 
+    function setProps(target, isSetVal){
+	if(typeof target !== 'undefined'){
+	    var new_prop_s = if_nullOrUndef_then_return_init(target.data('my-org-prop_s'),{"style":""});
+	    new_prop_s.style = merge_css( new_prop_s.style, target.attr('style') );
+	    var set_val ;
+	    if(isSetVal){
+		// 一度に複数選択された場合は 選択順の制御ができないため､valとして値の配列ではなく､updateを見越してnullを設定する
+		set_val = 'null';
+		el_selected_val_tag.val('');
+	    }else{
+		set_val = new_prop_s.html;
+		if( typeof set_val === 'undefined'){
+		    set_val = target.data('my-obj-val');
+		}
+		el_selected_val_tag.val(target.get(0).localName);
+	    }
+	    context_menu.el_selected_val_array_json.val(set_val).trigger(MY_CHANGE);
+	    delete new_prop_s.html;
+	    el_selected_val_prop_json.val(JSON.stringify(new_prop_s)).trigger(MY_CHANGE);
+	}
+    }
+
     function paste_method(add_method){
 	try{
 	    var added_target_s = null;
@@ -565,27 +569,27 @@ $(function(){
 	    //TODO bug infinite loop
 	    $.each( 互いに排他の機能_s,function(idx, name){
 		var now_class = CLASS_S[name];
-		$('.'+now_class).each(function(){//paste元は全ページ対象
+		$('.'+now_class).each(function(){//copy,move,etc 元は全ページ対象
 		    var _this = myWrapElement(this);
-		    var my_obj_id = _this.attr('data-my-obj-id');
-		    if(typeof my_obj_id !== 'undefined'){
-			var root = get_child_tree_select_dom(my_obj_id).raw()[my_obj_id];
-			//TODO 補正 固定補正: root.prop_s.style = merge_css(root.prop_s.style, 'left:16px;top:32px;');
+		    var src_obj_id = _this.attr('data-my-node-id');
+		    if(typeof src_obj_id !== 'undefined'){
+			var source = get_child_tree_select_dom(src_obj_id).raw()[src_obj_id];
+			//TODO 補正 固定補正: source.prop_s.style = merge_css(source.prop_s.style, 'left:16px;top:32px;');
 			var target_s = added_candidate_s.filter(function(){
-			    var rtn = null;
+			    var rtn = false;
 			    try{
 				var _this = $(this);
-				var another_id = _this.attr('data-my-obj-id');
+				var another_id = _this.attr('data-my-node-id');
 				if(typeof another_id !== 'undefined'){
-				    rtn = ! (another_id+'-').startsWith(my_obj_id+'-');
+				    rtn = ! (another_id+'-').startsWith(src_obj_id+'-');
 				}
-				if(rtn === false){console.log('ウロボロス検知 :' + my_obj_id +' : '+another_id);}
+				if(rtn === false){console.log('ウロボロス検知 :' + src_obj_id +' : '+another_id);}
 			    }catch(e){console.log(e);}
 			    return rtn;
 			});
 			if(target_s.length > 0){
-			    if(name === 'cut') {mthd_delete_element_by_my_id(my_obj_id);}//TODO
-			    display_onscreen(add_method, target_s, root);
+			    if(name === 'cut') {mthd_delete_element_by_my_id(src_obj_id);}//TODO
+			    display_onscreen(add_method, target_s, source);
 			}
 		    }
 		});
@@ -719,7 +723,289 @@ $(function(){
 	});
     });
 
-    // Implement_s
+    el_func_s.edit
+	.on(MY_CLICK,function(ev, obj){
+	    is_suspend = ! is_suspend;
+	    el_edit_mode.html(is_suspend.toString());
+	    if(is_suspend){
+		var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
+			.addClass(CLASS_ON_EDIT)
+			.each(function(idx,obj){
+			    var _this = $(this);
+			    var parent = _this.parent();
+			    $('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.data('my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
+			});
+		el_func_s['cxlselected'].trigger(MY_CLICK);
+	    }else{
+		$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
+		    .each(function(idx,obj){
+			var _this = $(this);
+			var conv = _this.val().replace(/\n/g,'<br>');
+			var parent = _this.parent();
+			preserve_destroy_remove_recovery_position(parent, conv, _this, call_safe_html);
+		    }).removeClass(CLASS_ON_EDIT);
+	    }
+	});
+
+    /**
+     * saveされる対象はdata-my-node-idが付与されているもの
+     */
+    el_func_s.save.on(MY_CLICK, function(){
+	/* get selected or root */
+	var save = getSelectedOrRoot();
+	el_saved_serialized.val(JSON.stringify(save));
+
+	/* delete old */
+	var save_s = MY_STORAGE.select('save_s');
+	save_s = save_s == null ? {} : save_s;
+	++history_counter;
+	var tmp_counter = 0;
+	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
+	    if(save_s.hasOwnProperty('save'+MY_NODE_SEP+tmp_counter)){
+		delete save_s['save'+MY_NODE_SEP+tmp_counter];
+	    }
+	    if(tmp_counter > 10000){
+		console.log('break');
+		break;
+	    }
+	    ++tmp_counter;
+	}
+
+	/* save this */
+	save_s['save'+MY_NODE_SEP+history_counter] = save;
+	MY_STORAGE
+	    .transaction()
+	    .replace('save_s', save_s)
+	    .commit();
+
+	/* refresh screen */
+	init_save_history();
+    });
+
+    el_func_s.register_part.on(MY_CLICK, function(){
+	/* get selected or root */
+	var save = getSelectedOrRoot();
+	$('.p_list_child:last-child > .val', el_some_list.part_list).val(JSON.stringify(save));
+    });
+
+    el_func_s.positionFix.on(MY_CLICK, function(){
+	var NOW_OFF_DS = $('.'+CLASS_POSITION+'.'+CLASS_SELECTED, page.screen)
+		.removeClass(CLASS_POSITION)
+		.each(function(obj, idx){
+		    var _this = $(this);
+		    removeSelected(_this);
+		    recovery_position(_this);
+		});
+	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_POSITION+')', page.screen)
+		.addClass(CLASS_POSITION)
+		.each(function(obj, idx){
+		    var _this = $(this);
+		    removeSelected(_this);
+		    preserve_destroied(_this);
+		});
+    });
+    el_func_s.positionRelative.on(MY_CLICK, function(){
+	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
+	NOW_SELECTED.each(function(){
+	    var _this = $(this);
+	    var tb = context_menu.relativeTopBottom.val();
+	    var bt = tb === 'top' ? 'bottom' : 'top';
+	    var lr = context_menu.relativeLeftRight.val();
+	    var rl = lr === 'left' ? 'right' : 'left';
+	    var position = {};
+	    position[tb] = context_menu.relativeTopBottomValue.val();
+	    position[lr] = context_menu.relativeLeftRightValue.val();
+	    position[bt] = 'auto';
+	    position[rl] = 'auto';
+	    _this.css(position);	    
+	});
+    });
+
+    el_func_s.load.on(MY_CLICK, function(){
+	var raw_child = el_saved_serialized.val();
+	var parsed = [];
+	try{
+	    parsed = JSON.parse(raw_child);
+	}catch(e){
+	    console.log(e.message);
+	    alert('Error : check console log');
+	    return;
+	}
+	if( ! $.isArray(parsed)){
+	    parsed = [parsed];
+	}
+	var len_parsed = parsed.length;
+	for(var i=0; i < len_parsed; ++i){
+	    display_onscreen('appendTo', page.screen, parsed[i]);
+	}
+	draw_arrow_s();
+    });
+    el_history.on(MY_CHANGE,function(){
+	var _this = myWrapElement(this);
+	var saved = MY_STORAGE.select('save_s');
+	if(saved != null){
+	    var selected = _this.val();
+	    el_saved_serialized.val(JSON.stringify(saved[selected]));
+	}
+    }).trigger(MY_CHANGE);
+
+    el_func_json_val.on(MY_CHANGE, function(){
+	var _this = myWrapElement(this);
+	try{
+	    if( typeof JSON.parse(_this.val()) === 'object' ){
+		_this.siblings('.menu_button').attr({"disabled":false});
+	    }else{
+		_this.siblings('.menu_button').attr({"disabled":true});
+	    }
+	}catch(e){
+	    _this.siblings('.menu_button').attr({"disabled":true});
+	}
+    });
+
+    // Key bind
+    $(document).on('keydown',function(_ev, _this ){
+	switch(_ev.keyCode){
+	case 27 ://ESC
+	    $('[class*="hide_mode_target"][data-fire-key-code="escape"]').toggle('clip',null,500);
+	    break;
+	    default :
+	    break;
+	}
+    });
+
+    MY_STORAGE
+	.transaction()
+	.ifelse(true
+		, ['merge',{"part_list":{"latest_example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)","table_cross_header":"table>thead_th($0)+tbody_th_td($0,$1)","svg_example":"svg.data-conns>path[data-conns=#hoge #fuga]+path[data-conns=#hoge #hage]+path[data-conns=#fuga #hage]","svg_example2":"svg.data-conns>path[data-conns=#hoge #fuga #hage]","svg_example3":"svg.data-conns>path[data-conns=#hoge #fuga #hage #hoge]","div_conned":"div#hoge+div#fuga+div#hage","svg_example4":"svg.data-conns>path[data-conns=div.htmlize:not(.wrapper)]"}}}]
+		, []
+	       )
+	.ifelse(true
+		, ['merge',{"prop_list":{"latest_example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"},"svg":{"xmlns":"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink","style":"height:800px;width:1200px;"},"path":{"fill":"black","stroke":"black","stroke-width":1,"d":""}}}}]
+		,[]
+	       )
+	.commit();
+
+    //part_list, prop_list, style_list
+    $.each(el_some_key_s, function(idx, some_key){
+	var el_some = {};
+	var length_el_some_func_suffix_s = el_some_func_suffix_s.length;
+	for(var f=0; f < length_el_some_func_suffix_s; ++f){
+	    var suffix = el_some_func_suffix_s[f];
+	    el_some[suffix] = $('#'+some_key+'_'+suffix, el_basic_menu);
+	}
+	var tmp_el_list = el_some_list[some_key].sortable();
+	var tmp_el_input = el_some_input[some_key];
+	var is_add_button = some_key === 'part_list'? true : false;//TODO
+	//pull down
+	refresh_select_list(some_key, el_some.select);
+	//pull donw init
+	var name_in_storage = MY_STORAGE.select(some_key+'_selected');
+	if( name_in_storage != null && name_in_storage !== '' ){
+	    el_some.name.val(name_in_storage);
+	    el_some.select.val(name_in_storage);
+	}
+
+	el_some.select.on(MY_CHANGE,function(){
+	    var some_name = this.value;
+	    var input_name = el_some.name.val();
+	    var list_s_in_storage = MY_STORAGE.select(some_key);
+	    if(list_s_in_storage != null && typeof list_s_in_storage !== 'undefined'){
+		var keys_list_s = Object.keys(list_s_in_storage);
+		if(keys_list_s.length > 0){
+		    if(typeof some_name !== 'undefined' && some_name != null && some_name !== '' ){
+			el_some.name.val(some_name);
+			el_some.select.val(some_name);
+			if( name_in_storage !== some_name){
+			    MY_STORAGE.transaction().replace(some_key+'_selected', some_name).commit();
+			    name_in_storage = some_name;
+			}
+		    }
+		}else{
+		    return false;
+		}
+		var list_in_storage = list_s_in_storage[el_some.name.val()];
+		if(typeof list_in_storage === 'undefined'){
+		    return false;
+		}
+	    }else{
+		return false;
+	    }
+
+	    tmp_el_list.empty();//clear
+	    $.each(Object.keys(list_in_storage), function(idx,key){
+		new_empty_line(tmp_el_list, key, force_stringify(list_in_storage[key]), is_add_button);
+	    });
+	    // for new empty input
+	    new_empty_line (tmp_el_list,'','', is_add_button);
+	    //tmp_el_list.parent().height(tmp_el_list.height() + 100);//TODO 高さ関数の修正
+
+	    tmp_el_list
+		.on(MY_CHANGE,'input.key',function(){
+		    var pre_height = tmp_el_list.height();
+		    $('input.key', tmp_el_list).each(function(){
+			var _this = myWrapElement(this);
+			if(_this.val().trim().length === 0){
+			    _this.parent().remove();
+			}
+		    });
+		    new_empty_line(tmp_el_list,'','', is_add_button);
+		    var added_height = tmp_el_list.height() - pre_height;
+		    var parent = tmp_el_list.parent();
+		    parent.height(parent.height() + added_height);
+		})
+		.on(MY_CLICK +','+ MY_CHANGE,'input',function(){
+		    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
+		    el_some.name.animate({"background-color":"#ffaaaa"}, 500).animate({"background-color":""}, 500);
+		});
+	    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
+	    if(some_key === 'style_list'){//TODO 個別処理
+		var style_html = '';
+		$('>li.p_list_child', el_some_list[some_key]).each(function(){
+		    var _this = $(this);
+		    var key = $('>input.key', _this).val().trim();
+		    var val = $('>input.val', _this).val().trim().replace(/\t/g, '');
+		    if(key.length > 0){
+			style_html += key+'{\n'+val.replace(/;/g, ';\n')+'}\n';
+		    }
+		});
+		el_sandbox_style_screen_area.val(style_html);
+	    }
+	}).trigger(MY_CHANGE);//end el_some.select
+
+	el_some.reg.on(MY_CLICK,function(){
+	    var some_name = el_some.name.val();
+	    var tmp_el_list = el_some_list[some_key];
+	    var list_s_in_storage = MY_STORAGE.select(some_key);
+	    if(typeof list_s_in_storage === 'undefined' 
+	       || list_s_in_storage === null || ! $.isPlainObject(list_s_in_storage)){
+		list_s_in_storage = {};
+	    }
+	    list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
+	    MY_STORAGE
+		.transaction()
+		.replace(some_key, list_s_in_storage)
+		.commit();
+	    refresh_select_list(some_key, el_some.select);
+	    el_some.select.val(some_name);
+	});
+
+	el_some.del.on(MY_CLICK,function(){
+	    var some_name = el_some.name.val();
+	    MY_STORAGE
+		.transaction()
+		.remove(some_key, el_some.select.val())
+		.commit();
+	    el_some.select.find('[value='+el_some.select.val()+']').remove();
+	    el_some.new.trigger(MY_CLICK);
+	});
+	el_some.new.on(MY_CLICK,function(){
+	    tmp_el_list.empty();//clear
+	    el_some.name.val('');
+	    new_empty_line(tmp_el_list,'','', is_add_button);
+	});
+    });
+
+   // Implement_s
    function select_element(raw_selector, append_css_selector){
        var rtn = [];
        var _these;
@@ -730,12 +1016,12 @@ $(function(){
        }else if(type_raw_selector !== 'string'){
 	   _these = raw_selector;
        }else{
-	   if(raw_selector.startsWith(page.screen.data('my-obj-id')+'-')){//case my_id
-	       var idx_aster = raw_selector.lastIndexOf(MY_OBJ_SEP+'*');
+	   if(raw_selector.startsWith(page.screen.attr('data-my-node-id')+'-')){//case my_id
+	       var idx_aster = raw_selector.lastIndexOf(MY_NODE_SEP+'*');
 	       if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
-		   selector = '*[data-my-obj-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
+		   selector = '*[data-my-node-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
 	       }else{
-		   selector = '*[data-my-obj-id="'+raw_selector+'"]';
+		   selector = '*[data-my-node-id="'+raw_selector+'"]';
 	       }
 	   }else{//case css
 	       selector = raw_selector;
@@ -763,7 +1049,7 @@ $(function(){
        _these.each(function(idx, in_this){
 	   var _this = myWrapElement(in_this);
 	   if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
-	   var my_obj_id = _this.data('my-obj-id');
+	   var my_obj_id = _this.attr('data-my-node-id');
 	   var is_my_selected = _this.data('my-selected');
 	   if(typeof is_my_selected === 'undefined' || is_my_selected === false){
 	       addSelected(_this);
@@ -784,7 +1070,7 @@ $(function(){
     }
     function addSelected(jq_tgt){
 	jq_tgt
-	    .data("my-selected", true)
+	    .data('my-selected', true)
 	    .addClass(CLASS_SELECTED);
 	return jq_tgt;
     }
@@ -907,6 +1193,7 @@ $(function(){
 
 	return tag_s2;
     }
+
 
     function format_raw_tag_holder_s(raw_tag_holder_s){
 	var rtn_map = {};
@@ -1243,15 +1530,25 @@ $(function(){
 		temp_prop_s.style +='height:'+my_height+'px;';
 	    }
 	    if( temp_prop_s.style.indexOf('top') === -1){
-		temp_prop_s.style +='top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;';
+		if( temp_prop_s.style.indexOf('bottom') === -1){
+		    temp_prop_s.style +='top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;';
+		    temp_prop_s.style +='bottom:auto;';
+		}else{
+		    temp_prop_s.style +='top:auto;';
+		}		    
 	    }
 	    if( temp_prop_s.style.indexOf('left') === -1){
-		temp_prop_s.style +='left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+		if( temp_prop_s.style.indexOf('right') === -1){
+		    temp_prop_s.style +='left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+		    temp_prop_s.style +='right:auto;';
+		}else{
+		    temp_prop_s.style +='left:auto;';
+		}		    
 	    }
 	}
     };
 
-    /**
+        /**
      * draggableやresizableを可能にする加工を施します｡
      * tableやinputはdivでwrapするなど副作用があります｡
      */
@@ -1351,9 +1648,10 @@ $(function(){
 			var rtn = '';
 			$.each(raw.childNodes,function(idx,node){
 			    if(node.noteType === 3){
-				rtn += note.textContent + ' ';
+				rtn += node.textContent + ' ';//TODO test note => node
 			    }
 			});
+			return rtn;//TODO test no return => return rtn
 		    }else{
 			var txt_node = document.createTextNode(txt);
 			raw.appendChild(txt_node);
@@ -1365,7 +1663,7 @@ $(function(){
 			parent = parent[0];
 		    };
 		    parent.appendChild(raw);
-		}
+		};
 	    }
 	    elm.addClass = function(clz){
 		var already =  raw.getAttribute('class');
@@ -1448,7 +1746,8 @@ $(function(){
      * データの二重加工を防ぐため､副作用処理一切禁止 そういった処理はconvert_to_displayに実装
      * _this.tag == ''の場合､targetのpropを_thisのpropで更新する
      * my_apply形式のデータが対象
-     * TODO position:relativeが無効なtd,th直下では､draggable 禁止
+     *
+     * @return new roots
      */
     function display_onscreen(add_method, target_s, _this, _is_draggable, is_svg){
 	var is_default_draggable = _is_draggable || typeof _is_draggable === 'undefined' ;
@@ -1514,24 +1813,19 @@ $(function(){
 		    }else{
 			work_jq.html(prop_s[prop]);
 		    }
-		    work_jq
-			.data('my-obj-val', prop_s[prop])
-			.attr('data-my-obj-val', prop_s[prop]);
+		    work_jq.data('my-obj-val', prop_s[prop]);
 		}else if( prop === 'value' ){
 		    if( tag === 'textarea' ){
 			work_jq.html(prop_s[prop]);
 		    }else{
 			work_jq.val(prop_s[prop]);
 		    }
-		    work_jq
-			.data('my-obj-val', prop_s[prop])
-			.attr('data-my-obj-val', prop_s[prop]);
+		    work_jq.data('my-obj-val', prop_s[prop]);
 		}else{
 		    work_jq.attr(prop,prop_s[prop]);
 		}
 	    }
 	    if(typeof work_jq.data('my-obj-val') === 'undefined'){work_jq.data('my-obj-val','');}
-	    if(typeof work_jq.attr('data-my-obj-val') === 'undefined'){work_jq.attr('data-my-obj-val','');}
 
 	    work_jq.data('my-org-prop_s', prop_s);
 	    if( work_jq === target){
@@ -1539,26 +1833,22 @@ $(function(){
 	    }
 
 	    var my_obj_id = STATUS.getNewMyObjId();
-	    var parent_id = target.attr('data-my-obj-id');
-	    var my_regular_id = parent_id+MY_OBJ_SEP+ my_obj_id;
+	    var parent_id = target.attr('data-my-node-id');
+	    var my_node_id = parent_id+MY_NODE_SEP+ my_obj_id;
 	    var user_input_id = work_jq.attr('id');
 	    if( typeof user_input_id === 'undefined' || user_input_id.length === 0 ){
-		user_input_id = my_regular_id;//TODO
+		user_input_id = my_node_id;//TODO
 	    }else{
 		work_jq.attr({"id":user_input_id});
 	    }
 	    work_jq
 		.addClass(CLASS_HTMLIZE)
-		.attr('data-my-obj-id', my_regular_id)
-		.data('my-obj-id', my_regular_id)
+		.attr('data-my-node-id', my_node_id)
 		.on(MY_CLICK,select_handler_factory(true))
 	    	.on('contextmenu',select_handler_factory(false, display_contextmenu))
 		.on(MY_CHANGE,function(ev){
 		    var _this = myWrapElement(this);
-		    var val = _this.val();
-		    _this
-			.data('my-obj-val', val)
-			.attr('data-my-obj-val', val);
+		    _this.data('my-obj-val', _this.val());
 		});
 	    var length_child_s = child_s.length;
 	    for(var idx_child=0; idx_child < length_child_s; ++idx_child){
@@ -1586,20 +1876,20 @@ $(function(){
 		"start":function(ev, ui){
 		    not_click = true;
 		    var _this = $(this);
-		    var my_id = _this.attr('data-my-obj-id');
+		    var my_id = _this.attr('data-my-node-id');
 		    cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 		    var tag = _this[0].localName;
 		    x_sibl = null; y_sibl = null;
 		    if(tag === 'td' || tag === 'th'){
 			var parent = _this.parent();
-			var parent_id = parent.attr('data-my-obj-id');
+			var parent_id = parent.attr('data-my-node-id');
 			is_table_cell = true;
 			original_coord = {"x": _this.width() - ev.pageX  ,"y":_this.height() - ev.pageY};
 			$(' > td, > th',parent).each(function(idx,obj){
-			    var _id = $(this).attr('data-my-obj-id');
+			    var _id = $(this).attr('data-my-node-id');
 			    if(my_id === _id){
 				++idx;
-				x_sibl = $(' tr[data-my-obj-id!="'+parent_id+'"] > *:nth-child('+idx+')', parent.parent().parent());
+				x_sibl = $(' tr[data-my-node-id!="'+parent_id+'"] > *:nth-child('+idx+')', parent.parent().parent());
 				return false;
 			    }
 			});
@@ -1607,7 +1897,6 @@ $(function(){
 			y_sibl = _this.siblings().height(10);
 			x_sibl.each(function(){
 			    var _this = $(this);
-			    console.log('_this :' + _this.attr('data-my-obj-id'));
 			});
 		    }else{
 			original_coord = null;
@@ -1636,14 +1925,14 @@ $(function(){
 				      _this.addClass('snap_border')
 					  .parent(':not(.screen)').addClass('snap_border')
 					  .children('.snap').addClass('snap_border');
-				      var my_id = _this.attr('data-my-obj-id');
+				      var my_id = _this.attr('data-my-node-id');
 				      cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 				  }
 				 };
 	    var wrapped_is_true = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapped') !== -1;
 	    var i_am_wrapper = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapper') !== -1;
 	    if( i_am_wrapper ){
-		resizableOption["alsoResize"] = '[data-my-obj-id^="'+my_regular_id+MY_OBJ_SEP+'"]';
+		resizableOption["alsoResize"] = '[data-my-node-id^="'+my_node_id+MY_NODE_SEP+'"]';
 		resizableOption["stop"] = function(ev, ui){
 		    var tmp = $('*',work_jq);
 		    work_jq.height(tmp.height() + 16).width(tmp.width() + 16);
@@ -1706,7 +1995,7 @@ $(function(){
 	    }
 	}
     }
-    
+
     var cached_arrow_factory = null;
     function continuous_draw_arrow_s(){
 	try{
@@ -1721,7 +2010,7 @@ $(function(){
 	var my_id = null;
 	var now_coord = null;
 	if(typeof operated !== 'undefined' && operated !=  null){
-	    my_id = operated.attr('data-my-obj-id');
+	    my_id = operated.attr('data-my-node-id');
 	}
 	if(typeof cache === 'undefined' || cache == null){
 	    cache = draw_arrow_s_factory(null, my_id);
@@ -1804,7 +2093,7 @@ $(function(){
 		}
 		for(var node_idx = 0; node_idx < node_s.length; ++node_idx){
 		    var node = $(node_s[node_idx]);
-		    var ch_my_id = node.attr('data-my-obj-id');
+		    var ch_my_id = node.attr('data-my-node-id');
 		    path_d.push(node);
 		};
 	    }
@@ -1833,26 +2122,55 @@ $(function(){
 	    ev.preventDefault();
 	    ev.stopPropagation();
 	    var _this = myWrapElement(this);
-	    var my_regular_id = _this.attr('data-my-obj-id');
+	    var my_node_id = _this.attr('data-my-node-id');
 	    if( not_click ){
-		not_click = false;//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･ => dragの閾値を設定
+		//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･ => dragの閾値を設定
+		not_click = false;
 		return;
 	    }
-	    el_selector.val(my_regular_id);
+	    context_menu.el_selector.val(my_node_id);
 	    if(isAddSelected){select_element(_this);}
-	    //analisys my-obj-id
-	    var id_list = my_regular_id.split(MY_OBJ_SEP);
+	    setProps(_this, true);
+	    
+	    // position relative
+	    var posi_name_s = ["top", "left", "bottom", "right"];
+	    var pool = analysisCss(_this.attr('style'));
+	    var position = {};
+	    posi_name_s.forEach(function(name,i,a){
+		if(typeof pool[name] === 'undefined'){
+		    position[name] = 'auto';
+		}else{
+		    position[name] = pool[name];
+		}
+	    });
+	    if(position['top'] !== 'auto'){
+		context_menu.relativeTopBottom.val('top');
+		context_menu.relativeTopBottomValue.val( position['top']);
+	    }else{
+		context_menu.relativeTopBottom.val('bottom');
+		context_menu.relativeTopBottomValue.val( position['bottom']);
+	    }
+	    if(position['left'] !== 'auto'){
+		context_menu.relativeLeftRight.val('left');
+		context_menu.relativeLeftRightValue.val( position['left']);
+	    }else{
+		context_menu.relativeLeftRight.val('right');
+		context_menu.relativeLeftRightValue.val( position['right']);
+	    }
+
+	    //parent_list
+	    var parent_id_list = my_node_id.split(MY_NODE_SEP);
 	    var concat_id = '';
 	    var appendHtml = '';
-	    $.each(id_list,function(idx,my_id){
+	    $.each(parent_id_list,function(idx,my_id){
 		concat_id += my_id;
-		var tmp = $('*[data-my-obj-id='+concat_id+']',page.screen).get(0);
+		var tmp = $('*[data-my-node-id='+concat_id+']', page.screen).get(0);
 		if(typeof tmp !== 'undefined'){
 		    appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
 		}
-		concat_id += MY_OBJ_SEP;
+		concat_id += MY_NODE_SEP;
 	    });
-	    concat_id = concat_id.substring(0, concat_id.length - 1);
+	    concat_id = concat_id.substring(0, concat_id.length - MY_NODE_SEP.length);
 	    context_menu.parent_list.empty().append(appendHtml).val(concat_id);
 	    if(typeof callbacks !== 'undefined' && callbacks !== null) {
 		callbacks(ev);
@@ -1871,23 +2189,31 @@ $(function(){
 	    target_css = '.'+target_css;
 	}
 	$(target_css).each(function(){
-	    var my_regular_id = myWrapElement(this).data('my-obj-id');
-	    mthd_delete_element_by_my_id(my_regular_id);
+	    var my_node_id = myWrapElement(this).attr('data-my-node-id');
+	    mthd_delete_element_by_my_id(my_node_id);
 	});
     }
     /**
      * 削除する。但し現スクリーンのみ
      */
-    function mthd_delete_element_by_my_id(my_regular_id){
-	$('[data-my-obj-id="'+my_regular_id+'"]', page.screen).empty().remove();
+    function mthd_delete_element_by_my_id(my_node_id){
+	$('[data-my-node-id="'+my_node_id+'"]', page.screen).empty().remove();
     }
 
     function getStatus(){
 	var obj_id = 0;
+	var prop_id = 0;
+	var tree_growth_id = 0;
 	return {
 	    "getNewMyObjId":function(){
 		return obj_id++;
-	    }
+	    }, 
+	    "getNewProp":function(){
+		return prop_id++;
+	    }, 
+	    "getNewGrowth":function(){
+		return tree_growth_id++;
+	    }, 
 	};
     }
 
@@ -1898,7 +2224,7 @@ $(function(){
 	history_counter = 0;
 	for(var key in save_s) if(save_s.hasOwnProperty(key) && key.startsWith('save')){
 	    appender = '<option value="'+key+'">'+key+'</option>' + appender;
-	    var tmp = parseInt(key.split(MY_OBJ_SEP)[1],10);
+	    var tmp = parseInt(key.split(MY_NODE_SEP)[1],10);
 	    history_counter = history_counter < tmp ? tmp : history_counter;
 	}
 	el_history.empty().html(appender);
@@ -1937,299 +2263,25 @@ $(function(){
 	recovery_position(obj, d_r_opt_s.resizableOption);//, d_r_opt_s.draggableOption);
     }
 
-    el_func_s.edit
-	.on(MY_CLICK,function(ev, obj){
-	    is_suspend = ! is_suspend;
-	    el_edit_mode.html(is_suspend.toString());
-	    if(is_suspend){
-		var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
-			.addClass(CLASS_ON_EDIT)
-			.each(function(idx,obj){
-			    var _this = $(this);
-			    var parent = _this.parent();
-			    $('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.attr('data-my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
-			});
-		el_func_s['cxlselected'].trigger(MY_CLICK);
-	    }else{
-		$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
-		    .each(function(idx,obj){
-			var _this = $(this);
-			var conv = _this.val().replace(/\n/g,'<br>');
-			var parent = _this.parent();
-			preserve_destroy_remove_recovery_position(parent, conv, _this, call_safe_html);
-		    }).removeClass(CLASS_ON_EDIT);
-	    }
-	});
-
     function getSelectedOrRoot(){
-	var mother_id = null;
 	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
 	var save = null;
 	/* create new */
 	if(NOW_SELECTED.length === 0){
-	    mother_id = page.screen.attr('data-my-obj-id');//attrだと文字, dataだとobj
+	    var mother_id = page.screen.attr('data-my-node-id');//attrだと文字, dataだとobj
 	    var child_tree = get_child_tree_select_dom(mother_id);
 	    save = child_tree.child_s();
 	}else{
 	    save = [];
 	    NOW_SELECTED.each(function(){
 		var _this = $(this);
-		mother_id = _this.attr('data-my-obj-id');
+		var mother_id = _this.attr('data-my-node-id');
 		var child_tree = get_child_tree_select_dom(mother_id);
 		save.push(child_tree.self());
 	    });
 	}
 	return save;
     }
-
-    /**
-     * saveされる対象はdata-my-obj-idが付与されているもの
-     */
-    el_func_s.save.on(MY_CLICK, function(){
-	/* get selected or root */
-	var save = getSelectedOrRoot();
-	el_saved_serialized.val(JSON.stringify(save));
-
-	/* delete old */
-	var save_s = MY_STORAGE.select('save_s');
-	save_s = save_s == null ? {} : save_s;
-	++history_counter;
-	var tmp_counter = 0;
-	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
-	    if(save_s.hasOwnProperty('save'+MY_OBJ_SEP+tmp_counter)){
-		delete save_s['save'+MY_OBJ_SEP+tmp_counter];
-	    }
-	    if(tmp_counter > 10000){
-		console.log('break');
-	    }
-	    ++tmp_counter;
-	}
-
-	/* save this */
-	save_s['save'+MY_OBJ_SEP+history_counter] = save;
-	MY_STORAGE
-	    .transaction()
-	    .replace('save_s', save_s)
-	    .commit();
-
-	/* refresh screen */
-	init_save_history();
-    });
-
-    el_func_s.register_part.on(MY_CLICK, function(){
-	/* get selected or root */
-	var save = getSelectedOrRoot();
-	$('.p_list_child:last-child > .val', el_some_list.part_list).val(JSON.stringify(save));
-    });
-
-    el_func_s.positionFix.on(MY_CLICK, function(){
-	var NOW_OFF_DS = $('.'+CLASS_POSITION+'.'+CLASS_SELECTED, page.screen)
-		.removeClass(CLASS_POSITION)
-		.each(function(obj, idx){
-		    var _this = $(this);
-		    removeSelected(_this);
-		    recovery_position(_this);
-		});
-	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_POSITION+')', page.screen)
-		.addClass(CLASS_POSITION)
-		.each(function(obj, idx){
-		    var _this = $(this);
-		    removeSelected(_this);
-		    preserve_destroied(_this);
-		});
-    });
-    el_func_s.positionRelative.on(MY_CLICK, function(){
-	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
-	NOW_SELECTED.each(function(){
-	    var _this = $(this);
-	    console.log('porela clicked');
-	    //TODO how to use ??	    _this.position({"my":"right bottom","at": "right bottom"});
-	    
-	});
-    });
-
-    el_func_s.load.on(MY_CLICK, function(){
-	var raw_child = el_saved_serialized.val();
-	var parsed = [];
-	try{
-	    parsed = JSON.parse(raw_child);
-	}catch(e){
-	    console.log(e.message);
-	    alert('Error : check console log');
-	    return;
-	}
-	if( ! $.isArray(parsed)){
-	    parsed = [parsed];
-	}
-	var len_parsed = parsed.length;
-	for(var i=0; i < len_parsed; ++i){
-	    display_onscreen('appendTo', page.screen, parsed[i]);
-	}
-	draw_arrow_s();
-    });
-    el_history.on(MY_CHANGE,function(){
-	var _this = myWrapElement(this);
-	var saved = MY_STORAGE.select('save_s');
-	if(saved != null){
-	    var selected = _this.val();
-	    el_saved_serialized.val(JSON.stringify(saved[selected]));
-	}
-    }).trigger(MY_CHANGE);
-
-    el_func_json_val.on(MY_CHANGE, function(){
-	var _this = myWrapElement(this);
-	try{
-	    if( typeof JSON.parse(_this.val()) === 'object' ){
-		_this.siblings('.menu_button').attr({"disabled":false});
-	    }else{
-		_this.siblings('.menu_button').attr({"disabled":true});
-	    }
-	}catch(e){
-	    _this.siblings('.menu_button').attr({"disabled":true});
-	}
-    });
-
-    // Key bind
-    $(document).on('keydown',function(_ev, _this ){
-	switch(_ev.keyCode){
-	case 27 ://ESC
-	    $('[class*="hide_mode_target"][data-fire-key-code="escape"]').toggle('clip',null,500);
-	    break;
-	    default :
-	    break;
-	}
-    });
-
-    MY_STORAGE
-	.transaction()
-	.ifelse(true
-		, ['merge',{"part_list":{"latest_example":{"thead_th":"thead>tr>th*$0","tbody_th_td":"tbody>tr*$1>th+td*($0 1 -)","table_cross_header":"table>thead_th($0)+tbody_th_td($0,$1)","svg_example":"svg.data-conns>path[data-conns=#hoge #fuga]+path[data-conns=#hoge #hage]+path[data-conns=#fuga #hage]","svg_example2":"svg.data-conns>path[data-conns=#hoge #fuga #hage]","svg_example3":"svg.data-conns>path[data-conns=#hoge #fuga #hage #hoge]","div_conned":"div#hoge+div#fuga+div#hage","svg_example4":"svg.data-conns>path[data-conns=div.htmlize:not(.wrapper)]"}}}]
-		, []
-	       )
-	.ifelse(true
-		, ['merge',{"prop_list":{"latest_example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"},"svg":{"xmlns":"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink","style":"height:800px;width:1200px;"},"path":{"fill":"black","stroke":"black","stroke-width":1,"d":""}}}}]
-		,[]
-	       )
-	.commit();
-
-    //part_list, prop_list, style_list
-    $.each(el_some_key_s, function(idx, some_key){
-	var el_some = {};
-	var length_el_some_func_suffix_s = el_some_func_suffix_s.length;
-	for(var f=0; f < length_el_some_func_suffix_s; ++f){
-	    var suffix = el_some_func_suffix_s[f];
-	    el_some[suffix] = $('#'+some_key+'_'+suffix, el_basic_menu);
-	}
-	var tmp_el_list = el_some_list[some_key].sortable();
-	var tmp_el_input = el_some_input[some_key];
-	var is_add_button = some_key === 'part_list'? true : false;//TODO
-	//pull down
-	refresh_select_list(some_key, el_some.select);
-	//pull donw init
-	var name_in_storage = MY_STORAGE.select(some_key+'_selected');
-	if( name_in_storage != null && name_in_storage !== '' ){
-	    el_some.name.val(name_in_storage);
-	    el_some.select.val(name_in_storage);
-	}
-
-	el_some.select.on(MY_CHANGE,function(){
-	    var some_name = this.value;
-	    var input_name = el_some.name.val();
-	    var list_s_in_storage = MY_STORAGE.select(some_key);
-	    if(list_s_in_storage != null && typeof list_s_in_storage !== 'undefined'){
-		var keys_list_s = Object.keys(list_s_in_storage);
-		if(keys_list_s.length > 0){
-		    if(typeof some_name !== 'undefined' && some_name != null && some_name !== '' ){
-			el_some.name.val(some_name);
-			el_some.select.val(some_name);
-			if( name_in_storage !== some_name){
-			    MY_STORAGE.transaction().replace(some_key+'_selected', some_name).commit();
-			    name_in_storage = some_name;
-			}
-		    }
-		}else{
-		    return false;
-		}
-		var list_in_storage = list_s_in_storage[el_some.name.val()];
-		if(typeof list_in_storage === 'undefined'){
-		    return false;
-		}
-	    }else{
-		return false;
-	    }
-
-	    tmp_el_list.empty();//clear
-	    $.each(Object.keys(list_in_storage), function(idx,key){
-		new_empty_line(tmp_el_list, key, force_stringify(list_in_storage[key]), is_add_button);
-	    });
-	    // for new empty input
-	    new_empty_line (tmp_el_list,'','', is_add_button);
-	    //tmp_el_list.parent().height(tmp_el_list.height() + 100);//TODO 高さ関数の修正
-
-	    tmp_el_list
-		.on(MY_CHANGE,'input.key',function(){
-		    var pre_height = tmp_el_list.height();
-		    $('input.key', tmp_el_list).each(function(){
-			var _this = myWrapElement(this);
-			if(_this.val().trim().length === 0){
-			    _this.parent().remove();
-			}
-		    });
-		    new_empty_line(tmp_el_list,'','', is_add_button);
-		    var added_height = tmp_el_list.height() - pre_height;
-		    var parent = tmp_el_list.parent();
-		    parent.height(parent.height() + added_height);
-		})
-		.on(MY_CLICK +','+ MY_CHANGE,'input',function(){
-		    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
-		    el_some.name.animate({"background-color":"#ffaaaa"}, 500).animate({"background-color":""}, 500);
-		});
-	    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
-	    if(some_key === 'style_list'){//TODO 個別処理
-		var style_html = '';
-		$('>li.p_list_child', el_some_list[some_key]).each(function(){
-		    var _this = $(this);
-		    var key = $('>input.key', _this).val().trim();
-		    var val = $('>input.val', _this).val().trim().replace(/\t/g, '');
-		    if(key.length > 0){
-			style_html += key+'{\n'+val.replace(/;/g, ';\n')+'}\n';
-		    }
-		});
-		el_sandbox_style_screen_area.val(style_html);
-	    }
-	}).trigger(MY_CHANGE);//end el_some.select
-
-	el_some.reg.on(MY_CLICK,function(){
-	    var some_name = el_some.name.val();
-	    var tmp_el_list = el_some_list[some_key];
-	    var list_s_in_storage = MY_STORAGE.select(some_key);
-	    if(list_s_in_storage === null ){
-		list_s_in_storage = [];
-	    }
-	    list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
-	    MY_STORAGE
-		.transaction()
-		.replace(some_key, list_s_in_storage)
-		.commit();
-	    refresh_select_list(some_key, el_some.select);
-	    el_some.select.val(some_name);
-	});
-
-	el_some.del.on(MY_CLICK,function(){
-	    var some_name = el_some.name.val();
-	    MY_STORAGE
-		.transaction()
-		.remove(some_key, el_some.select.val())
-		.commit();
-	    el_some.select.find('[value='+el_some.select.val()+']').remove();
-	    el_some.new.trigger(MY_CLICK);
-	});
-	el_some.new.on(MY_CLICK,function(){
-	    tmp_el_list.empty();//clear
-	    el_some.name.val('');
-	    new_empty_line(tmp_el_list,'','', is_add_button);
-	});
-    });
 
     function refresh_select_list(some_key, el_some_select){
 	// creating option in select
@@ -2300,7 +2352,6 @@ $(function(){
     //Util
     function call_val(obj, set_val){
 	obj.data('my-obj-val', set_val);
-	obj.attr('data-my-obj-val', set_val);
 	obj.val(set_val);
     }
     /**
@@ -2308,7 +2359,6 @@ $(function(){
      */
     function call_html(obj, set_val){
 	obj.data('my-obj-val', set_val);
-	obj.attr('data-my-obj-val', set_val);
 	obj.html(set_val);
     }
     /**
@@ -2316,7 +2366,6 @@ $(function(){
      */
     function call_safe_text(obj, set_val){
 	obj.data('my-obj-val', set_val);
-	obj.attr('data-my-obj-val', set_val);
 	var kept = $(' *',obj).detach();
 	obj.text(set_val);
 	kept.appendTo(obj);
@@ -2326,7 +2375,6 @@ $(function(){
      */
     function call_safe_html(obj, set_val){
 	obj.data('my-obj-val', set_val);
-	obj.attr('data-my-obj-val', set_val);
 	var kept = $(' .htmlize',obj).detach();
 	obj.empty().html(set_val);
 	kept.appendTo(obj);
@@ -2374,6 +2422,7 @@ $(function(){
      * styleがpoolを上書き
      */
     function analysisCss(style, pool){
+	if(typeof pool === 'undefined'){pool = {};}
 	style.split(';').forEach(function(x){
 	    var key_val = x.trim().split(':');
 	    if( key_val.length >= 2){
@@ -2419,8 +2468,8 @@ $(function(){
 		if($.isNumeric(my_obj_id)){
 		    my_obj_id = my_obj_id.toString();
 		}
-		var parent_obj_id = my_obj_id.substring(0,my_obj_id.toString().lastIndexOf(MY_OBJ_SEP));
-		var pooled_parent =	 pool[parent_obj_id];
+		var parent_obj_id = my_obj_id.substring(0,my_obj_id.toString().lastIndexOf(MY_NODE_SEP));
+		var pooled_parent = pool[parent_obj_id];
 		if( typeof pooled_parent === 'undefined'){
 		    var newer = my_apply();
 		    newer.child_s.push(body);
@@ -2445,7 +2494,7 @@ $(function(){
 		return rtn;
 	    },
 	    "child_s":function(){
-		return pool[mother_id].child_s
+		return pool[mother_id].child_s;
 	    },
 	    "self":function(){
 		return pool[mother_id];
@@ -2577,16 +2626,15 @@ $(function(){
     };
 
     function extract_from_dom(tree, user_add_content_s){
-	var len_content_s = user_add_content_s.length;
-	for(var i=0; i < len_content_s; ++i){
+	if(typeof user_add_content_s === 'undefined'){ return tree;}
+	$.each(user_add_content_s, function(i, content){
 	    var target = my_apply();
-	    var content = user_add_content_s[i];
 	    var _content = $(content);
-	    var my_obj_id = _content.data('my-obj-id');
-
+	    var my_obj_id = _content.attr('data-my-node-id');
 	    for(var key in content) if(typeof _content.attr(key) !== 'undefined'){
 		target.prop_s[key] = _content.attr(key);
 	    }
+//TODO XXX	    target.prop_s['data-my-node-id'] = my_obj_id;
 	    target.tag = content.localName;
 
 	    var raw_my_obj_val = _content.data('my-obj-val');
@@ -2603,7 +2651,7 @@ $(function(){
 		my_obj_val = raw_my_obj_val;
 	    }
 	    var new_prop_s = {};
-	    $.extend(true, new_prop_s,_content.data('my-org-prop_s'), target.prop_s);
+	    $.extend(true, new_prop_s, _content.data('my-org-prop_s'), target.prop_s);
 	    target.prop_s = new_prop_s;
 	    if( content.localName === 'input'){//TODO 関数化
 		target.prop_s['value'] = my_obj_val;
@@ -2611,15 +2659,14 @@ $(function(){
 		target.prop_s['html'] = my_obj_val;
 	    }
 	    tree.upsert(my_obj_id, target);
-	}
+	});
 	return tree;
     }
 
     function get_child_tree_select_dom(mother_id){
-	var user_add_content_s = $(' *[data-my-obj-id^='+mother_id+MY_OBJ_SEP+']');
-	var root_dom = $('*[data-my-obj-id='+mother_id+']')[0];
-	var tree = _tree(mother_id);
-	tree = extract_from_dom(tree, [root_dom]);
+	var user_add_content_s = $(' *[data-my-node-id^='+mother_id+MY_NODE_SEP+']');
+	var root_dom = $('*[data-my-node-id='+mother_id+']')[0];
+	var tree = extract_from_dom(_tree(mother_id), [root_dom]);
 	return extract_from_dom(tree, user_add_content_s);
     };
 
