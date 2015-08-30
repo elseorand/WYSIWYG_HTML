@@ -86,19 +86,20 @@ $(function(){
     // util
     var el_func_json_val = $('.json_val');
     
-
     // main menu singleton
     var new_width = 480;
     var el_basic_menu = $('body > #basic_menu');
     var el_basic_menu_operator = $('#basic_menu_operator', el_basic_menu);
     var el_basic_menu_forward = $('#basic_menu_forward', el_basic_menu)
 	    .on(MY_INIT, function(){
+//DEBUG console.log('call' + '0000');
 		var _this = $(this);
 		el_basic_menu
 		    .data('right', parseInt(el_basic_menu.css('right'), 10))
 		    .data('original-height', el_basic_menu.height());
 	    })
     	    .on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0001');
 		var original = el_basic_menu.data('right');
 		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
 		if(btn_posi < 720){
@@ -113,6 +114,7 @@ $(function(){
 	    }).trigger(MY_INIT);
     var el_basic_menu_backward = $('#basic_menu_backward', el_basic_menu)
     	    .on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0002');
 		var original = el_basic_menu.data('right');
 		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
 		if(btn_posi > 0){
@@ -130,10 +132,12 @@ $(function(){
     var el_header_menu_bar = $('body > header > #header_menu_bar');
     var el_val_tag = $('#ValTag', el_basic_menu);
     var el_del_val_tag = $('#delValTag', el_basic_menu).on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0003');
 	el_val_tag.val('');
     });
     var el_val_array_json = $('#ValArrayJSON', el_basic_menu);
     var el_del_val_array_json = $('#delValArrayJSON', el_basic_menu).on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0004');
 	el_val_array_json.val('');
     });
     var el_footer_menu_bar = $('body > footer > #footer_menu_bar', el_footer_menu_bar);
@@ -146,6 +150,7 @@ $(function(){
     var el_some_name = {};
     var el_some_func_suffix_s = ["reg","select","del","name","new"];
     el_some_key_s.forEach(function(x,i,a){
+//DEBUG console.log('call' + '0005');
 	el_some_list[x] = $('#'+x);
 	el_some_input[x] = $('#'+x+'_input');
 	el_some_name[x] = $('#'+x+'_name');
@@ -153,24 +158,28 @@ $(function(){
     var el_sandbox_style_screen_area = $('#sandbox_style', el_basic_menu);
     var el_saved_serialized = $('#saved_serialized', el_header_menu_bar);
     var el_sandbox_hidden = $('#sandbox_hidden', el_header_menu_bar);
-    var el_float_menu = $('.float_menu');
+    var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable();
     var el_history = $('#history');
-    var el_edit_mode = $('#'+MODE_EDIT);
-    var el_sandobox_screen =  $('#sandobox_screen');
+    var el_sandbox_screen =  $('#sandbox_screen');
     var el_func_new_page_element = $('#func_new_page_element').on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0006');
 	var name = el_new_page_element.val().trim();
 	page = create_page(name);
 	el_some_name.style_list.val(name);
 	if(name.endsWith('.json')){//TODO now Developing
 	    $.getJSON(name)
 		.done(function(res){
+//DEBUG console.log('call' + '0007');
 		    if(res.hasOwnProperty('style')){
 			var pool = '';
 			res.style.forEach(function(selector_attr_val,i,a){
+//DEBUG console.log('call' + '0008');
 			    Object.keys(selector_attr_val).forEach(function(selector,i,a){
+//DEBUG console.log('call' + '0009');
 				pool += selector+'{\n';
 				var attr_val = selector_attr_val[selector];
 				Object.keys(attr_val).forEach(function(attr,i,a){
+//DEBUG console.log('call' + '0010');
 				    pool += '  '+attr+':'+attr_val[attr]+';\n';
 				});
 				pool+='}\n';
@@ -180,6 +189,7 @@ $(function(){
 		    }
 		    if(res.hasOwnProperty('child_s')){  
 			res.child_s.forEach(function(data,i,a){
+//DEBUG console.log('call' + '0011');
 			    display_onscreen('appendTo', page.screen, data);
 			});
 		    }
@@ -224,6 +234,7 @@ $(function(){
     var page;
     var el_func_s = {};
     (function(){
+//DEBUG console.log('call' + '0012');
 	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
 	page = create_page('Default');
@@ -231,6 +242,7 @@ $(function(){
 	var isNewChild = true;
 	var li_s;
 	func_name_s.forEach(function(obj,a){
+//DEBUG console.log('call' + '0013');
 	    if(obj.label === ''){
 		el_func_s[obj.name] = $('#func_'+obj.name+'_element');
 		return;
@@ -251,43 +263,44 @@ $(function(){
 	    }
 
 	    var btn = $('<div>').attr("style", merge_css('float:left;width:'+defa_size+'em;height:2em;', obj.style));
-	    child.append(btn
-			 .append(obj.label)
+	    child.append(btn.append(obj.label)
 			 .append(obj.input)
 			 .css({"border-bottom":"1px dotted grey","padding":"2px","opacity":1,"user-select":"none"})
 			 .hover(function(){
+//DEBUG console.log('call' + '0014');
 			     li_s.css({"opacity":0.4});
 			     btn.parent().css({"opacity":1.0});
 			 },function(){
+//DEBUG console.log('call' + '0015');
 			     li_s.css({"opacity":1.0});
 			 })
 			 .on(MY_CLICK,function(ev){
+//DEBUG console.log('call' + '0016');
 			     ev.stopPropagation();
 			     el_func_s[obj.name].trigger(MY_CLICK);
 			 }));
 	});
 	li_s = $(' > li', context_menu);
-	//TODO cotext_menuにまとめる
 	context_menu.el_func_cancel_selected = $('#func_cxlselected_element', context_menu);
-	el_sandobox_screen = $('#sandbox_screen');
-	el_saved_serialized = $('#saved_serialized');
-	el_sandbox_hidden = $('#sandbox_hidden');
-	el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable();;
-	el_history = $('#history');
 	context_menu.el_selected_val_array_json = $('#SelectedValArrayJSON', context_menu)
 	    .hover(function(){
+//DEBUG console.log('call' + '0017');
 		context_menu.is_close_menu = false;
 	    },function(){
+//DEBUG console.log('call' + '0018');
 		context_menu.is_close_menu = true;
 	    });
-	el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
+	context_menu.el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
 	context_menu.el_selector = $('#SelectedMyObjId', context_menu).on(MY_CLICK, function(ev){
+//DEBUG console.log('call' + '0019');
 	    ev.stopPropagation();
 	});
 	context_menu.append_css_selector = $('#AppendCssSelector').on(MY_CLICK, function(ev){
+//DEBUG console.log('call' + '0020');
 	    ev.stopPropagation();
 	});
 	context_menu.parent_list = $('#parent_list').on(MY_CHANGE +' '+ MY_CLICK,function(ev, obj){
+//DEBUG console.log('call' + '0021');
 	    ev.stopPropagation();
 	    var _this = myWrapElement(this);
 	    context_menu.el_selector.val(_this.val());
@@ -300,6 +313,7 @@ $(function(){
     })();
 
     function create_page(name, width, height){
+//DEBUG console.log('call' + '0022');
 	if(arguments.length <= 2){ height = '1440px';}//TODO
 	if($.isNumeric(width)){ width +='px';}//TODO
 	if(arguments.length ===  1){ width = '100%';}//TODO 
@@ -309,29 +323,33 @@ $(function(){
 	}
 	var _page = {};
 	page_s['screen'+name] = _page;
-	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-node-id="'+STATUS.getNewMyObjId()+'">');
-	context_menu.is_close_menu = true;
-	_page.screen.on('contextmenu',display_contextmenu)
+	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-node-id="'+STATUS.getNewMyObjId()+'">')
+	.on('contextmenu',display_contextmenu)
 	    .on(MY_CLICK,function(ev){
+//DEBUG console.log('call' + '0023');
 	    if(context_menu.is_close_menu){
 		context_menu.css({"display":"none"});
 	    }
 	    el_func_s['cxlselected'].trigger(MY_CLICK);
 	    page = _page;
-	});
+	    });
+	_page.prop_history = [];
+	context_menu.is_close_menu = true;
 	var _btn_name = name;
 	$('<input class="func_scrn_change" type="button" value="'+_btn_name+'">').data('page', _page).appendTo(el_header_menu_bar);
 	el_HtmlDeveloping.append(_page.screen);
 	return _page;
- }
+    }
 
     function display_contextmenu(ev){
+//DEBUG console.log('call' + '0024');
 	ev.preventDefault();
 	ev.stopPropagation();
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
 	
     el_header_menu_bar.on(MY_CLICK, '.func_scrn_change', function(){
+//DEBUG console.log('call' + '0025');
 	var _this = $(this);
 	var _page = _this.data('page');//TODO page_sに変更??
 	if(_page.screen.attr('id') === 'screenDefault'){
@@ -349,11 +367,13 @@ $(function(){
     var default_width_setting_s = {};
     var el_auto_extend = $('.autoExtend');
     el_auto_extend.each(function(idx,obj){
+//DEBUG console.log('call' + '0026');
 	var _this = $(obj);
 	default_width_setting_s[_this.attr('id')] = _this.width();
     });
 
     $('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
+//DEBUG console.log('call' + '0027');
 	var _this = myWrapElement(this);
 	var length_val = 0;
 	if(_this.get(0).localName === 'textarea'){
@@ -375,6 +395,7 @@ $(function(){
 
     // menu func
     el_func_s.append.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0028');
 	try{
 	    var for_add_target_s = null;
 	    var el_selected_s = $('.'+CLASS_SELECTED, page.screen);
@@ -387,6 +408,7 @@ $(function(){
 	    if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
 		var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val() );
 		$.each(root.child_s, function(cIdx, child){
+//DEBUG console.log('call' + '0029');
 		    display_onscreen('appendTo', for_add_target_s, child);
 		});
 	    }
@@ -397,6 +419,7 @@ $(function(){
     });
 
     el_func_s.update_var.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0030');
 	var target_s = $('.'+CLASS_SELECTED, page.screen);
 	if( target_s.length === 0){ return;}
 	var raw_val_s = context_menu.el_selected_val_array_json.val();
@@ -416,6 +439,7 @@ $(function(){
 	}
 
 	$.each(target_s, function(idx, _target){
+//DEBUG console.log('call' + '0031');
 	    var target = $(_target);
 	    //val
 	    var tag = target.get(0).localName;
@@ -435,26 +459,31 @@ $(function(){
      * 
      */
     el_func_s.update_prop.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0032');
 	var target_s = $('.'+CLASS_SELECTED, page.screen);
 	if( target_s.length === 0){ return;}
 
 	var prop_s = JSON.parse( el_selected_val_prop_json.val() );
 	if( ! $.isPlainObject(prop_s)){throw new TypeError('prop is not JSON style.');}
 
+	var prop_history_id = STATUS.getNewProp();
+	var node_id_s = [];
 	$.each(target_s, function(idx, _target){
+//DEBUG console.log('call' + '0033');
 	    var target = $(_target);
-	    //val
 	    var tag = target.get(0).localName;
 	    if(target.hasClass('wrapper')){return true;}
 	    //prop
+	    node_id_s.push(target.attr('data-my-node-id'));
 	    var org_prop_s = target.data('my-org-prop_s');
 	    var kept_prop_s = {};
-	    for( var _p_key in prop_s){
+	    var prop_history = orDefault(target.data('prop-history'), {});
+	    for(var _p_key in prop_s){
 		var p_key = _p_key.toLowerCase();
 		var val = prop_s[p_key];
 		if( typeof val === 'undefined' || val == null || val === ''){continue;}
+		kept_prop_s[p_key] = target.attr(p_key);
 		if( p_key === 'html'){
-		    kept_prop_s(p_key, target.attr(p_key));
 		    if(target.get(0).localName === 'input'){
 			target.val(val);
 		    }else{
@@ -462,7 +491,7 @@ $(function(){
 		    }
 		    continue;
 		}
-		kept_prop_s(p_key, target.attr(p_key));
+
 		if( p_key !== 'style' && p_key !== 'class'){
 		    target.attr(p_key, val);
 		    org_prop_s[p_key] = val;
@@ -470,6 +499,7 @@ $(function(){
 		    var p_class_s = val.trim().split(' ');
 		    var new_org_class = '';
 		    $.each(p_class_s,function(idx,p_class){
+//DEBUG console.log('call' + '0034');
 			if(p_class[0] === '-'){
 			    target.removeClass( p_class.substring(1) );
 			}else if(p_class[0] === '+'){
@@ -487,12 +517,18 @@ $(function(){
 		    org_prop_s['style'] = val;
 		}
 	    }
+	    prop_history[prop_history_id] = kept_prop_s;
+	    //TODO del slot
+	    page.screen.prop_history.push(node_id_s);
+//	    page.prop_history.push({"id"});//TODO
+	    target.data('prop-history', prop_history);
 	    target.data('my-org-prop_s', org_prop_s);
 	});
 	draw_arrow_s();
     });
 
     el_func_s.select.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0035');
 	var sel_s = select_element(context_menu.el_selector.val(), context_menu.append_css_selector.val());
 	var length_these_minus_1 = sel_s.length - 1;
 	setProps(sel_s[length_these_minus_1], length_these_minus_1 > 0);
@@ -502,8 +538,10 @@ $(function(){
      * copy : no recursive , mono layer
      */
     $.each(互いに排他の機能_s,function(idx, name){
+//DEBUG console.log('call' + '0036');
 	var now_class = CLASS_S[name];
 	el_func_s[name].on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0037');
 	    try{
 		var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
 		//TODO if hasClass('wrapped'), then cancel and select menu
@@ -521,21 +559,26 @@ $(function(){
     });
 
     el_func_s.pastePrepend.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0038');
 	paste_method('prependTo');
     });
     el_func_s.pasteInsertBefore.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0039');
 	paste_method('insertBefore');
     });
     el_func_s.pasteAppend.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0040');
 	paste_method('appendTo');
     });
     el_func_s.pasteInsertAfter.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0041');
 	paste_method('insertAfter');
     });
 
     function setProps(target, isSetVal){
+//DEBUG console.log('call' + '0042');
 	if(typeof target !== 'undefined'){
-	    var new_prop_s = if_nullOrUndef_then_return_init(target.data('my-org-prop_s'),{"style":""});
+	    var new_prop_s = orDefault(target.data('my-org-prop_s'),{"style":""});
 	    new_prop_s.style = merge_css( new_prop_s.style, target.attr('style') );
 	    var set_val ;
 	    if(isSetVal){
@@ -556,6 +599,7 @@ $(function(){
     }
 
     function paste_method(add_method){
+//DEBUG console.log('call' + '0043');
 	try{
 	    var added_target_s = null;
 	    var el_selected_s = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ, page.screen);//xxx
@@ -568,14 +612,17 @@ $(function(){
 	    var len_added_candidate_s = added_candidate_s.length;
 	    //TODO bug infinite loop
 	    $.each( 互いに排他の機能_s,function(idx, name){
+//DEBUG console.log('call' + '0044');
 		var now_class = CLASS_S[name];
 		$('.'+now_class).each(function(){//copy,move,etc 元は全ページ対象
+//DEBUG console.log('call' + '0045');
 		    var _this = myWrapElement(this);
 		    var src_obj_id = _this.attr('data-my-node-id');
 		    if(typeof src_obj_id !== 'undefined'){
 			var source = get_child_tree_select_dom(src_obj_id).raw()[src_obj_id];
 			//TODO 補正 固定補正: source.prop_s.style = merge_css(source.prop_s.style, 'left:16px;top:32px;');
 			var target_s = added_candidate_s.filter(function(){
+//DEBUG console.log('call' + '0046');
 			    var rtn = false;
 			    try{
 				var _this = $(this);
@@ -600,11 +647,8 @@ $(function(){
 	}
     }
 
-    function absoluteCoord(){
-
-    }
-
     function Coord(){
+//DEBUG console.log('call' + '0047');
 	if(arguments.length === 1){
 	    var raw = arguments[0];
 	    if(raw.hasOwnProperty('prop_s') && raw.prop_s.hasOwnProperty('style')){
@@ -643,7 +687,7 @@ $(function(){
     }
 
     el_func_s.html.on(MY_CLICK,function(){
-	//var raw_child = el_saved_serialized.val();
+//DEBUG console.log('call' + '0048');
 	var parsed = getSelectedOrRoot();
 	if( ! $.isArray(parsed)){
 	    parsed = [parsed];
@@ -656,14 +700,17 @@ $(function(){
 
 	var target_s = $('[data-my-htmlize-target="true"]',el_sandbox_hidden);
 	target_s.each(function(idx, _target){
+//DEBUG console.log('call' + '0049');
 	    var target = $(_target);
 	    try{target.draggable('destroy');}catch(e){/*kill error*/};
 	    try{target.resizable('destroy');}catch(e){/*kill error*/};
 	    HTML出力時に削除するAttr_s.forEach(function(attr,i,a){
+//DEBUG console.log('call' + '0050');
 		//NS objectの処理もあるため、jQueryは使用しない
 		_target.removeAttribute(attr);
 	    });
 	    HTML出力時に削除するclass_s.forEach(function(cl,i,a){
+//DEBUG console.log('call' + '0051');
 		_target.classList.remove(cl);
 	    });
 	});
@@ -674,13 +721,14 @@ $(function(){
 	    var output_html = el_sandbox_hidden.html();
 	    output_html = '<!doctype html><html><head>' + head_src + '</head><body>' + output_html + '</body></html>';
 	    output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-	    el_sandobox_screen.empty();
-	    $('<textarea rows="1" style="height:1em;width:8em;">').html(output_html).appendTo(el_sandobox_screen);
+	    el_sandbox_screen.empty();
+	    $('<textarea rows="1" style="height:1em;width:8em;">').html(output_html).appendTo(el_sandbox_screen);
 	}catch(e){console.log('e '+e);};
     });
 
     el_func_s.style
 	.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0052');
 	    el_some_list.style_list.empty();
 	    var style_html = el_sandbox_style_screen_area.val().trim();
 	    if(typeof style_html !== 'undefined' && style_html.length > 0){
@@ -690,11 +738,13 @@ $(function(){
 	    var css_keyval = style_html.split('}');
 	    var pool = [];
 	    css_keyval.forEach(function(x,i,a){
+//DEBUG console.log('call' + '0053');
 		var k_v = x.trim().split('{');
 		if(k_v.length === 2){
 		    var attr_val_s = k_v[1].trim().split(';');
 		    var pool_v = {};
 		    attr_val_s.forEach(function(acv,i,a){
+//DEBUG console.log('call' + '0054');
 			var a_v = acv.split(':');
 			if(a_v !== null && a_v.length === 2){
 			    pool_v[a_v[0].trim()] = a_v[1].trim();//後勝ち
@@ -708,37 +758,43 @@ $(function(){
 	    });
 	})
 	.on(MY_INIT, function(){
+//DEBUG console.log('call' + '0055');
 	    el_sandbox_style_screen_area.val(el_style.html().replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
 	})
 	.trigger(MY_INIT);
     
     el_func_s.delete.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0056');
 //	mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
 	mthd_delete_element_impl(CLASS_SELECTED);//TODO
     });
 
     el_func_s.cxlselected.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0057');
 	$('.'+CLASS_SELECTED, page.screen).each(function(){
+//DEBUG console.log('call' + '0058');
 	    removeSelected(myWrapElement(this));
 	});
     });
 
-    el_func_s.edit
-	.on(MY_CLICK,function(ev, obj){
+    el_func_s.edit.on(MY_CLICK,function(ev, obj){
+//DEBUG console.log('call' + '0059');
 	    is_suspend = ! is_suspend;
-	    el_edit_mode.html(is_suspend.toString());
+	    context_menu.el_edit_mode.html(is_suspend.toString());
 	    if(is_suspend){
 		var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
 			.addClass(CLASS_ON_EDIT)
 			.each(function(idx,obj){
+//DEBUG console.log('call' + '0060');
 			    var _this = $(this);
 			    var parent = _this.parent();
 			    $('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.data('my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
 			});
-		el_func_s['cxlselected'].trigger(MY_CLICK);
+		el_func_s.cxlselected.trigger(MY_CLICK);
 	    }else{
 		$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
 		    .each(function(idx,obj){
+//DEBUG console.log('call' + '0061');
 			var _this = $(this);
 			var conv = _this.val().replace(/\n/g,'<br>');
 			var parent = _this.parent();
@@ -751,6 +807,7 @@ $(function(){
      * saveされる対象はdata-my-node-idが付与されているもの
      */
     el_func_s.save.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0062');
 	/* get selected or root */
 	var save = getSelectedOrRoot();
 	el_saved_serialized.val(JSON.stringify(save));
@@ -764,11 +821,10 @@ $(function(){
 	    if(save_s.hasOwnProperty('save'+MY_NODE_SEP+tmp_counter)){
 		delete save_s['save'+MY_NODE_SEP+tmp_counter];
 	    }
-	    if(tmp_counter > 10000){
+	    if(tmp_counter++ > 10000){
 		console.log('break');
 		break;
 	    }
-	    ++tmp_counter;
 	}
 
 	/* save this */
@@ -783,15 +839,18 @@ $(function(){
     });
 
     el_func_s.register_part.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0063');
 	/* get selected or root */
 	var save = getSelectedOrRoot();
 	$('.p_list_child:last-child > .val', el_some_list.part_list).val(JSON.stringify(save));
     });
 
     el_func_s.positionFix.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0064');
 	var NOW_OFF_DS = $('.'+CLASS_POSITION+'.'+CLASS_SELECTED, page.screen)
 		.removeClass(CLASS_POSITION)
 		.each(function(obj, idx){
+//DEBUG console.log('call' + '0065');
 		    var _this = $(this);
 		    removeSelected(_this);
 		    recovery_position(_this);
@@ -799,14 +858,18 @@ $(function(){
 	var NOW_SELECTED = $('.'+CLASS_SELECTED+':not(.'+CLASS_POSITION+')', page.screen)
 		.addClass(CLASS_POSITION)
 		.each(function(obj, idx){
+//DEBUG console.log('call' + '0066');
 		    var _this = $(this);
 		    removeSelected(_this);
 		    preserve_destroied(_this);
 		});
     });
     el_func_s.positionRelative.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0067');
 	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
 	NOW_SELECTED.each(function(){
+//DEBUG console.log('call' + '0068');
+	    console.log('call 804');
 	    var _this = $(this);
 	    var tb = context_menu.relativeTopBottom.val();
 	    var bt = tb === 'top' ? 'bottom' : 'top';
@@ -822,6 +885,7 @@ $(function(){
     });
 
     el_func_s.load.on(MY_CLICK, function(){
+//DEBUG console.log('call' + '0069');
 	var raw_child = el_saved_serialized.val();
 	var parsed = [];
 	try{
@@ -841,6 +905,7 @@ $(function(){
 	draw_arrow_s();
     });
     el_history.on(MY_CHANGE,function(){
+//DEBUG console.log('call' + '0070');
 	var _this = myWrapElement(this);
 	var saved = MY_STORAGE.select('save_s');
 	if(saved != null){
@@ -850,6 +915,7 @@ $(function(){
     }).trigger(MY_CHANGE);
 
     el_func_json_val.on(MY_CHANGE, function(){
+//DEBUG console.log('call' + '0071');
 	var _this = myWrapElement(this);
 	try{
 	    if( typeof JSON.parse(_this.val()) === 'object' ){
@@ -864,6 +930,7 @@ $(function(){
 
     // Key bind
     $(document).on('keydown',function(_ev, _this ){
+//DEBUG console.log('call' + '0072');
 	switch(_ev.keyCode){
 	case 27 ://ESC
 	    $('[class*="hide_mode_target"][data-fire-key-code="escape"]').toggle('clip',null,500);
@@ -887,6 +954,7 @@ $(function(){
 
     //part_list, prop_list, style_list
     $.each(el_some_key_s, function(idx, some_key){
+//DEBUG console.log('call' + '0073');
 	var el_some = {};
 	var length_el_some_func_suffix_s = el_some_func_suffix_s.length;
 	for(var f=0; f < length_el_some_func_suffix_s; ++f){
@@ -906,6 +974,7 @@ $(function(){
 	}
 
 	el_some.select.on(MY_CHANGE,function(){
+//DEBUG console.log('call' + '0074');
 	    var some_name = this.value;
 	    var input_name = el_some.name.val();
 	    var list_s_in_storage = MY_STORAGE.select(some_key);
@@ -933,6 +1002,7 @@ $(function(){
 
 	    tmp_el_list.empty();//clear
 	    $.each(Object.keys(list_in_storage), function(idx,key){
+//DEBUG console.log('call' + '0075');
 		new_empty_line(tmp_el_list, key, force_stringify(list_in_storage[key]), is_add_button);
 	    });
 	    // for new empty input
@@ -941,8 +1011,10 @@ $(function(){
 
 	    tmp_el_list
 		.on(MY_CHANGE,'input.key',function(){
+//DEBUG console.log('call' + '0076');
 		    var pre_height = tmp_el_list.height();
 		    $('input.key', tmp_el_list).each(function(){
+//DEBUG console.log('call' + '0077');
 			var _this = myWrapElement(this);
 			if(_this.val().trim().length === 0){
 			    _this.parent().remove();
@@ -954,6 +1026,7 @@ $(function(){
 		    parent.height(parent.height() + added_height);
 		})
 		.on(MY_CLICK +','+ MY_CHANGE,'input',function(){
+//DEBUG console.log('call' + '0078');
 		    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
 		    el_some.name.animate({"background-color":"#ffaaaa"}, 500).animate({"background-color":""}, 500);
 		});
@@ -961,6 +1034,7 @@ $(function(){
 	    if(some_key === 'style_list'){//TODO 個別処理
 		var style_html = '';
 		$('>li.p_list_child', el_some_list[some_key]).each(function(){
+//DEBUG console.log('call' + '0079');
 		    var _this = $(this);
 		    var key = $('>input.key', _this).val().trim();
 		    var val = $('>input.val', _this).val().trim().replace(/\t/g, '');
@@ -973,6 +1047,7 @@ $(function(){
 	}).trigger(MY_CHANGE);//end el_some.select
 
 	el_some.reg.on(MY_CLICK,function(){
+//DEBUG console.log('call' + '0080');
 	    var some_name = el_some.name.val();
 	    var tmp_el_list = el_some_list[some_key];
 	    var list_s_in_storage = MY_STORAGE.select(some_key);
@@ -990,6 +1065,7 @@ $(function(){
 	});
 
 	el_some.del.on(MY_CLICK,function(){
+//DEBUG console.log('call' + '0081');
 	    var some_name = el_some.name.val();
 	    MY_STORAGE
 		.transaction()
@@ -999,6 +1075,7 @@ $(function(){
 	    el_some.new.trigger(MY_CLICK);
 	});
 	el_some.new.on(MY_CLICK,function(){
+//DEBUG console.log('call' + '0082');
 	    tmp_el_list.empty();//clear
 	    el_some.name.val('');
 	    new_empty_line(tmp_el_list,'','', is_add_button);
@@ -1007,6 +1084,7 @@ $(function(){
 
    // Implement_s
    function select_element(raw_selector, append_css_selector){
+//DEBUG console.log('call' + '0083');
        var rtn = [];
        var _these;
        var selector = '';
@@ -1032,6 +1110,7 @@ $(function(){
 	       var pool = '';
 	       var target = append_css_selector;
 	       css結合子.forEach(function(cc,i,a){//TODO bug:case: nth-child(2n+1)
+//DEBUG console.log('call' + '0084');
 		   var lastIndex = target.lastIndexOf(cc);
 		   if(lastIndex < 0){return true;}
 		   ++lastIndex;
@@ -1047,6 +1126,7 @@ $(function(){
 	   _these = $(selector, page.screen);
        }
        _these.each(function(idx, in_this){
+//DEBUG console.log('call' + '0085');
 	   var _this = myWrapElement(in_this);
 	   if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
 	   var my_obj_id = _this.attr('data-my-node-id');
@@ -1062,6 +1142,7 @@ $(function(){
    }
     
     function removeSelected(jq_tgt){
+//DEBUG console.log('call' + '0086');
 	jq_tgt
 	    .data('my-selected', false)
 	    .removeClass(CLASS_SELECTED)
@@ -1069,6 +1150,7 @@ $(function(){
 	return jq_tgt;
     }
     function addSelected(jq_tgt){
+//DEBUG console.log('call' + '0087');
 	jq_tgt
 	    .data('my-selected', true)
 	    .addClass(CLASS_SELECTED);
@@ -1080,6 +1162,7 @@ $(function(){
      * @return null => null
      */
     function format_raw_val_s(raw_val_s){
+//DEBUG console.log('call' + '0088');
 	var formatted_val_s = [];
 	if(typeof raw_val_s !== undefined && raw_val_s != null && raw_val_s !== ''){
 	    raw_val_s = raw_val_s.trim();
@@ -1103,8 +1186,10 @@ $(function(){
      * @return B
      */
     function split_ignore_nest(str,splitter, ignore_nest_parenthesis_s){
+//DEBUG console.log('call' + '0089');
 	var ign_pair_map = {};
 	$.each(ignore_nest_parenthesis_s,function(idx, pair){
+//DEBUG console.log('call' + '0090');
 	    ign_pair_map[pair[0]] = pair[1];
 	});
 	if(ignore_nest_parenthesis_s.indexOf(splitter) > -1) throw new Error('splitter '+splitter+' is in ignores');
@@ -1148,6 +1233,7 @@ $(function(){
      * @return tag:[tag[tag[tag1, tag2],･･･len_val ],tag[same]]
      */
     function format_raw_tag_s(raw_tag_s, _param_s, length_val_s){
+//DEBUG console.log('call' + '0091');
 	var param_s = {};
 	var resolved_param_s = {};
 	$.extend(true, param_s, _param_s);
@@ -1158,9 +1244,11 @@ $(function(){
 	raw_tag_s = raw_tag_s.trim().replace(/\s+/g,' ').replace(/\s*,\s*/g,',');//複数連続スペースやカンマを一つに変換
 	var tag_s2 = [];
 	$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
+//DEBUG console.log('call' + '0092');
 	    var trimed_tag = tag.trim();
 	    var pooled_tag_s = [];
 	    $.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibling
+//DEBUG console.log('call' + '0093');
 		var tag_num = split_ignore_nest(sbl.trim(), LOOP_HLD,[["(",")"]]);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 		var loop_num = 1;
 		if(tag_num.length > 1){
@@ -1196,6 +1284,7 @@ $(function(){
 
 
     function format_raw_tag_holder_s(raw_tag_holder_s){
+//DEBUG console.log('call' + '0094');
 	var rtn_map = {};
 	if(raw_tag_holder_s != null && typeof raw_tag_holder_s === 'string'){
 	    try{
@@ -1210,6 +1299,7 @@ $(function(){
      * raw_prop_s allowed: {"single css selector":{"style":"hoge"},"single css selector"･･･} or {"style":"hoge"}
      */
     function format_raw_prop_s(raw_prop_s){
+//DEBUG console.log('call' + '0095');
 	var prop_s = {};
 	var rtn = {};
 	try{
@@ -1266,6 +1356,7 @@ $(function(){
      * 空のアプリケーションの基本オブジェクトを返す
      */
     function my_apply(tag, prop_s, child_s){
+//DEBUG console.log('call' + '0096');
 	if(arguments.length === 0){return {"tag":"","prop_s":{"style":""},"child_s":[]};}
 	if(typeof tag !== 'string'){throw new TypeError('tag is not a string.');}
 	if( ! $.isPlainObject(prop_s) ){throw new TypeError('prop_s is not a plain object.');}
@@ -1279,6 +1370,7 @@ $(function(){
      * []内の()はpseudo-class用(e.g :not())として処理しない
      */
     function extract_param_from(_input_tag, param_map, parent_param_s){
+//DEBUG console.log('call' + '0097');
 	_input_tag = _input_tag.trim();
 	var length_input_tag = _input_tag.length;
 	var parenthesis_first = -1;
@@ -1324,6 +1416,7 @@ $(function(){
     }
 
     function analisys_css_selector(input_tag){
+//DEBUG console.log('call' + '0098');
 	input_tag = input_tag.trim();
 	var length_input_tag = input_tag.length - 1;
 	var pool = '';
@@ -1368,6 +1461,7 @@ $(function(){
     }
 
     function extract_css_selector(input_tag, prop_map){
+//DEBUG console.log('call' + '0099');
 	var analized_result = analisys_css_selector(input_tag);
 	var cls_s = analized_result['class'];
 	var tag = null;
@@ -1391,12 +1485,12 @@ $(function(){
 	    prop_s.style = kept_style;
 	}
 	//TODO classについてprop_mapからextract
-
 	prop_s = $.extend(true, prop_s, analized_result['attr']);//汎用設定prop_listを個別設定tagで上書き
 	return [tag, prop_s];
     }
 
     function check_input_data(tag, prop_s, infinite_loop_check){
+//DEBUG console.log('call' + '0100');
 	// var length_forbidden = 関数タグの対象外css_selector.length;
 	// for(var i=0; i < length_forbidden; ++i){
 	//     var tgt = 関数タグの対象外css_selector[i];
@@ -1413,7 +1507,9 @@ $(function(){
     }
 
     function recursive_collect_last_child(child_s, last_child_s){
+//DEBUG console.log('call' + '0101');
 	child_s.forEach(function(child){
+//DEBUG console.log('call' + '0102');
 	    if(child.child_s.length === 0){
 		last_child_s.push(child);
 	    }else{
@@ -1424,6 +1520,7 @@ $(function(){
     }
 
     function convert_lineardata_to_child_s(tag_s2, prop_map, part_map, param_map, parent_param_s, infinite_loop_check){
+//DEBUG console.log('call' + '0103');
 	var root_s = {"child_s":[],"last_child_s":[]};
 	var parent_s = [root_s];
 	var length_tag_s2 = tag_s2.length;
@@ -1437,8 +1534,10 @@ $(function(){
 	tag_size_s = tag_size_s.reverse();
 
 	$.each(tag_s2, function(layer_idx, tag_s ){
+//DEBUG console.log('call' + '0104');
 	    var new_parent_s = [];
 	    $.each(parent_s, function(pIdx, parent){
+//DEBUG console.log('call' + '0105');
 		for(var i=0; i < tag_s.tag_s.length; ++i){
 		    //tag_s.tag_s[i] :  tag#hoge.fuga.hage($col 4 =,5,0) //removed "*n"
 		    //副作用 param_mapへ
@@ -1474,6 +1573,7 @@ $(function(){
 			$.merge(new_parent_s, child_last.last_child_s);//子供もやがて親になる･･･
 		    }else{
 			$.each(HTML5のタグには無い文字, function(idx,forbidden_char){//TODO tagを分解して回した方が良いはず
+//DEBUG console.log('call' + '0106');
 			    if(tag.indexOf(forbidden_char) > 0) throw new TypeError('Tag : '+tag+' does not belong to HTML5. ');
 			});
 			var child = my_apply(tag, prop_s,[]);
@@ -1500,6 +1600,7 @@ $(function(){
      * TODO ユーザー指定CSSの設定も調査対象にする
      */
     function set_default_size(tag, temp_prop_s, tag_size_s, my_layer_idx, my_idx){
+//DEBUG console.log('call' + '0107');
 	if($.inArray(tag, サイズを持たせないタグ) > -1){
 	    if( typeof temp_prop_s.style === 'undefined'){
 		temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';';
@@ -1553,6 +1654,7 @@ $(function(){
      * tableやinputはdivでwrapするなど副作用があります｡
      */
     function convert_data_to_display(raw_tag_s , raw_val_s , raw_prop_s, raw_tag_holder_s){
+//DEBUG console.log('call' + '0108');
 	try{
 	    // 引数 整形 処理
 	    var val_s = format_raw_val_s(raw_val_s);
@@ -1566,6 +1668,7 @@ $(function(){
 	    //値埋め
 	    if(val_s !== null && val_s.length > 0){
 		$.each(root.last_child_s, function(pIdx, obj){
+//DEBUG console.log('call' + '0109');
 		    var setVal = val_s[parseInt(pIdx % val_s.length, 10)];
 		    if( obj.tag === 'input'){
 			obj.prop_s["value"] = setVal;
@@ -1575,6 +1678,7 @@ $(function(){
 		});
 	    }else{
 		$.each(root.last_child_s, function(pIdx, obj){
+//DEBUG console.log('call' + '0110');
 		    if( obj.tag !== 'input' && typeof obj.prop_s["html"] === 'undefined'){
 			obj.prop_s["html"] = '';
 		    }
@@ -1589,11 +1693,14 @@ $(function(){
     }
 
     function adjustSize(myApply){
+//DEBUG console.log('call' + '0111');
 	return innerObserveNumChilds(myApply,0, 0);
     }
 
     function innerObserveNumChilds(app_s, poolW, poolH){
+//DEBUG console.log('call' + '0112');
 	app_s.forEach(function(app,i,a){
+//DEBUG console.log('call' + '0113');
 	    if(app.child_s.length === 0){
 		var style = analysisCss(app.prop_s.style, {});
 		poolW += parseInt(style.width,10);
@@ -1601,10 +1708,10 @@ $(function(){
 	    }else{
 		var pools = innerObserveNumChilds(app.child_s, poolW, poolH);
 		var app_style = analysisCss(app.prop_s.style, {});
-		//							if(parseInt(app_style.width,10) < pools[0]){
-		//								poolW = pools[0] + 4;
-		//								app_style.width = pools[0]+'px';
-		//							}
+		//if(parseInt(app_style.width,10) < pools[0]){
+		//	poolW = pools[0] + 4;
+		//	app_style.width = pools[0]+'px';
+		//}
 		if(parseInt(app_style.height,10) < pools[1]){ 
 		    poolH = pools[1] + 4;
 		    app_style.height = pools[1]+'px';
@@ -1616,13 +1723,14 @@ $(function(){
     }
 
     function myCreateElement(tag, is_svg){
-	var raw;
-	var elm ;
+//DEBUG console.log('call' + '0114');
+	var raw, elm ;
 	if(is_svg){
 	    raw = document.createElementNS(SVG_NS, tag);
 	    elm = $(raw);
 	    elm.data('my-is-svg',true);
 	    elm.attr = function(key,val){
+//DEBUG console.log('call' + '0115');
 		if( arguments.length === 1 ){
 		    if( $.isPlainObject(key) ){
 			for(var objKey in key){
@@ -1644,9 +1752,11 @@ $(function(){
 	    };
 	    if( tag === 'text'){
 		elm.html = function (txt){
+//DEBUG console.log('call' + '0116');
 		    if(typeof txt === 'undefined'){
 			var rtn = '';
 			$.each(raw.childNodes,function(idx,node){
+//DEBUG console.log('call' + '0117');
 			    if(node.noteType === 3){
 				rtn += node.textContent + ' ';//TODO test note => node
 			    }
@@ -1659,6 +1769,7 @@ $(function(){
 		    }
 		};
 		elm.appendTo = function (parent){
+//DEBUG console.log('call' + '0118');
 		    if(parent instanceof jQuery){
 			parent = parent[0];
 		    };
@@ -1666,6 +1777,7 @@ $(function(){
 		};
 	    }
 	    elm.addClass = function(clz){
+//DEBUG console.log('call' + '0119');
 		var already =  raw.getAttribute('class');
 		if( already.indexOf(clz) === -1){
 		    raw.setAttribute('class', already.trim()+' '+clz);
@@ -1673,6 +1785,7 @@ $(function(){
 		return this;
 	    };
 	    elm.removeClass = function(clz){
+//DEBUG console.log('call' + '0120');
 		var already =  raw.getAttribute('class');
 		if( already.indexOf(clz) !== -1){
 		    raw.setAttribute('class', already.replace(clz,''));
@@ -1681,6 +1794,7 @@ $(function(){
 	    };
 	}else{
 	    if(単一タグ.some(function(st){return tag === st;})){
+//DEBUG console.log('call' + '0121');
 		elm = $('<'+tag+' />');//TODO brが<br></br>になる・・・
 	    }else{
 		elm = $('<'+tag+'>');
@@ -1691,11 +1805,10 @@ $(function(){
     }
 
     function myWrapElement(raw){
+//DEBUG console.log('call' + '0122');
 	var elm;
 	if(raw instanceof jQuery){
-	    if(raw.length > 1){
-		throw new TypeError('myWrapElement doesnot accepts array.');
-	    }
+	    if(raw.length > 1){	throw new TypeError('myWrapElement doesnot accepts array.'); }
 	    raw = raw[0];
 	    elm = $(raw);
 	}else{
@@ -1704,6 +1817,7 @@ $(function(){
 
 	if(elm.data('my-is-svg')){
 	    elm.attr = function(key,val){
+//DEBUG console.log('call' + '0123');
 		if( arguments.length === 1 ){
 		    if( $.isPlainObject(key) ){
 			for(var objKey in key){
@@ -1723,6 +1837,7 @@ $(function(){
 		return elm;
 	    };
 	    elm.addClass = function(clz){
+//DEBUG console.log('call' + '0124');
 		var already =  raw.getAttribute('class');
 		if( already.indexOf(clz) === -1){
 		    raw.setAttribute('class', already.trim()+' '+clz);
@@ -1730,6 +1845,7 @@ $(function(){
 		return this;
 	    };
 	    elm.removeClass = function(clz){
+//DEBUG console.log('call' + '0125');
 		var already =  raw.getAttribute('class');
 		if( already.indexOf(clz) !== -1){
 		    raw.setAttribute('class', already.replace(clz,''));
@@ -1737,7 +1853,6 @@ $(function(){
 		return this;
 	    };
 	}
-
 	return elm;
     }
 
@@ -1750,6 +1865,7 @@ $(function(){
      * @return new roots
      */
     function display_onscreen(add_method, target_s, _this, _is_draggable, is_svg){
+//DEBUG console.log('call' + '0126');
 	var is_default_draggable = _is_draggable || typeof _is_draggable === 'undefined' ;
 	var tag = _this['tag'].trim().toLowerCase();
 	var prop_s = _this['prop_s'];
@@ -1762,6 +1878,7 @@ $(function(){
 	    var require_s = setting['require_s'];
 	    var default_val_s = setting['default'];
 	    $.each(require_s, function(layer_idx, require){
+//DEBUG console.log('call' + '0127');
 		if( ! prop_s.hasOwnProperty(require)){
 		    if( default_val_s.hasOwnProperty(require)){
 			prop_s[require] = default_val_s[require];
@@ -1827,7 +1944,7 @@ $(function(){
 	    }
 	    if(typeof work_jq.data('my-obj-val') === 'undefined'){work_jq.data('my-obj-val','');}
 
-	    work_jq.data('my-org-prop_s', prop_s);
+	    work_jq.data({"my-org-prop_s": prop_s, "prop-history": {}});//TODO saveから復元
 	    if( work_jq === target){
 		continue;
 	    }
@@ -1847,6 +1964,7 @@ $(function(){
 		.on(MY_CLICK,select_handler_factory(true))
 	    	.on('contextmenu',select_handler_factory(false, display_contextmenu))
 		.on(MY_CHANGE,function(ev){
+//DEBUG console.log('call' + '0128');
 		    var _this = myWrapElement(this);
 		    _this.data('my-obj-val', _this.val());
 		});
@@ -1861,11 +1979,13 @@ $(function(){
 	    var y_sibl = null;
 	    var resizableOption = {
 		"stop":function(ev, ui){
+//DEBUG console.log('call' + '0129');
 		    is_table_cell = false;
-		    //draw_arrow_s(cached_arrow_factory, _this);
+		    draw_arrow_s(cached_arrow_factory, _this);
 		    cached_arrow_factory = null;
 		},
 		"resize":function(ev, ui){
+//DEBUG console.log('call' + '0130');
 		    if(is_table_cell){
 			var _this = $(this);
 			x_sibl.width(original_coord.x + ev.pageX);
@@ -1874,6 +1994,7 @@ $(function(){
 		    continuous_draw_arrow_s();
 		},
 		"start":function(ev, ui){
+//DEBUG console.log('call' + '0131');
 		    not_click = true;
 		    var _this = $(this);
 		    var my_id = _this.attr('data-my-node-id');
@@ -1886,6 +2007,7 @@ $(function(){
 			is_table_cell = true;
 			original_coord = {"x": _this.width() - ev.pageX  ,"y":_this.height() - ev.pageY};
 			$(' > td, > th',parent).each(function(idx,obj){
+//DEBUG console.log('call' + '0132');
 			    var _id = $(this).attr('data-my-node-id');
 			    if(my_id === _id){
 				++idx;
@@ -1895,19 +2017,20 @@ $(function(){
 			});
 			x_sibl.width(10);
 			y_sibl = _this.siblings().height(10);
-			x_sibl.each(function(){
-			    var _this = $(this);
-			});
+			// x_sibl.each(function(){
+			//     var _this = $(this);
+			// });
 		    }else{
 			original_coord = null;
 			is_table_cell = false;
 		    }
 		},
 		"autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
-		, "containment":page.screen
+		//TODO , "containment":page.screen bugるため範囲内に収める独自処理を
 	    };
 	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":page.screen, 
 				  "stop":function(ev, ui){
+//DEBUG console.log('call' + '0134');
 				      var _this = $(this);
 				      _this.removeClass('snap_border')
 					  .parent().removeClass('snap_border')
@@ -1920,6 +2043,7 @@ $(function(){
 				  },
 				  "drag":continuous_draw_arrow_s,
 				  "start":function(ev, ui){
+//DEBUG console.log('call' + '0135');
 				      not_click = true;
 				      var _this = $(this);
 				      _this.addClass('snap_border')
@@ -1934,6 +2058,7 @@ $(function(){
 	    if( i_am_wrapper ){
 		resizableOption["alsoResize"] = '[data-my-node-id^="'+my_node_id+MY_NODE_SEP+'"]';
 		resizableOption["stop"] = function(ev, ui){
+//DEBUG console.log('call' + '0136');
 		    var tmp = $('*',work_jq);
 		    work_jq.height(tmp.height() + 16).width(tmp.width() + 16);
 		};
@@ -1952,6 +2077,7 @@ $(function(){
 		    .css({"top":"","left":""});
 		if( is_resizable || is_draggable ){
 		    resizableOption["stop"] = function(ev, ui){
+//DEBUG console.log('call' + '0137');
 			var _this = $(this);
 			draw_arrow_s(cached_arrow_factory, _this);
 			cached_arrow_factory = null;
@@ -1998,6 +2124,7 @@ $(function(){
 
     var cached_arrow_factory = null;
     function continuous_draw_arrow_s(){
+//DEBUG console.log('call' + '0138');
 	try{
 	    not_click = true;
 	    draw_arrow_s(cached_arrow_factory, $(this));
@@ -2007,6 +2134,7 @@ $(function(){
     }
 
     function draw_arrow_s(cache, operated){
+//DEBUG console.log('call' + '0139');
 	var my_id = null;
 	var now_coord = null;
 	if(typeof operated !== 'undefined' && operated !=  null){
@@ -2031,10 +2159,12 @@ $(function(){
     }
 
     var LinePathCmdFactory = function(){
+//DEBUG console.log('call' + '0140');
 	var idx = 0;
 	var add = 1;
 	var CMD_s = ["M "," L "];
 	return function(path){
+//DEBUG console.log('call' + '0141');
 	    if(typeof path === 'undefined') path = '';
 	    var rtn = CMD_s[idx];
 	    idx += add;
@@ -2044,12 +2174,14 @@ $(function(){
     };
 
     var BezierPathCmdFactory = function(){
+//DEBUG console.log('call' + '0142');
 	var idx = 0;
 	var add = 1;
 	var CMD_s = ["M "," Q ",];
 	var pre = [0,0];
 	var curve = -1;
 	return function(path){
+//DEBUG console.log('call' + '0143');
 	    if(typeof path === 'undefined') path = '';
 	    var rtn = CMD_s[idx];
 	    var path_split = path.trim().split(' ');
@@ -2069,6 +2201,7 @@ $(function(){
     };
 
     function draw_arrow_s_factory(target_s, op_my_id){
+//DEBUG console.log('call' + '0144');
 	if(typeof target_s === 'undefined' || target_s == null || ! arget_s.hasOwnProperty('member_s')){
 	    target_s = {"member_s":$('svg.data-conns > *[data-conns]', page.screen)};
 	}
@@ -2080,6 +2213,7 @@ $(function(){
 
 	var arrow_func_s = [];
 	$.each(target_s.member_s,function(idx, obj){
+//DEBUG console.log('call' + '0145');
 	    var arrow = $(this);
 	    var selector_s = arrow.attr('data-conns').split(' ');
 	    var length_selector_s = selector_s.length;
@@ -2104,10 +2238,12 @@ $(function(){
     }
 
     function get_center_bottom_abs_coord(info){
+//DEBUG console.log('call' + '0146');
 	return (info['offset'].left+info['width']/2)+' '+(info['offset'].top+info['height']);
     }
 
     function get_center_abs_coord(info){
+//DEBUG console.log('call' + '0147');
 	try{
 	    return (info['offset'].left+info['width']/2)+' '+(info['offset'].top+info['height']/2);
 	}catch(e){
@@ -2117,7 +2253,9 @@ $(function(){
     }
 
     function select_handler_factory(isAddSelected, callbacks){
+//DEBUG console.log('call' + '0148');
 	return function (ev){// 選択処理実装
+//DEBUG console.log('call' + '0149');
 	    if(is_suspend) return;
 	    ev.preventDefault();
 	    ev.stopPropagation();
@@ -2137,6 +2275,7 @@ $(function(){
 	    var pool = analysisCss(_this.attr('style'));
 	    var position = {};
 	    posi_name_s.forEach(function(name,i,a){
+//DEBUG console.log('call' + '0150');
 		if(typeof pool[name] === 'undefined'){
 		    position[name] = 'auto';
 		}else{
@@ -2163,6 +2302,7 @@ $(function(){
 	    var concat_id = '';
 	    var appendHtml = '';
 	    $.each(parent_id_list,function(idx,my_id){
+//DEBUG console.log('call' + '0151');
 		concat_id += my_id;
 		var tmp = $('*[data-my-node-id='+concat_id+']', page.screen).get(0);
 		if(typeof tmp !== 'undefined'){
@@ -2179,6 +2319,7 @@ $(function(){
     }
 
     function mthd_delete_element_impl(in_target_css){
+//DEBUG console.log('call' + '0152');
 	var target_css ;
 	if( in_target_css !== null){
 	    target_css = in_target_css.trim();
@@ -2189,6 +2330,7 @@ $(function(){
 	    target_css = '.'+target_css;
 	}
 	$(target_css).each(function(){
+//DEBUG console.log('call' + '0153');
 	    var my_node_id = myWrapElement(this).attr('data-my-node-id');
 	    mthd_delete_element_by_my_id(my_node_id);
 	});
@@ -2197,21 +2339,26 @@ $(function(){
      * 削除する。但し現スクリーンのみ
      */
     function mthd_delete_element_by_my_id(my_node_id){
+//DEBUG console.log('call' + '0154');
 	$('[data-my-node-id="'+my_node_id+'"]', page.screen).empty().remove();
     }
 
     function getStatus(){
+//DEBUG console.log('call' + '0155');
 	var obj_id = 0;
 	var prop_id = 0;
 	var tree_growth_id = 0;
 	return {
 	    "getNewMyObjId":function(){
+//DEBUG console.log('call' + '0156');
 		return obj_id++;
 	    }, 
 	    "getNewProp":function(){
+//DEBUG console.log('call' + '0157');
 		return prop_id++;
 	    }, 
 	    "getNewGrowth":function(){
+//DEBUG console.log('call' + '0158');
 		return tree_growth_id++;
 	    }, 
 	};
@@ -2219,6 +2366,7 @@ $(function(){
 
     var history_counter = 0;
     function init_save_history(){
+//DEBUG console.log('call' + '0159');
 	var appender = '';
 	var save_s = MY_STORAGE.select('save_s');
 	history_counter = 0;
@@ -2232,21 +2380,23 @@ $(function(){
     init_save_history();
 
     function preserve_destroied(obj){
+//DEBUG console.log('call' + '0160');
 	var resizableOption = obj.data('resizableOption');
 	var draggableOption = obj.data('draggableOption');
-//	if(typeof resizableOption !== 'undefined'){obj.data('resizableOption', resizableOption).resizable('destroy');}
+	if(typeof resizableOption !== 'undefined'){obj.data('resizableOption', resizableOption).resizable('destroy');}
 	if(typeof draggableOption !== 'undefined'){obj.draggable('destroy');}
 	return {"resizableOption":resizableOption, "draggableOption":draggableOption};	
     }
     function recovery_position(obj, resizableOption, draggableOption){
-	// try{
-	//     if(typeof resizableOption !== 'undefined'){
-	// 	obj.resizable(resizableOption);
-	//     }else{
-	// 	var rOption = obj.data('resizableOption');
-	// 	if(typeof rOption !== 'undefined'){obj.resizable(rOption);}
-	//     }
-	// }catch(e){console.log('resizable error :' + e);};
+//DEBUG console.log('call' + '0161');
+	try{
+	    if(typeof resizableOption !== 'undefined'){
+		obj.resizable(resizableOption);
+	    }else{
+		var rOption = obj.data('resizableOption');
+		if(typeof rOption !== 'undefined'){obj.resizable(rOption);}
+	    }
+	}catch(e){console.log('resizable error :' + e);};
 	try{
 	    if(typeof draggableOption !== 'undefined'){
 		obj.draggable(draggableOption);
@@ -2257,6 +2407,7 @@ $(function(){
 	}catch(e){console.log('draggable error :' + e);};
     }
     function preserve_destroy_remove_recovery_position(obj, conv, removed, callback){
+//DEBUG console.log('call' + '0162');
 	var d_r_opt_s = preserve_destroied(obj);
 	callback(obj, conv);
 	removed.remove();
@@ -2264,6 +2415,7 @@ $(function(){
     }
 
     function getSelectedOrRoot(){
+//DEBUG console.log('call' + '0163');
 	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
 	var save = null;
 	/* create new */
@@ -2274,6 +2426,7 @@ $(function(){
 	}else{
 	    save = [];
 	    NOW_SELECTED.each(function(){
+//DEBUG console.log('call' + '0164');
 		var _this = $(this);
 		var mother_id = _this.attr('data-my-node-id');
 		var child_tree = get_child_tree_select_dom(mother_id);
@@ -2284,6 +2437,7 @@ $(function(){
     }
 
     function refresh_select_list(some_key, el_some_select){
+//DEBUG console.log('call' + '0165');
 	// creating option in select
 	var list_s_in_storage = MY_STORAGE.select(some_key);
 	if(typeof list_s_in_storage === 'undefined' || list_s_in_storage == null){
@@ -2300,8 +2454,10 @@ $(function(){
     }
 
     function collect_some_list(parent_list){
+//DEBUG console.log('call' + '0166');
 	var input_val = {};
 	$('.p_list_child',parent_list).each(function(){
+//DEBUG console.log('call' + '0167');
 	    var _this = myWrapElement(this);
 	    var input_s = $('input.key,input.val',_this);
 	    var key = input_s[0].value;
@@ -2313,12 +2469,14 @@ $(function(){
     }
 
     function new_empty_line(parent, key, val, is_add_button){
+//DEBUG console.log('call' + '0168');
 	var part_list_func_s = [">","+"];
 	var new_li = $('<li>',{"style":"white-space:nowrap;","class":"p_list_child"});
 	if(is_add_button){
 	    for(var idx=0; idx < part_list_func_s.length; ++idx){
 		$('<input />').attr({"type":"button","value":part_list_func_s[idx]}).css({"width":"2.5em","margin-right":"4px","text-align":"center"})	//TODO style
 		    .on(MY_CLICK,function (){
+//DEBUG console.log('call' + '0169');
 			var now_val = el_val_tag.val();
 			var new_val = '';
 			now_val = typeof now_val === 'undefined' ? '' : now_val;
@@ -2331,6 +2489,7 @@ $(function(){
 			var expression =  $(' ~ .val', this).val();
 			var counter = 0;
 			expression.split('').forEach(function(x,i,a){
+//DEBUG console.log('call' + '0170');
 			    if( x === '$' ) ++counter;
 			});
 			var params = counter > 0 ? '(,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,'.substring(0, counter) +')' : '';
@@ -2351,6 +2510,7 @@ $(function(){
 
     //Util
     function call_val(obj, set_val){
+//DEBUG console.log('call' + '0171');
 	obj.data('my-obj-val', set_val);
 	obj.val(set_val);
     }
@@ -2358,6 +2518,7 @@ $(function(){
      * 上書き方式　子要素以下は削除される
      */
     function call_html(obj, set_val){
+//DEBUG console.log('call' + '0172');
 	obj.data('my-obj-val', set_val);
 	obj.html(set_val);
     }
@@ -2365,6 +2526,7 @@ $(function(){
      * 孫要素を退避して追記する方式
      */
     function call_safe_text(obj, set_val){
+//DEBUG console.log('call' + '0173');
 	obj.data('my-obj-val', set_val);
 	var kept = $(' *',obj).detach();
 	obj.text(set_val);
@@ -2374,17 +2536,21 @@ $(function(){
      * 孫要素を退避して追記する方式
      */
     function call_safe_html(obj, set_val){
+//DEBUG console.log('call' + '0174');
 	obj.data('my-obj-val', set_val);
 	var kept = $(' .htmlize',obj).detach();
 	obj.empty().html(set_val);
 	kept.appendTo(obj);
     }
     function call_text(obj, set_val){
+//DEBUG console.log('call' + '0175');
 	obj.text(set_val);
     }
     function do_void(){}
+//DEBUG console.log('call' + '0176');
 
     function get_offset_width_height(jq_obj){
+//DEBUG console.log('call' + '0177');
 	try{
 	    return {"offset":jq_obj.offset(),"width":jq_obj.outerWidth(),"height":jq_obj.outerHeight()};
 	}catch(e){
@@ -2396,6 +2562,7 @@ $(function(){
      * 後勝ちoverride
      */
     function merge_css(){
+//DEBUG console.log('call' + '0178');
 	var pool = {};
 	var length_arguments = arguments.length;
 	for(var i=0; i < length_arguments; ++i){
@@ -2412,6 +2579,7 @@ $(function(){
     }
 
     function cssStringify(pool){
+//DEBUG console.log('call' + '0179');
 	var rtn = '';
 	for(var css_key in pool){
 	    rtn += css_key+':'+pool[css_key]+';';
@@ -2422,8 +2590,10 @@ $(function(){
      * styleがpoolを上書き
      */
     function analysisCss(style, pool){
+//DEBUG console.log('call' + '0180');
 	if(typeof pool === 'undefined'){pool = {};}
 	style.split(';').forEach(function(x){
+//DEBUG console.log('call' + '0181');
 	    var key_val = x.trim().split(':');
 	    if( key_val.length >= 2){
 		var val = key_val[1].trim();
@@ -2437,6 +2607,7 @@ $(function(){
     }
 
     function force_stringify(obj){
+//DEBUG console.log('call' + '0182');
 	if($.isPlainObject(obj) || $.isArray(obj)){
 	    return JSON.stringify(obj);
 	}else if(typeof obj === 'string'){
@@ -2447,6 +2618,7 @@ $(function(){
     }
 
     function force_parse(obj){
+//DEBUG console.log('call' + '0183');
 	if(typeof obj === 'string'){
 	    try{
 		return JSON.parse(obj);
@@ -2461,10 +2633,12 @@ $(function(){
     }
 
     function _tree(in_mother_id){
+//DEBUG console.log('call' + '0184');
 	var mother_id = in_mother_id;
 	var pool = {};
 	return {
 	    "upsert":function(my_obj_id, body){
+//DEBUG console.log('call' + '0185');
 		if($.isNumeric(my_obj_id)){
 		    my_obj_id = my_obj_id.toString();
 		}
@@ -2486,20 +2660,25 @@ $(function(){
 		pool[my_obj_id] = body;
 	    },
 	    "stringify_child_s":function(){
+//DEBUG console.log('call' + '0186');
 		var rtn = JSON.stringify(pool[mother_id].child_s);
 		return rtn;
 	    },
 	    "stringify":function(){
+//DEBUG console.log('call' + '0187');
 		var rtn = JSON.stringify(pool);
 		return rtn;
 	    },
 	    "child_s":function(){
+//DEBUG console.log('call' + '0188');
 		return pool[mother_id].child_s;
 	    },
 	    "self":function(){
+//DEBUG console.log('call' + '0189');
 		return pool[mother_id];
 	    },
 	    "raw":function(){
+//DEBUG console.log('call' + '0190');
 		var rtn = {};
 		$.extend(true,rtn, pool);
 		return rtn;
@@ -2508,15 +2687,18 @@ $(function(){
     }
 
     function constructor_storage(FUNC_ID){
+//DEBUG console.log('call' + '0191');
 	var uncommit_pool = {};
 	var is_locked = false;
 	return {
 	    "raw":function(){
+//DEBUG console.log('call' + '0192');
 		var raw = localStorage[FUNC_ID];
 		if(typeof raw === 'undefined'){	raw = '{}';	}
 		return raw;
 	    },
 	    "transaction":function(){
+//DEBUG console.log('call' + '0193');
 		if(is_locked){throw new Error('transaction has opened.');
 			     }else{
 				 var raw = this.raw();
@@ -2530,17 +2712,20 @@ $(function(){
 			     }
 	    },
 	    "commit":function(){
+//DEBUG console.log('call' + '0194');
 		localStorage[FUNC_ID] = JSON.stringify(uncommit_pool);
 		uncommit_pool = {};
 		is_locked = false;
 		return this;
 	    },
 	    "close":function(){
+//DEBUG console.log('call' + '0195');
 		uncommit_pool = {};
 		is_locked = false;
 		return this;
 	    },
 	    "select":function(key){
+//DEBUG console.log('call' + '0196');
 		var str_key = ''+key;
 		var pooled = uncommit_pool[str_key];
 		if(typeof pooled === 'undefined'){
@@ -2558,15 +2743,18 @@ $(function(){
 		}
 	    },
 	    "replace":function(key, val){
+//DEBUG console.log('call' + '0197');
 		var str_key = ''+key;
 		uncommit_pool[str_key] = val;
 		return this;
 	    },
 	    "merge":function(key_val){
+//DEBUG console.log('call' + '0198');
 		$.extend(true, uncommit_pool, key_val);//deep copy
 		return this;
 	    },
 	    "remove":function(){
+//DEBUG console.log('call' + '0199');
 		var loop = arguments.length - 1;
 		var target_pool = uncommit_pool;
 		for(var i=0; i <= loop; ++i){
@@ -2584,10 +2772,12 @@ $(function(){
 		return this;
 	    },
 	    "truncate":function(){
+//DEBUG console.log('call' + '0200');
 		delete localStorage[FUNC_ID];
 		return this;
 	    },
 	    "keys":function(is_true_storage){
+//DEBUG console.log('call' + '0201');
 		if( typeof is_true_storage === 'undefined' || is_true_storage === false){
 		    return Object.keys(uncommit_pool);
 		}else if(is_true_storage){
@@ -2597,15 +2787,18 @@ $(function(){
 		}
 	    },
 	    "rollback":function(){
+//DEBUG console.log('call' + '0202');
 		is_locked = false;
 		this.transaction();
 		is_locked = true;
 		return this;
 	    },
 	    "has":function(key){
+//DEBUG console.log('call' + '0203');
 		return null != this.select(key);
 	    },
 	    "ifelse":function(bool, true_param_s, false_param_s){
+//DEBUG console.log('call' + '0204');
 		var func_name = null;
 		var param_s = null;
 		if(bool === true){
@@ -2615,7 +2808,7 @@ $(function(){
 		}else{
 		    throw new TypeError('func if param bool is required.');
 		}
-		param_s = if_nullOrUndef_then_return_init(param_s, []);
+		param_s = orDefault(param_s, []);
 		if(param_s.length > 0){
 		    func_name = param_s.shift();
 		    this[func_name].apply(this, param_s);
@@ -2626,8 +2819,10 @@ $(function(){
     };
 
     function extract_from_dom(tree, user_add_content_s){
+//DEBUG console.log('call' + '0205');
 	if(typeof user_add_content_s === 'undefined'){ return tree;}
 	$.each(user_add_content_s, function(i, content){
+//DEBUG console.log('call' + '0206');
 	    var target = my_apply();
 	    var _content = $(content);
 	    var my_obj_id = _content.attr('data-my-node-id');
@@ -2664,6 +2859,7 @@ $(function(){
     }
 
     function get_child_tree_select_dom(mother_id){
+//DEBUG console.log('call' + '0207');
 	var user_add_content_s = $(' *[data-my-node-id^='+mother_id+MY_NODE_SEP+']');
 	var root_dom = $('*[data-my-node-id='+mother_id+']')[0];
 	var tree = extract_from_dom(_tree(mother_id), [root_dom]);
@@ -2671,9 +2867,11 @@ $(function(){
     };
 
     function get_z_index(parent_layer_idx){
+//DEBUG console.log('call' + '0208');
 	return 110 + parseInt(parent_layer_idx,10);
     };
     function get_top(tag_size_s, parent_layer_idx, my_idx){
+//DEBUG console.log('call' + '0209');
 	if( parent_layer_idx === 0){
 	    return 100;
 	}else{
@@ -2681,6 +2879,7 @@ $(function(){
 	}
     };
     function get_left(tag_size_s, parent_layer_idx, my_idx){
+//DEBUG console.log('call' + '0210');
 	if( parent_layer_idx === 0){
 	    return 100;
 	}else{
@@ -2700,6 +2899,7 @@ $(function(){
 	,function(a0, a1){is_calcable(a0,a1); return a1 % a0;}
     ];
     function is_calcable(a0, a1){
+//DEBUG console.log('call' + '0216');
 	if($.isNumeric(a0) && $.isNumeric(a1)){
 	    return ;
 	}else{
@@ -2707,13 +2907,12 @@ $(function(){
 	}
     }
     function reverse_porlish_notation(formula, _param_s){
-	var param_s = if_nullOrUndef_then_return_init(_param_s, {});
+//DEBUG console.log('call' + '0217');
+	var param_s = orDefault(_param_s, {});
 	return reverse_porlish_notation_logic(formula, param_s, {})[0];
     }
     function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
-	console.log('_formula :' + _formula);
-	console.log('_param_s :' + JSON.stringify(_param_s));
-	console.log('_resolved_param_s :' + JSON.stringify(_resolved_param_s));
+//DEBUG console.log('call' + '0218');
 	var param_s = {}; $.extend(true,param_s, _param_s);
 	var resolved_param_s = {}; $.extend(true,resolved_param_s, _resolved_param_s);
 	var formula = _formula;
@@ -2724,7 +2923,7 @@ $(function(){
 	if(typeof formula === 'string'){
 	    formula = formula.replace(/\s+/g,' ').trim();
 	}
-	if(formula != null && typeof formula !== 'undefined'){
+	if(typeof formula !== 'undefined' && formula != null){
 	    var stack = [];
 	    var pool = '';
 	    var num = 0;
@@ -2805,7 +3004,8 @@ $(function(){
 	return [rtn,param_s,resolved_param_s];
     }
 
-    function if_nullOrUndef_then_return_init(param, init){
+    function orDefault(param, init){
+//DEBUG console.log('call' + '0219');
 	if(typeof param === 'undefined' || param == null ){
 	    return init;
 	}else{

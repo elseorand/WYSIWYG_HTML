@@ -3,11 +3,8 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>HTML Developing</title>
-		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
 		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 		<script src="/default/jquery-2.1.4.min.js" ></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
  		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script>
 		<script src="/default/html_developing.js"></script>
 		<style type="text/css" >
@@ -196,11 +193,15 @@
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
 			</section>
-			<input type="button" id="delValTag" value="del" /><input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:200px;" value="" /><br />
-			<input type="hidden" id="part_list_input" class="json_val" value="" />
-			<input type="hidden" id="prop_list_input" class="json_val" value="" />
-			<input type="button" id="delValArrayJSON" value="del" /><input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" /><br />
-			<hr />
+			<span style="white-space:nowrap;">
+				<input type="button" id="delValTag" value="del" /><input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:200px;" value="" /><br />
+				<input type="hidden" id="part_list_input" class="json_val" value="" />
+				<input type="hidden" id="prop_list_input" class="json_val" value="" />
+			</span>
+			<span style="white-space:nowrap;">
+				<input type="button" id="delValArrayJSON" value="del" /><input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
+			</span>
+			<br /><hr />
 			<span>part<input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
 				<select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
 				<input id="part_list_new" type="button" value="New" style="" />
