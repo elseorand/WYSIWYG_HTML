@@ -17,9 +17,17 @@
 			}
 			.snap_border {
 				opacity : 0.9;
-				border: 1px dotted black !important;
+        border-style:dotted;
+        border-color:grey;
 				border-collapse:collapse;
 			}
+
+			.snap_border ~ *, * ~ .snap_border {
+				opacity : 0.9;
+        border-style:dotted;
+        border-color:grey;
+				border-collapse:collapse;
+			}      
 			.ui-resizable-e,.ui-resizable-s,.ui-resizable-se{
 				opacity: 0.2;
 			}
@@ -44,7 +52,8 @@
 				margin: 4px;
 			}
 			.objCut {
-				border:4px dotted blue !important;
+				border-color:blue !important;
+        border-style:dotted !important;
 				opacity: 0.8;
 			}
 			.objCut *{
@@ -52,7 +61,8 @@
 				opacity: 0.8;
 			}
 			.objCopy {
-				border:4px dotted green !important;
+				border-color:green !important;
+        border-style:dotted !important;
 				opacity: 0.8;
 			}
 			.objCopy *{
@@ -60,14 +70,16 @@
 				opacity: 0.8;
 			}
 			:hover.objPositioning{
-				border:4px dotted #ff99aa !important;
+				border-color:#ff99aa !important;
+        border-style:dotted  !important;
 			}
 			:hover.objPositioning *{
 				background-color: #ffccdd !important;
 				opacity: 0.8;
 			}
 			.objSelected:not(.grid), objSelected.objDraggableResizable:not(.grid) {
-				border:4px dotted red !important;
+				border-color:red !important;
+        border-style:dotted !important;
 				opacity: 0.8;
 			}
 			.objSelected.grid, objSelected.objDraggableResizable.grid {
@@ -102,7 +114,7 @@
 				white-space: nowrap;
 			}
 			#style_list{
-				display: none;
+        display:none;
 			}
 		</style>
 		<style id="MyEditableStyle" type="text/css" >
@@ -188,26 +200,71 @@
 		<section id="HtmlDeveloping" style="width:100%;">
 			<ol id="context_menu"></ol>
 		</section>
-		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:60px;right:0px;z-index:101;width:480px;height:960px; border-radius:20px;overflow:hidden;" >
+		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:101;width:480px;height:1000px; border-radius:20px;overflow:auto;" >
 			<section id="basic_menu_operator" style="position:relative;left:0px;">
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
 			</section>
 			<span style="white-space:nowrap;">
-				<input type="button" id="delValTag" value="del" /><input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:200px;" value="" /><br />
+        <span> Tag emmet style</span><br/>
+				<input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:64em;" value="" /><br />
 				<input type="hidden" id="part_list_input" class="json_val" value="" />
 				<input type="hidden" id="prop_list_input" class="json_val" value="" />
 			</span>
 			<span style="white-space:nowrap;">
-				<input type="button" id="delValArrayJSON" value="del" /><input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
+				<input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
 			</span>
 			<br /><hr />
-			<span>part<input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
+      <span>Simple Design Adjuster</span><br/>
+      <section id="operate_menu" style="height:7em;" >
+        <section style="height:3em;float:left;">
+          <section style="float:left;">
+            <select id="operate_option" style="width:10em;margin-bottom:0.3em;">
+              <option value="size">Size</option>
+              <option value="position">Position</option>
+              <option value="borderPlus">Border +</option>
+              <option value="borderMinus">Border -</option>
+              <option value="paddingPlus">Padding +</option>
+              <option value="paddingMinus">Padding -</option>
+              <option value="marginPlus">Margin +</option>
+              <option value="marginMinus">Margin -</option>              
+            </select><br>
+            <section style="float:left;">
+              <input id="oprt_u" class="oprt" type="button" style="width:4.6em;" value="↑"/><br/>
+              <input id="oprt_l" class="oprt" type="button" style="width:2em;" value="←"/>
+              <input id="oprt_r" class="oprt" type="button" style="width:2em;" value="→"/><br/>
+              <input id="oprt_d" class="oprt" type="button" style="width:4.6em;" value="↓"/><br/>
+            </section>
+            <section style="float:left;margin-left:0.5em;">
+              <input id="oprt_value" type="number" style="width:4.2em;margin-bottom:0.1em;text-align:center;" value="1"><br/>
+              <input id="func_modelCssApply_element" class="oprt" type="button" style="width:4.6em;margin-top:0.2em;" value="apply"/><br>
+              <input id="func_modelCssReset_element" class="oprt" type="button" style="width:4.6em;margin-top:0.2em;" value="reset"/><br/>
+            </section>
+          </section>
+          <section style="float:left;margin-left:0.5em;">
+            <input id="red"  class="colorEdit" type="number" value="0" max="255" min="0" step="8" style="width:4.5em;background-color:rgba(255,0,0,0.2);" /><br>
+            <input id="green" class="colorEdit" type="number" value="0" max="255" min="0" step="8" style="width:4.5em;background-color:rgba(0,255,0,0.2);" /><br>
+            <input id="blue" class="colorEdit" type="number" value="0" max="255" min="0" step="8" style="width:4.5em;background-color:rgba(0,0,255,0.2);" /><br>
+            <input id="alpha" class="colorEdit" type="number" value="1" max="1" min="0" step="0.1" style="width:4.5em;" /><br>
+            <input id="transparent" class="" type="checkbox" value="true" /><label for="transparent">trnsp</label>
+          </section>
+        </section>
+        <section style="position:relative;height:11em;float:left;">
+        </section>
+      </section>
+      <hr />
+			<span>Tag Preset</span><br>
+      <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
 				<select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
 				<input id="part_list_new" type="button" value="New" style="" />
-			</span>
+			</section>
+      <section style="margin-top:10px;margin-bottom:-4px;">
+        <input type="button" value="times"  style="margin-right:0.5em;" /><input type="number" value="2"  style="width:4em;margin-right:2em;text-align:center;" />
+        <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
+      </section>
 			<ul id="part_list" class="snippets"></ul>
 			<hr />
+      <span>Style Sheet</span><br/>
 			<span><input value="Style" id="func_style_element" style="float:left;" type="button" /><input id="style_list_name" style="float:left;" type="text" value=""/>
 				<input id="style_list_reg" style="float:left;" type="button" value="Reg"/>
 				<select id="style_list_select" style="float:left;"></select><input id="style_list_del" type="button" value="Del" style="float:right;" />
@@ -215,19 +272,25 @@
 			</span>
 			<br>
 			<ul id="style_list" class="snippets"></ul>
-			<span id="" style="width:40px;">
-				<textarea id="sandbox_style" style="height:16em;width:29em;"></textarea></span>
+			<div id="" style="width:40px;">
+				<textarea id="sandbox_style" style="height:16em;width:84em;"></textarea>
+      </div>
 			<hr/>
-			<span>prop<input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
+      <span>Default Prop Attr</span><br/>
+			<span><input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
 				<select id="prop_list_select"></select><input id="prop_list_del" type="button" value="Del" style="float:right;" />
 				<input id="prop_list_new" type="button" value="New" style="" />
 			</span>
 			<ul id="prop_list" class="snippets"></ul>
 		</section>
+    <section id="css_test_model" class="menu_bar float_menu" style="position:absolute; top:50px;right:500px;z-index:101;width:480px;height:480px; border-radius:20px;overflow:hidden;" >
+      <div id="oprt_model" style="position:absolute;bottom:3em;top:auto;right:auto;left:5em;width:120px;height:80px;border:1px solid black;"></div>
+    </section>
+    
 		<footer style="position:fixed; bottom:0px;z-index:100;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% " >
 				<input type="hidden" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
-				<label for="SelectedValPropJSON" >props</label><input type="text" id="SelectedValPropJSON" class="json_val" style="width:1920px;" value="{&quot;style&quot;:&quot&quot;}"	 />
+				<label for="SelectedValPropJSON" >Detail</label><input type="text" id="SelectedValPropJSON" class="json_val" style="width:1920px;" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
 		</footer>
 	</body>

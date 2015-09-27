@@ -1,6 +1,5 @@
 $(function(){
     /**TODO
-     * undo / redo オブジェクト自身がヒストリーを持ち、ユーザー観点でのUNDO REDOとしない。
      * scalatest seleniumのコードの生成
      * autocomplete
      * wizard, easy contextmenu
@@ -19,9 +18,9 @@ $(function(){
      * screen tab
      * include resource json
      * tree diagram(using browser dev tool)
-
      * insert element
      * position fix,left,bottom,top,right
+     * undo / redo 
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -93,6 +92,7 @@ $(function(){
     var new_width = 480;
     var el_basic_menu = $('body > #basic_menu');
     var el_basic_menu_operator = $('#basic_menu_operator', el_basic_menu);
+    var minmum_height = 30;
     var el_basic_menu_forward = $('#basic_menu_forward', el_basic_menu)
 	    .on(MY_INIT, function(){
 		var _this = $(this);
@@ -108,7 +108,7 @@ $(function(){
 		    el_basic_menu_operator.css('left', "+="+new_width);
 		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"+="+new_width});
 		}
-		if(parseInt(el_basic_menu.height(), 10) <= 20){
+		if(parseInt(el_basic_menu.height(), 10) <= minmum_height){
 		    el_basic_menu
 			.css({"height":el_basic_menu.data('original-height')+'px'});
 		}
@@ -120,10 +120,10 @@ $(function(){
 		if(btn_posi > 0){
 		    el_basic_menu_operator.css('left', "-="+new_width);
 		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"-="+new_width});
-		}else if(parseInt(el_basic_menu.height(), 10) > 20){
+		}else if(parseInt(el_basic_menu.height(), 10) > minmum_height){
 		    el_basic_menu
 			.data('original-height', el_basic_menu.height())
-			.css({"height":"20px"});
+			.css({"height":minmum_height+'px'});
 		}else{
 		    el_basic_menu
 			.css({"height":el_basic_menu.data('original-height')+'px'});
@@ -189,7 +189,61 @@ $(function(){
     });
     var el_new_page_element = $('#new_page_element');
     var el_style = $('style#MyEditableStyle');
-    
+    var el_now_selected = {};
+
+    // operator menu
+    var el_oprt_model = $('#oprt_model').each(function(){
+	var _this = $(this);
+	_this.data('my-default-prop_s', {"style":_this.attr('style')});
+    });
+    var el_operate_option = $('#operate_option');
+    var el_oprt_value = $('#oprt_value');
+    var oprt_type = {
+	"size":{"l":sizeFuncSupplier("width", "-="), "u":sizeFuncSupplier("height", "+="), "r":sizeFuncSupplier("width", "+="), "d":sizeFuncSupplier("height", "-=")}, 
+	"position":{"l":positionFuncSupplier('left', '-='), "u":positionFuncSupplier('top', '-='), "r":positionFuncSupplier('left', '+='), "d":positionFuncSupplier('top', '+=')},
+	"borderPlus":{"l":cssFuncSupplier('border-left-width', '+='), "u":cssFuncSupplier('border-top-width', '+='), "r":cssFuncSupplier('border-right-width', '+='), "d":cssFuncSupplier('border-bottom-width', '+=')},
+	"borderMinus":{"l":cssFuncSupplier('border-left-width', '-='), "u":cssFuncSupplier('border-top-width', '-='), "r":cssFuncSupplier('border-right-width', '-='), "d":cssFuncSupplier('border-bottom-width', '-=')},
+	"paddingPlus":{"l":cssFuncSupplier('padding-left', '+='), "u":cssFuncSupplier('padding-top', '+='), "r":cssFuncSupplier('padding-right', '+='), "d":cssFuncSupplier('padding-bottom', '+=')},
+	"paddingMinus":{"l":cssFuncSupplier('padding-left', '-='), "u":cssFuncSupplier('padding-top', '-='), "r":cssFuncSupplier('padding-right', '-='), "d":cssFuncSupplier('padding-bottom', '-=')},
+	"marginPlus":{"l":cssFuncSupplier('margin-left', '+='), "u":cssFuncSupplier('margin-top', '+='), "r":cssFuncSupplier('margin-right', '+='), "d":cssFuncSupplier('margin-bottom', '+=')},
+	"marginMinus":{"l":cssFuncSupplier('margin-left', '-='), "u":cssFuncSupplier('margin-top', '-='), "r":cssFuncSupplier('margin-right', '-='), "d":cssFuncSupplier('margin-bottom', '-=')}	
+    };
+
+    // color edit
+    var el_transparent = $('#transparent').on(MY_CHANGE, function(){
+	if(el_transparent.prop('checked')){
+	    update_prop(el_oprt_model, {"style":'background-color:transparent;'});
+	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+		update_prop(el_now_selected[key], {"style":'background-color:transparent;'});
+	    }
+	}else{
+	    els_colorEdit.trigger(MY_CHANGE);
+	}
+    });
+    var els_colorEdit = $('.colorEdit').on(MY_CHANGE, function(){
+	var _this = $(this);
+	var id = _this.attr('id');
+	var val = _this.val();
+	if(id === 'red'){
+	    _this.css('background-color', 'rgba('+val+',0,0,0.2)');
+	}else if(id === 'green'){
+	    _this.css('background-color', 'rgba(0,'+val+',0,0.2)');
+	}else if(id === 'blue'){
+	    _this.css('background-color', 'rgba(0,0,'+val+',0.2)');	    
+	}
+	el_oprt_model
+	    .data('bgc-'+id, val);
+	var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
+	newBgColor = {"style":'background-color:'+ newBgColor+';'};
+	update_prop(el_oprt_model, newBgColor);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    update_prop(el_now_selected[key], newBgColor);
+	}
+    }).each(function(){
+	var _this = $(this);
+	_this.trigger(MY_CHANGE);
+    });
+
     // context menu
     var context_menu = $('#context_menu');
 
@@ -198,6 +252,8 @@ $(function(){
     var func_name_s = [
 	{"name":"html", "label":"", "input":'', "style":""},
 	{"name":"style", "label":"", "input":'', "style":""},
+	{"name":"modelCssApply", "label":"", "input":'', "style":""},
+	{"name":"modelCssReset", "label":"", "input":'', "style":""},
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
 
 	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
@@ -216,9 +272,9 @@ $(function(){
 	{"name":"register_part", "label":"RegPart", "input":'', "style":"", "col2":false},
 	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":"", "col2":false},
 	{"name":"positionFix", "label":"Position Fix", "input":'', "style":"", "col2":false},
-	{"name":"positionRelative", "label":"Pos Relative", "input":'<section style="float:right;"><select id="positionRelativeTopBottom"><option value="top">top</option><option value="bottom">bottom</option></select><input type="text" id="positionRelativeTopBottomValue" style="width:8em;" /><br><select id="positionRelativeLeftRight"><option value="left">left</option><option value="right">right&nbsp;</option></select><input id="positionRelativeLeftRightValue" type="text" style="width:8em;" /></section>', "style":"height:4em;", "col2":true},
+	{"name":"positionRelative", "label":"Pos Relative", "input":'<section style="float:right;"><select id="positionRelativeTopBottom"><option value="top">top</option><option value="center">center</option><option value="bottom">bottom</option></select><input type="text" id="positionRelativeTopBottomValue" style="width:8em;" /><br><select id="positionRelativeLeftRight"><option value="left">left</option><option value="center">center</option><option value="right">right&nbsp;</option></select><input id="positionRelativeLeftRightValue" type="text" style="width:8em;" /></section>', "style":"height:4em;", "col2":true},
 	{"name":"undo", "label":"Undo", "style":"", "col2":false},
-	{"name":"redo", "label":"Redo", "style":"", "col2":false}, 
+	{"name":"redo", "label":"Redo", "style":"", "col2":false}
     ];
 
     //init
@@ -295,6 +351,66 @@ $(function(){
 	context_menu.relativeLeftRightValue = $('#positionRelativeLeftRightValue');
     })();
 
+    // operator
+    function sizeFuncSupplier(css, func){
+	return function(model, op_val, candidate){
+	    if(arguments.length >= 3){
+		var target = candidate;
+	    }else{
+		target = model;
+	    }
+	    target.css(css, func+op_val); 
+	};
+    }
+
+    var counter_css = {"top":"bottom", "bottom":"top", "left":"right", "right":"left"};
+    var counter_operator = {"+=":"-=", "-=":"+="};
+    function positionFuncSupplier(css, func){
+	return function(model, op_val, candidate){
+	    if(arguments.length >= 3){
+		var target = candidate;
+	    }else{
+		target = model;
+	    }
+	    
+	    var counter_part_css = counter_css[css];
+	    var part = target.css(css);
+	    if(isEmpty(part) || part === 'auto'){
+		var counter_part = target.css(counter_part_css);
+		if(isEmpty(counter_part) || counter_part === 'auto' ){return '';}
+		target.css(counter_part_css, counter_operator[func]+op_val);
+	    }
+	    target.css(css, func+op_val);
+	};
+    }
+    function cssFuncSupplier(css, func){
+	return function(original, op_val, target){
+	    if(arguments.length === 3){
+		update_prop(target, {"style":css+":"+original.css(css)+";"}); 
+	    }else if(arguments.length === 2){
+		original.css(css, func+op_val);
+	    }
+	};
+    }
+
+    el_operate_option.on(MY_CHANGE,function(){
+	el_operate_option.data("now_type", oprt_type[el_operate_option.val()]);
+    }).trigger(MY_CHANGE);
+    var opt_func_s = {};
+    var els_oprt = $('.oprt').each(function(){
+	var _this = $(this);
+	var cmd = _this.attr('id').split('_')[1];
+	_this.on(MY_CLICK, function(){
+	    var cssFunc = el_operate_option.data("now_type")[cmd];
+	    if(cssFunc === undefined ){return;}
+	    var op_val = el_oprt_value.val();
+	    cssFunc(el_oprt_model, op_val);
+	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+		cssFunc(el_oprt_model, op_val, el_now_selected[key]);
+	    }
+	});
+    });
+
     function create_page(name, width, height){
 	if(arguments.length <= 2){ height = '1440px';}//TODO
 	if($.isNumeric(width)){ width +='px';}//TODO
@@ -307,13 +423,13 @@ $(function(){
 	page_s['screen'+name] = _page;
 	var now_id = STATUS.getNewMyObjId();
 	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
-	.on('contextmenu',display_contextmenu)
+	    .on('contextmenu',display_contextmenu)
 	    .on(MY_CLICK,function(ev){
-	    if(context_menu.is_close_menu){
-		context_menu.css({"display":"none"});
-	    }
-	    el_func_s.cxlselected.trigger(MY_CLICK);
-	    page = _page;
+		if(context_menu.is_close_menu){
+		    context_menu.css({"display":"none"});
+		}
+		el_func_s.cxlselected.trigger(MY_CLICK);
+		page = _page;
 	    });
 	_page.prop_history = [];
 	context_menu.is_close_menu = true;
@@ -328,7 +444,7 @@ $(function(){
 	ev.stopPropagation();
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
-	
+    
     el_header_menu_bar.on(MY_CLICK, '.func_scrn_change', function(){
 	var _this = $(this);
 	var _page = _this.data('page');//TODO page_sに変更??
@@ -411,70 +527,70 @@ $(function(){
 	});
     });
 
-    /**
-     * 
-     */
+    function update_prop(target, prop_s){
+	var tag = target.get(0).localName;
+	if(target.hasClass('wrapper')){return true;}
+	//prop
+	var org_prop_s = target.data('my-org-prop_s');
+	if(isEmpty(org_prop_s)){org_prop_s = {};}
+	var kept_prop_s = {};
+	var prop_history = orDefault(target.data('prop-history'), {});
+	for(var _p_key in prop_s){
+	    var p_key = _p_key.toLowerCase();
+	    var val = prop_s[p_key];
+	    if(isEmpty(val)){continue;}
+	    kept_prop_s[p_key] = target.attr(p_key);
+	    if( p_key === 'html'){
+		if(target.get(0).localName === 'input'){
+		    target.val(val);
+		}else{
+		    target.html(val);
+		}
+		continue;
+	    }
+	    if( p_key !== 'style' && p_key !== 'class'){
+		target.attr(p_key, val);
+		org_prop_s[p_key] = val;
+	    }else if( p_key === 'class'){
+		var p_class_s = val.trim().split(' ');
+		var new_org_class = '';
+		$.each(p_class_s,function(idx,p_class){
+		    if(p_class[0] === '-'){
+			target.removeClass( p_class.substring(1) );
+		    }else if(p_class[0] === '+'){
+			new_org_class += ' ' + p_class.substring(1) ;
+			target.addClass( p_class.substring(1) );
+		    }else{
+			new_org_class += ' ' + p_class;
+			target.addClass(p_class);
+		    }
+		});
+		org_prop_s['class'] = new_org_class.length > 1 ? new_org_class.substring(1) : new_org_class;
+	    }else if( p_key === 'style'){
+		val = merge_css( target.attr('style'), prop_s.style );
+		target.attr('style', val);
+		org_prop_s['style'] = val;
+	    }
+	}
+	target.data('my-org-prop_s', org_prop_s);
+	return target;
+    }
+
     el_func_s.update_prop.on(MY_CLICK, function(){
 	var target_s = $('.'+CLASS_SELECTED, page.screen);
 	if( target_s.length === 0){ return;}
 	var prop_s = JSON.parse( el_selected_val_prop_json.val() );
 	if( ! $.isPlainObject(prop_s)){throw new TypeError('prop is not JSON style.');}
 
-	var node_id_s = [];
 	$.each(target_s, function(idx, _target){
-	    var prop_history_id = STATUS.getNewProp();
-	    var target = $(_target);
-	    var tag = target.get(0).localName;
-	    if(target.hasClass('wrapper')){return true;}
-	    //prop
-	    node_id_s.push(target.attr('data-my-node-id'));
-	    var org_prop_s = target.data('my-org-prop_s');
-	    var kept_prop_s = {};
-	    var prop_history = orDefault(target.data('prop-history'), {});
-	    for(var _p_key in prop_s){
-		var p_key = _p_key.toLowerCase();
-		var val = prop_s[p_key];
-		if(isEmpty(val)){continue;}
-		kept_prop_s[p_key] = target.attr(p_key);
-		if( p_key === 'html'){
-		    if(target.get(0).localName === 'input'){
-			target.val(val);
-		    }else{
-			target.html(val);
-		    }
-		    continue;
-		}
-
-		if( p_key !== 'style' && p_key !== 'class'){
-		    target.attr(p_key, val);
-		    org_prop_s[p_key] = val;
-		}else if( p_key === 'class'){
-		    var p_class_s = val.trim().split(' ');
-		    var new_org_class = '';
-		    $.each(p_class_s,function(idx,p_class){
-			if(p_class[0] === '-'){
-			    target.removeClass( p_class.substring(1) );
-			}else if(p_class[0] === '+'){
-			    new_org_class += ' ' + p_class.substring(1) ;
-			    target.addClass( p_class.substring(1) );
-			}else{
-			    new_org_class += ' ' + p_class;
-			    target.addClass(p_class);
-			}
-		    });
-		    org_prop_s['class'] = new_org_class.length > 1 ? new_org_class.substring(1) : new_org_class;
-		}else if( p_key === 'style'){
-		    val = merge_css( target.attr('style'), prop_s.style );
-		    target.attr('style', val);
-		    org_prop_s['style'] = val;
-		}
-	    }
-	    prop_history[prop_history_id] = kept_prop_s;
+	    //	    var prop_history_id = STATUS.getNewProp();
+	    update_prop($(_target), prop_s);
 	    //TODO del slot
-	    page.screen.prop_history.push(node_id_s);
-//	    page.prop_history.push({"id"});//TODO
-	    target.data('prop-history', prop_history);
-	    target.data('my-org-prop_s', org_prop_s);
+	    //	    prop_history[prop_history_id] = kept_prop_s;
+	    //	    page.screen.prop_history.push(node_id_s);
+	    //	    page.prop_history.push({"id"});//TODO
+	    //	    target.data('prop-history', prop_history);
+
 	});
 	draw_arrow_s();
     });
@@ -496,7 +612,7 @@ $(function(){
 		//TODO if hasClass('wrapped'), then cancel and select menu
 		//新規選択分があれば､それのみを処理し､既存分は触らない
 		if(new_targeted.length > 0){
-		    new_targeted.removeClass(CLASS_SELECTED).addClass(now_class);
+		    removeSelected(new_targeted.addClass(now_class));
 		}else{//新規選択分がなければ､全解除し選択状態に
 		    addSelected($('.'+now_class).removeClass(now_class));
 		}
@@ -584,9 +700,9 @@ $(function(){
 	    }
 	    var style = analysisCss(raw, {});
 	    return arguments.callee(style.left, style.top, style.right, style.bottom);//XXX
-	}else if(arguments.length === 2){
+	}else if(arguments.length === 3){
 	    return {
-		"left":parseInt(arguments[0], 10),
+		"left":parseInt(arguments[0], 12),
 		"top":parseInt(arguments[1], 10),
 		"right":'auto', 
 		"bottom":'auto'
@@ -680,6 +796,24 @@ $(function(){
 	    el_sandbox_style_screen_area.val(el_style.html().replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
 	})
 	.trigger(MY_INIT);
+
+    el_func_s.modelCssApply.on(MY_CLICK, function(){
+	var apply_css = ["width", "height", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width"];
+	var apply_style = '';
+	apply_css.forEach(function(css,i,a){
+	    var temp = el_oprt_model.css(css);
+	    if(isEmpty(temp)){return;}
+	    apply_style += css+':'+temp+';';
+	});
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    update_prop(el_now_selected[key], {"style":apply_style});
+	};
+    });
+
+    el_func_s.modelCssReset.on(MY_CLICK, function(){
+	el_oprt_model.attr('style', el_oprt_model.data('my-default-prop_s'));
+	update_prop(el_oprt_model, el_oprt_model.data('my-default-prop_s'));
+    });
     
     el_func_s.delete.on(MY_CLICK, function(){
 	//	mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
@@ -706,27 +840,27 @@ $(function(){
     });
 
     el_func_s.edit.on(MY_CLICK,function(ev, obj){
-	    is_suspend = ! is_suspend;
-	    context_menu.el_edit_mode.html(is_suspend.toString());
-	    if(is_suspend){
-		var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
-			.addClass(CLASS_ON_EDIT)
-			.each(function(idx,obj){
-			    var _this = $(this);
-			    var parent = _this.parent();
-			    $('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.data('my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
-			});
-		el_func_s.cxlselected.trigger(MY_CLICK);
-	    }else{
-		$('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
+	is_suspend = ! is_suspend;
+	context_menu.el_edit_mode.html(is_suspend.toString());
+	if(is_suspend){
+	    var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
+		    .addClass(CLASS_ON_EDIT)
 		    .each(function(idx,obj){
 			var _this = $(this);
-			var conv = _this.val().replace(/\n/g,'<br>');
 			var parent = _this.parent();
-			preserve_destroy_remove_recovery_position(parent, conv, _this, call_safe_html);
-		    }).removeClass(CLASS_ON_EDIT);
-	    }
-	});
+			$('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.data('my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
+		    });
+	    el_func_s.cxlselected.trigger(MY_CLICK);
+	}else{
+	    $('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
+		.each(function(idx,obj){
+		    var _this = $(this);
+		    var conv = _this.val().replace(/\n/g,'<br>');
+		    var parent = _this.parent();
+		    preserve_destroy_remove_recovery_position(parent, conv, _this, call_safe_html);
+		}).removeClass(CLASS_ON_EDIT);
+	}
+    });
 
     /**
      * saveされる対象はdata-my-node-idが付与されているもの
@@ -787,17 +921,31 @@ $(function(){
     el_func_s.positionRelative.on(MY_CLICK, function(){
 	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
 	NOW_SELECTED.each(function(){
-	    console.log('call 804');
 	    var _this = $(this);
-	    var tb = context_menu.relativeTopBottom.val();
-	    var bt = tb === 'top' ? 'bottom' : 'top';
-	    var lr = context_menu.relativeLeftRight.val();
-	    var rl = lr === 'left' ? 'right' : 'left';
 	    var position = {};
-	    position[tb] = context_menu.relativeTopBottomValue.val();
-	    position[lr] = context_menu.relativeLeftRightValue.val();
-	    position[bt] = 'auto';
-	    position[rl] = 'auto';
+	    var tb = context_menu.relativeTopBottom.val();
+	    if(tb === 'center'){
+		position['top'] = 0;
+		position['bottom'] = 0;
+		position['margin'] = 'auto';
+		context_menu.relativeTopBottomValue.val(0);
+	    }else{
+		var bt = tb === 'top' ? 'bottom' : 'top';
+		position[tb] = context_menu.relativeTopBottomValue.val();
+		position[bt] = 'auto';
+	    }
+	    var lr = context_menu.relativeLeftRight.val();
+	    if(lr === 'center'){
+		position['left'] = 0;
+		position['right'] = 0;
+		position['margin'] = 'auto';
+		context_menu.relativeLeftRightValue.val(0);
+	    }else{
+		var rl = lr === 'left' ? 'right' : 'left';
+		position[lr] = context_menu.relativeLeftRightValue.val();
+		position[rl] = 'auto';				
+	    }
+
 	    _this.css(position);	    
 	});
     });
@@ -829,6 +977,7 @@ $(function(){
 	    command_redo_history.push(cmd);
 	}
     });
+    
     el_func_s.redo.on(MY_CLICK, function(){
 	var cmd = command_redo_history.pop();
 	if(cmd !== undefined){
@@ -1002,73 +1151,76 @@ $(function(){
 	});
     });
 
-   // Implement_s
-   function select_element(raw_selector, append_css_selector){
-       var rtn = [];
-       var _these;
-       var selector = '';
-       var type_raw_selector = typeof raw_selector;
-       if(type_raw_selector === undefined){
-	   return rtn;
-       }else if(type_raw_selector !== 'string'){
-	   _these = raw_selector;
-       }else{
-	   if(raw_selector.startsWith(page.screen.attr('data-my-node-id')+'-')){//case my_id
-	       var idx_aster = raw_selector.lastIndexOf(MY_NODE_SEP+'*');
-	       if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
-		   selector = '*[data-my-node-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
-	       }else{
-		   selector = '*[data-my-node-id='+raw_selector+']';
-	       }
-	   }else{//case css
-	       selector = raw_selector;
-	   }
-	   selector = selector.trim();
-	   if(typeof append_css_selector === 'string' && append_css_selector !== '' ){
-	       append_css_selector = append_css_selector.trim();
-	       var pool = '';
-	       var target = append_css_selector;
-	       css結合子.forEach(function(cc,i,a){//TODO bug:case: nth-child(2n+1)
-		   var lastIndex = target.lastIndexOf(cc);
-		   if(lastIndex < 0){return true;}
-		   ++lastIndex;
-		   pool += target.substr(0, lastIndex);
-		   target = target.substring(lastIndex);
-	       });
-	       var indexPsuedo = target.indexOf(':');
-	       if(indexPsuedo > -1){
-		   target = target.substr(0, indexPsuedo) + '.htmlize' + target.substring(indexPsuedo);
-	       }
-	       selector += ' ' + pool+target;
-	   }
-	   _these = $(selector, page.screen);
-       }
-       _these.each(function(idx, in_this){
-	   var _this = myWrapElement(in_this);
-	   if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
-	   var my_obj_id = _this.attr('data-my-node-id');
-	   var is_my_selected = _this.data('my-selected');
-	   if(typeof is_my_selected === 'undefined' || is_my_selected === false){
-	       addSelected(_this);
-	       rtn.push(_this);
-	   }else{
-	       removeSelected(_this);
-	   }
-       });
-       return rtn;
-   }
-    
+    // Implement_s
+    function select_element(raw_selector, append_css_selector){
+	var rtn = [];
+	var _these;
+	var selector = '';
+	var type_raw_selector = typeof raw_selector;
+	if(type_raw_selector === undefined){
+	    return rtn;
+	}else if(type_raw_selector !== 'string'){
+	    _these = raw_selector;
+	}else{
+	    if(raw_selector.startsWith(page.screen.attr('data-my-node-id')+'-')){//case my_id
+		var idx_aster = raw_selector.lastIndexOf(MY_NODE_SEP+'*');
+		if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
+		    selector = '*[data-my-node-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
+		}else{
+		    selector = '*[data-my-node-id='+raw_selector+']';
+		}
+	    }else{//case css
+		selector = raw_selector;
+	    }
+	    selector = selector.trim();
+	    if(typeof append_css_selector === 'string' && append_css_selector !== '' ){
+		append_css_selector = append_css_selector.trim();
+		var pool = '';
+		var target = append_css_selector;
+		css結合子.forEach(function(cc,i,a){//TODO bug:case: nth-child(2n+1)
+		    var lastIndex = target.lastIndexOf(cc);
+		    if(lastIndex < 0){return true;}
+		    ++lastIndex;
+		    pool += target.substr(0, lastIndex);
+		    target = target.substring(lastIndex);
+		});
+		var indexPsuedo = target.indexOf(':');
+		if(indexPsuedo > -1){
+		    target = target.substr(0, indexPsuedo) + '.htmlize' + target.substring(indexPsuedo);
+		}
+		selector += ' ' + pool+target;
+	    }
+	    _these = $(selector, page.screen);
+	}
+	_these.each(function(idx, in_this){
+	    var _this = myWrapElement(in_this);
+	    if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
+	    var my_obj_id = _this.attr('data-my-node-id');
+	    var is_my_selected = _this.data('my-selected');
+	    if(typeof is_my_selected === 'undefined' || is_my_selected === false){
+		addSelected(_this);
+		rtn.push(_this);
+	    }else{
+		removeSelected(_this);
+	    }
+	});
+	return rtn;
+    }
+
     function removeSelected(jq_tgt){
-	jq_tgt
-	    .data('my-selected', false)
-	    .removeClass(CLASS_SELECTED)
-	;
+	var my_obj_id = jq_tgt
+		.data('my-selected', false)
+		.removeClass(CLASS_SELECTED)
+		.data('my-obj-id');
+	delete el_now_selected[my_obj_id];
 	return jq_tgt;
     }
     function addSelected(jq_tgt){
-	jq_tgt
-	    .data('my-selected', true)
-	    .addClass(CLASS_SELECTED);
+	var my_obj_id = jq_tgt
+		.data('my-selected', true)
+		.addClass(CLASS_SELECTED)
+		.data('my-obj-id');
+	el_now_selected[my_obj_id] = jq_tgt;
 	return jq_tgt;
     }
 
@@ -1544,7 +1696,7 @@ $(function(){
 	}
     };
 
-        /**
+    /**
      * draggableやresizableを可能にする加工を施します｡
      * tableやinputはdivでwrapするなど副作用があります｡
      */
@@ -1861,6 +2013,7 @@ $(function(){
 		"stop":function(ev, ui){
 		    is_table_cell = false;
 		    draw_arrow_s(cached_arrow_factory, _this);
+		    // TODO サイズ合わせオブザーバー
 		    cached_arrow_factory = null;
 		},
 		"resize":function(ev, ui){
@@ -1938,7 +2091,7 @@ $(function(){
 	    }
 
 	    removeSelected(work_jq)
-		[add_method]( target )
+	    [add_method]( target )
 		.data('my-htmlize-target',true)
 		.attr('data-my-htmlize-target',true);
 	    if( wrapped_is_true ){
@@ -2872,7 +3025,7 @@ $(function(){
 	    for(var key in content) if(typeof _content.attr(key) !== 'undefined'){
 		target.prop_s[key] = _content.attr(key);
 	    }
-//TODO XXX	    target.prop_s['data-my-node-id'] = my_obj_id;
+	    //TODO XXX	    target.prop_s['data-my-node-id'] = my_obj_id;
 	    target.tag = content.localName;
 
 	    var raw_my_obj_val = _content.data('my-obj-val');
@@ -2982,7 +3135,7 @@ $(function(){
 			}
 		    }
 		}else if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN
-			   || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
+			 || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
 		    stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
 		}else if( op_idx === IDX_PAREN){
 		    ++i;
