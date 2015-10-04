@@ -2,7 +2,7 @@ $(function(){
     /**TODO
      * scalatest seleniumのコードの生成
      * autocomplete
-     * wizard, easy contextmenu
+     * wizard, easy menu
      * Append Func supports char
      * save biz obj arr
      * psuedo link
@@ -736,10 +736,11 @@ $(function(){
 	var len_parsed = parsed.length;
 	el_sandbox_hidden.empty();
 	for(var i=0; i < len_parsed; ++i){
+	    console.log('parsed : ' + JSON.stringify(parsed[i]));
 	    display_onscreen('appendTo', el_sandbox_hidden, parsed[i]);
 	}
 
-	var target_s = $('[data-my-htmlize-target="true"]',el_sandbox_hidden);
+	var target_s = $('[data-my-htmlize-target=true]',el_sandbox_hidden);
 	target_s.each(function(idx, _target){
 	    var target = $(_target);
 	    try{target.draggable('destroy');}catch(e){/*kill error*/};
@@ -1513,7 +1514,7 @@ $(function(){
 	    }
 	    if(c === '[')	++nest_counter;
 	}
-	return {"tag":tag,"class":tmp_cl_s,"attr":tmp_attr_s};
+	return {"tag":tag,"id":tmp_id, "class":tmp_cl_s,"attr":tmp_attr_s};
     }
 
     function extract_css_selector(input_tag, prop_map){
@@ -2174,17 +2175,16 @@ $(function(){
 	}
 
 	var arrow_s = cache['arrows'];
-	var length_arrow_s = arrow_s.length;
-	for(var idx=0; idx < length_arrow_s; ++idx){
+	arrow_s.forEach(function(arrow,i,a){
 	    var svg_cmd = LinePathCmdFactory();//BezierPathCmdFactory();//
-	    var arrow = arrow_s[idx];
 	    var path_d_array = arrow[1];// 1 means path_d.
 	    var path_d = '';
 	    for(var p_idx=0; p_idx < path_d_array.length; ++p_idx){
 		path_d += svg_cmd(get_center_abs_coord(get_offset_width_height(path_d_array[p_idx])));
 	    }
+	    console.log('arrow' + JSON.stringify(arrow));
 	    arrow[0].attr('d',path_d);
-	}
+	});
     }
 
     var LinePathCmdFactory = function(){
@@ -2226,7 +2226,7 @@ $(function(){
     };
 
     function draw_arrow_s_factory(target_s, op_my_id){
-	if(typeof target_s === 'undefined' || target_s == null || ! arget_s.hasOwnProperty('member_s')){
+	if(typeof target_s === 'undefined' || target_s == null || ! target_s.hasOwnProperty('member_s')){
 	    target_s = {"member_s":$('svg.data-conns > *[data-conns]', page.screen)};
 	}
 	if(typeof op_my_id !== 'undefined' && op_my_id != null && op_my_id !== ''){
@@ -2236,7 +2236,7 @@ $(function(){
 	}
 
 	var arrow_func_s = [];
-	$.each(target_s.member_s,function(idx, obj){
+	$.each(target_s.member_s,function(mIdx, obj){
 	    var arrow = $(this);
 	    var selector_s = arrow.attr('data-conns').split(' ');
 	    var length_selector_s = selector_s.length;
@@ -2244,6 +2244,13 @@ $(function(){
 	    var path_d_idx = 0;
 	    for(var idx = 0; idx < length_selector_s; ++idx){
 		var node_selector = selector_s[idx].trim();
+		if(!node_selector.startsWith('#') && !node_selector.startsWith('.')){
+		    if(node_selector.indexOf('-') > -1){
+			node_selector = '[data-my-node-id='+node_selector+']';
+		    }else{
+			node_selector = '[data-my-obj-id='+node_selector+']';
+		    }
+		}
 		var node_s = $(node_selector,page.screen);
 		if(typeof node_s === 'undefined' || node_s == null || node_s.length === 0){
 		    continue;
