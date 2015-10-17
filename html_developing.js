@@ -1,13 +1,13 @@
 $(function(){
     /**TODO
+     * undo / redo (style)
+     * parse Real HTML
      * scalatest seleniumのコードの生成
      * autocomplete
-     * wizard, easy menu
      * Append Func supports char
      * save biz obj arr
      * psuedo link
      * split window => iframe support
-     * dot by dot move
      * Edit supports ordinary wysiwyg html editors
      */
     /**DONE
@@ -20,7 +20,9 @@ $(function(){
      * tree diagram(using browser dev tool)
      * insert element
      * position fix,left,bottom,top,right
-     * undo / redo 
+     * undo / redo (dimension)
+     * wizard, easy menu
+     * dot by dot move
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -201,15 +203,28 @@ $(function(){
     var oprt_type = {
 	"size":{"l":sizeFuncSupplier("width", "-="), "u":sizeFuncSupplier("height", "+="), "r":sizeFuncSupplier("width", "+="), "d":sizeFuncSupplier("height", "-=")}, 
 	"position":{"l":positionFuncSupplier('left', '-='), "u":positionFuncSupplier('top', '-='), "r":positionFuncSupplier('left', '+='), "d":positionFuncSupplier('top', '+=')},
-	"borderPlus":{"l":cssFuncSupplier('border-left-width', '+='), "u":cssFuncSupplier('border-top-width', '+='), "r":cssFuncSupplier('border-right-width', '+='), "d":cssFuncSupplier('border-bottom-width', '+=')},
-	"borderMinus":{"l":cssFuncSupplier('border-left-width', '-='), "u":cssFuncSupplier('border-top-width', '-='), "r":cssFuncSupplier('border-right-width', '-='), "d":cssFuncSupplier('border-bottom-width', '-=')},
-	"paddingPlus":{"l":cssFuncSupplier('padding-left', '+='), "u":cssFuncSupplier('padding-top', '+='), "r":cssFuncSupplier('padding-right', '+='), "d":cssFuncSupplier('padding-bottom', '+=')},
-	"paddingMinus":{"l":cssFuncSupplier('padding-left', '-='), "u":cssFuncSupplier('padding-top', '-='), "r":cssFuncSupplier('padding-right', '-='), "d":cssFuncSupplier('padding-bottom', '-=')},
-	"marginPlus":{"l":cssFuncSupplier('margin-left', '+='), "u":cssFuncSupplier('margin-top', '+='), "r":cssFuncSupplier('margin-right', '+='), "d":cssFuncSupplier('margin-bottom', '+=')},
-	"marginMinus":{"l":cssFuncSupplier('margin-left', '-='), "u":cssFuncSupplier('margin-top', '-='), "r":cssFuncSupplier('margin-right', '-='), "d":cssFuncSupplier('margin-bottom', '-=')}	
+	"rotateXY":{"l":rotateFuncSupplier('rotateY', '-'), "u":rotateFuncSupplier('rotateX', '+'), "r":rotateFuncSupplier('rotateY', '+'), "d":rotateFuncSupplier('rotateX', '-')}, 
+	"rotateZ":{"l":rotateFuncSupplier('rotate', '-'), "u":rotateFuncSupplier('rotateZ', '-'), "r":rotateFuncSupplier('rotate', '+'), "d":rotateFuncSupplier('rotateZ', '+')}	
     };
+    var els_openCloseTrigger = $('.openCloseTrigger').on(MY_CLICK,function(){
+	var _this = $(this);
+	_this.siblings('.openCloseTarget').toggleClass('displayNone');
+    });//.trigger(MY_CLICK);
+
+    var els_xyz = $('.xyz').on(MY_CLICK+' '+MY_CHANGE, function(){
+	var _this = $(this);
+	var css = _this.attr('id');
+	var cssVal = _this.val();
+	cssVal = $.isNumeric(cssVal) ? cssVal+'px' : cssVal;
+	el_oprt_model.css(css, cssVal);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    el_now_selected[key].css(css, cssVal);
+	}
+	
+    });
 
     // color edit
+    var el_operate_color_option = $('#operate_color_option');
     var el_transparent = $('#transparent').on(MY_CHANGE, function(){
 	if(el_transparent.prop('checked')){
 	    update_prop(el_oprt_model, {"style":'background-color:transparent;'});
@@ -220,21 +235,21 @@ $(function(){
 	    els_colorEdit.trigger(MY_CHANGE);
 	}
     });
-    var els_colorEdit = $('.colorEdit').on(MY_CHANGE, function(){
+    var els_colorEdit = $('.colorEdit').on(MY_CHANGE+' '+MY_KEYUP+' '+MY_CLICK, function(){
 	var _this = $(this);
 	var id = _this.attr('id');
 	var val = _this.val();
 	if(id === 'red'){
-	    _this.css('background-color', 'rgba('+val+',0,0,0.2)');
+	    _this.next().css('background-color', 'rgba('+val+',0,0,1)');
 	}else if(id === 'green'){
-	    _this.css('background-color', 'rgba(0,'+val+',0,0.2)');
+	    _this.next().css('background-color', 'rgba(0,'+val+',0,1)');
 	}else if(id === 'blue'){
-	    _this.css('background-color', 'rgba(0,0,'+val+',0.2)');	    
+	    _this.next().css('background-color', 'rgba(0,0,'+val+',1)');	    
 	}
 	el_oprt_model
 	    .data('bgc-'+id, val);
 	var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
-	newBgColor = {"style":'background-color:'+ newBgColor+';'};
+	newBgColor = {"style":el_operate_color_option.val() + ':'+ newBgColor+';'};
 	update_prop(el_oprt_model, newBgColor);
 	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
 	    update_prop(el_now_selected[key], newBgColor);
@@ -272,7 +287,6 @@ $(function(){
 	{"name":"register_part", "label":"RegPart", "input":'', "style":"", "col2":false},
 	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":"", "col2":false},
 	{"name":"positionFix", "label":"Position Fix", "input":'', "style":"", "col2":false},
-	{"name":"positionRelative", "label":"Pos Relative", "input":'<section style="float:right;"><select id="positionRelativeTopBottom"><option value="top">top</option><option value="center">center</option><option value="bottom">bottom</option></select><input type="text" id="positionRelativeTopBottomValue" style="width:8em;" /><br><select id="positionRelativeLeftRight"><option value="left">left</option><option value="center">center</option><option value="right">right&nbsp;</option></select><input id="positionRelativeLeftRightValue" type="text" style="width:8em;" /></section>', "style":"height:4em;", "col2":true},
 	{"name":"undo", "label":"Undo", "style":"", "col2":false},
 	{"name":"redo", "label":"Redo", "style":"", "col2":false}
     ];
@@ -345,53 +359,77 @@ $(function(){
 	    context_menu.el_selector.val(_this.val());
 	    // el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
 	});
-	context_menu.relativeTopBottom = $('#positionRelativeTopBottom');//敢えてstopPropagationしない
-	context_menu.relativeTopBottomValue = $('#positionRelativeTopBottomValue');
-	context_menu.relativeLeftRight = $('#positionRelativeLeftRight');
-	context_menu.relativeLeftRightValue = $('#positionRelativeLeftRightValue');
     })();
 
     // operator
     function sizeFuncSupplier(css, func){
-	return function(model, op_val, candidate){
+	return function(model, org_val, candidate){
+	    var op_val = $.isNumeric(org_val) ? org_val+'px':org_val;
 	    if(arguments.length >= 3){
 		var target = candidate;
 	    }else{
 		target = model;
 	    }
-	    target.css(css, func+op_val); 
+	    var val = func === undefined || func == null || func === '' ? op_val+'px' : func+op_val;
+	    target.css(css, val); 
 	};
     }
 
     var counter_css = {"top":"bottom", "bottom":"top", "left":"right", "right":"left"};
     var counter_operator = {"+=":"-=", "-=":"+="};
     function positionFuncSupplier(css, func){
-	return function(model, op_val, candidate){
+	return function(model, org_val, candidate){
+	    var op_val = $.isNumeric(org_val) ? org_val+'px':org_val;
 	    if(arguments.length >= 3){
 		var target = candidate;
 	    }else{
 		target = model;
 	    }
 	    
-	    var counter_part_css = counter_css[css];
-	    var part = target.css(css);
+	    var css_parts = target.data('my-org-prop_s').style.trim().split(';');
+	    var part;
+	    css_parts.forEach(function(x,i,a){
+		if(x.startsWith(css)){
+		    part = x.split(':')[1].trim();
+		    return false;
+		}
+	    });
 	    if(isEmpty(part) || part === 'auto'){
+		var counter_part_css = counter_css[css];
 		var counter_part = target.css(counter_part_css);
 		if(isEmpty(counter_part) || counter_part === 'auto' ){return '';}
 		target.css(counter_part_css, counter_operator[func]+op_val);
+
+	    }else{
+		target.css(css, func+op_val);
 	    }
-	    target.css(css, func+op_val);
 	};
     }
     function cssFuncSupplier(css, func){
 	return function(original, op_val, target){
 	    if(arguments.length === 3){
-		update_prop(target, {"style":css+":"+original.css(css)+";"}); 
+		target.css(css, func+op_val);
 	    }else if(arguments.length === 2){
 		original.css(css, func+op_val);
 	    }
 	};
     }
+
+    function rotateFuncSupplier(css, func){
+	return function(original, op_val, selected){
+	    var target;
+	    if(arguments.length >= 3){
+		target = selected;
+	    }else if(arguments.length === 2){
+		target = original;
+	    }
+	    if(target.data(css) === undefined){
+		target.data(css, 0);
+	    }
+	    target.data(css, reverse_porlish_notation( parseInt(target.data(css), 10) +' '+ parseInt(op_val, 10)+' '+func)) ;
+	    target.css('transform', css+'('+target.data(css)+'deg)');
+	};
+    }    
 
     el_operate_option.on(MY_CHANGE,function(){
 	el_operate_option.data("now_type", oprt_type[el_operate_option.val()]);
@@ -409,6 +447,40 @@ $(function(){
 		cssFunc(el_oprt_model, op_val, el_now_selected[key]);
 	    }
 	});
+    });
+
+    var els_borderRadiusX = $('.borderRadiusX');
+    var els_borderRadiusY = $('.borderRadiusY');
+    var els_borderRadius = $('.borderRadius').on(MY_CHANGE+' '+MY_CLICK,function(){
+	var brCss = '';
+	els_borderRadiusX.each(function(){
+	    var _this = $(this);
+	    brCss += _this.val()+'px ';
+	});
+	brCss +='/';
+	els_borderRadiusY.each(function(){
+	    var _this = $(this);
+	    brCss += _this.val()+'px ';
+	});
+	var cssFunc = cssFuncSupplier('border-radius', '');
+	if(cssFunc === undefined ){return;}
+	cssFunc(el_oprt_model, brCss);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    cssFunc(el_oprt_model, brCss, el_now_selected[key]);
+	}
+    });
+
+    var els_boxDesign = $('.boxDesign').on(MY_CHANGE+' '+MY_CLICK,function(){
+	var _this = $(this);
+	var cmd = _this.attr('id');
+	var cssFunc = cssFuncSupplier(cmd, '');
+	if(cssFunc === undefined ){return;}
+	var op_val = _this.val();
+	op_val = $.isNumeric(op_val) ? op_val+'px':op_val;
+	cssFunc(el_oprt_model, op_val);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    cssFunc(el_oprt_model, op_val, el_now_selected[key]);
+	}
     });
 
     function create_page(name, width, height){
@@ -919,31 +991,36 @@ $(function(){
 		    preserve_destroied(_this);
 		});
     });
-    el_func_s.positionRelative.on(MY_CLICK, function(){
+    
+    var relativeTopBottom = $('#positionRelativeTopBottom');//敢えてstopPropagationしない
+    var relativeTopBottomValue = $('#positionRelativeTopBottomValue');
+    var relativeLeftRight = $('#positionRelativeLeftRight');
+    var relativeLeftRightValue = $('#positionRelativeLeftRightValue');
+    $('.positionRelative > *').on(MY_CLICK+' '+MY_KEYUP, function(){
 	var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen);
 	NOW_SELECTED.each(function(){
 	    var _this = $(this);
 	    var position = {};
-	    var tb = context_menu.relativeTopBottom.val();
+	    var tb = relativeTopBottom.val();
 	    if(tb === 'center'){
 		position['top'] = 0;
 		position['bottom'] = 0;
 		position['margin'] = 'auto';
-		context_menu.relativeTopBottomValue.val(0);
+		relativeTopBottomValue.val(0);
 	    }else{
 		var bt = tb === 'top' ? 'bottom' : 'top';
-		position[tb] = context_menu.relativeTopBottomValue.val();
+		position[tb] = relativeTopBottomValue.val();
 		position[bt] = 'auto';
 	    }
-	    var lr = context_menu.relativeLeftRight.val();
+	    var lr = relativeLeftRight.val();
 	    if(lr === 'center'){
 		position['left'] = 0;
 		position['right'] = 0;
 		position['margin'] = 'auto';
-		context_menu.relativeLeftRightValue.val(0);
+		relativeLeftRightValue.val(0);
 	    }else{
 		var rl = lr === 'left' ? 'right' : 'left';
-		position[lr] = context_menu.relativeLeftRightValue.val();
+		position[lr] = relativeLeftRightValue.val();
 		position[rl] = 'auto';				
 	    }
 
@@ -1473,6 +1550,9 @@ $(function(){
 	return [input_tag,param_s];
     }
 
+    /**
+     * @return {tag:, id:, }
+     */
     function analisys_css_selector(input_tag){
 	input_tag = input_tag.trim();
 	var length_input_tag = input_tag.length - 1;
@@ -1517,6 +1597,9 @@ $(function(){
 	return {"tag":tag,"id":tmp_id, "class":tmp_cl_s,"attr":tmp_attr_s};
     }
 
+    /**
+     * @return
+     */
     function extract_css_selector(input_tag, prop_map){
 	var analized_result = analisys_css_selector(input_tag);
 	var cls_s = analized_result['class'];
@@ -2308,18 +2391,18 @@ $(function(){
 		}
 	    });
 	    if(position['top'] !== 'auto'){
-		context_menu.relativeTopBottom.val('top');
-		context_menu.relativeTopBottomValue.val( position['top']);
+		relativeTopBottom.val('top');
+		relativeTopBottomValue.val( position['top']);
 	    }else{
-		context_menu.relativeTopBottom.val('bottom');
-		context_menu.relativeTopBottomValue.val( position['bottom']);
+		relativeTopBottom.val('bottom');
+		relativeTopBottomValue.val( position['bottom']);
 	    }
 	    if(position['left'] !== 'auto'){
-		context_menu.relativeLeftRight.val('left');
-		context_menu.relativeLeftRightValue.val( position['left']);
+		relativeLeftRight.val('left');
+		relativeLeftRightValue.val( position['left']);
 	    }else{
-		context_menu.relativeLeftRight.val('right');
-		context_menu.relativeLeftRightValue.val( position['right']);
+		relativeLeftRight.val('right');
+		relativeLeftRightValue.val( position['right']);
 	    }
 
 	    //parent_list
@@ -3105,7 +3188,12 @@ $(function(){
 	}
     }
     function reverse_porlish_notation(formula, _param_s){
-	var param_s = orDefault(_param_s, {});
+	var param_s;
+	if(arguments.length < 2){
+	    param_s = {};
+	}else{
+	    param_s = orDefault(_param_s, {});
+	}
 	return reverse_porlish_notation_logic(formula, param_s, {})[0];
     }
     function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
