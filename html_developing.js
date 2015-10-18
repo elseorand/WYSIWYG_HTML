@@ -1,7 +1,13 @@
 $(function(){
     /**TODO
+     * color editor
+     * thumbnail (transform:scale)
      * undo / redo (style)
+     * shadow
+     * css tree eg text-align  => left center right
      * parse Real HTML
+     * parse some html template
+     * SVG reinforcing
      * scalatest seleniumのコードの生成
      * autocomplete
      * Append Func supports char
@@ -9,6 +15,7 @@ $(function(){
      * psuedo link
      * split window => iframe support
      * Edit supports ordinary wysiwyg html editors
+     * rotate3d
      */
     /**DONE
      * grid 
@@ -136,6 +143,20 @@ $(function(){
     var el_del_val_tag = $('#delValTag', el_basic_menu).on(MY_CLICK, function(){
 	el_val_tag.val('');
     });
+
+    var el_repeatTimes = $('#repeatTimes');
+    var el_repeatTimesBtn = $('#repeatTimesBtn').on(MY_CLICK,function(){
+	var nowTagVal = el_val_tag.val();
+	var lastTagVal = nowTagVal.split('>').pop().split('+').pop();
+	var lastIndex = lastTagVal.indexOf('*');
+	var repeatTimes = el_repeatTimes.val();
+	repeatTimes = repeatTimes === '0' ? '?' : repeatTimes;
+	if(lastIndex < 0){
+	    el_val_tag.val(nowTagVal + '*' + repeatTimes);
+	}else{
+	    el_val_tag.val(nowTagVal.slice(0, lastIndex - lastTagVal.length) + '*' + repeatTimes);
+	}
+    });
     var el_val_array_json = $('#ValArrayJSON', el_basic_menu);
     var el_del_val_array_json = $('#delValArrayJSON', el_basic_menu).on(MY_CLICK, function(){
 	el_val_array_json.val('');
@@ -235,29 +256,55 @@ $(function(){
 	    els_colorEdit.trigger(MY_CHANGE);
 	}
     });
-    var els_colorEdit = $('.colorEdit').on(MY_CHANGE+' '+MY_KEYUP+' '+MY_CLICK, function(){
+    var el_colors = {};
+    var els_colorEdit;
+    var el_color16Display = $('#color16Display');
+    var el_color16 = $('#color16').on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP,function(){
 	var _this = $(this);
-	var id = _this.attr('id');
-	var val = _this.val();
-	if(id === 'red'){
-	    _this.next().css('background-color', 'rgba('+val+',0,0,1)');
-	}else if(id === 'green'){
-	    _this.next().css('background-color', 'rgba(0,'+val+',0,1)');
-	}else if(id === 'blue'){
-	    _this.next().css('background-color', 'rgba(0,0,'+val+',1)');	    
+	var colorHex = _this.val();
+	if(colorHex.length === 6){
+	    var colors = ['red', 'green', 'blue'];
+	    colorHex2Decimals(colorHex).forEach(function(x,i,a){
+		el_colors[colors[i]].val(parseInt(x, 10));
+	    });
+	    el_color16Display.css('background-color', '#'+colorHex);
+	    els_colorEdit.trigger(MY_CHANGE);
 	}
-	el_oprt_model
-	    .data('bgc-'+id, val);
-	var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
-	newBgColor = {"style":el_operate_color_option.val() + ':'+ newBgColor+';'};
-	update_prop(el_oprt_model, newBgColor);
-	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
-	    update_prop(el_now_selected[key], newBgColor);
-	}
-    }).each(function(){
-	var _this = $(this);
-	_this.trigger(MY_CHANGE);
+    }).on('colorChangeOnly', function(){
+	el_color16Display.css('background-color', '#'+$(this).val());
     });
+    els_colorEdit = $('.colorEdit')
+	.each(function(){
+	    var _this = $(this);
+	    el_colors[_this.attr('id')] = _this;
+	}).on(MY_CHANGE+' '+MY_KEYUP+' '+MY_CLICK, function(){
+	    var _this = $(this);
+	    var id = _this.attr('id');
+	    var val = _this.val();
+	    if(id === 'red'){
+		_this.next().css('background-color', 'rgba('+val+',0,0,1)');
+	    }else if(id === 'green'){
+		_this.next().css('background-color', 'rgba(0,'+val+',0,1)');
+	    }else if(id === 'blue'){
+		_this.next().css('background-color', 'rgba(0,0,'+val+',1)');	    
+	    }
+	    el_oprt_model
+		.data('bgc-'+id, val);
+	    var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
+	    newBgColor = {"style":el_operate_color_option.val() + ':'+ newBgColor+';'};
+	    update_prop(el_oprt_model, newBgColor);
+	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+		update_prop(el_now_selected[key], newBgColor);
+	    }
+	    
+	    var c16 = parseInt(el_colors['blue'].val(), 10).toString(16);
+	    c16 = c16.length === 1 ? '0'+c16:c16;
+	    c16 = parseInt(el_colors['green'].val(), 10).toString(16)+c16;
+	    c16 = c16.length === 3 ? '0'+c16:c16;
+	    c16 = parseInt(el_colors['red'].val(), 10).toString(16)+c16;
+	    c16 = c16.length === 5 ? '0'+c16:c16;	
+	    el_color16.val(c16).trigger('colorChangeOnly');
+	}).trigger(MY_CHANGE);
 
     // context menu
     var context_menu = $('#context_menu');
@@ -884,6 +931,7 @@ $(function(){
     });
 
     el_func_s.modelCssReset.on(MY_CLICK, function(){
+	$(els_boxDesign).filter('input').val(0);
 	el_oprt_model.attr('style', el_oprt_model.data('my-default-prop_s'));
 	update_prop(el_oprt_model, el_oprt_model.data('my-default-prop_s'));
     });
@@ -1064,7 +1112,7 @@ $(function(){
 	}
     });
 
-    el_history.on(MY_CHANGE,function(){
+    el_history.on(MY_CHANGE+' '+MY_CLICK,function(){
 	var _this = myWrapElement(this);
 	var saved = MY_STORAGE.select('save_s');
 	if(saved != null){
@@ -3298,5 +3346,17 @@ $(function(){
 
     function isEmpty(val){
 	return typeof val === 'undefined' || val == null || val === '';
+    }
+
+    function colorHex2Decimals(hex){
+	if(arguments.length < 1 || hex == null){
+	    return [0, 0, 0];
+	}
+	var result = [];
+	while(hex.length >= 2){
+	    result.push(parseInt(hex.substring(0, 2), 16));
+	    hex = hex.substring(2);
+	}
+	return result;
     }
 });
