@@ -137,6 +137,9 @@
       #basic_menu input[type=number]{
         text-align:center;
       }
+      #gradPalette > div{
+        clear:both;
+      }
 		</style>
 		<style id="MyEditableStyle" type="text/css" >
 			* {
@@ -222,7 +225,7 @@
 			<ol id="context_menu"></ol>
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:101;width:480px;height:1000px; border-radius:20px;overflow:auto;" >
-			<section id="basic_menu_operator" style="position:relative;left:0px;">
+			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:100%;background-color:white;">
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
 			</section>
@@ -327,7 +330,7 @@
         </section>
       </div>
       <hr/>
-      <div>
+      <div style="float:left;">
         <span class="openCloseTrigger">Color</span><br/>
         <section id="operate_menu" class="openCloseTarget" style="height:10em;" >
           <section style="height:3em;float:left;">
@@ -345,16 +348,25 @@
               <label for="alpha">a</label>
               <input id="alpha" class="colorEdit" type="number" value="1" max="1" min="0" step="0.1" style="width:3em;" />
               <input id="transparent" class="" type="checkbox" value="true" style="position:relative;left:-3px;" /><label for="transparent" style="position:relative;left:-6px;">TP</label><br/>
-              <label for="color16">Hex</label>
-              <input id="color16" type="text" maxlength="6" value="" style="width:3em;height:1em;margin-left:-8px;"/>
-              <span id="color16Display" style="padding:4px 0px 4px;em;margin-left:-6px;;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+              <div>
+                <label for="color16" style="float:left;margin-top:6px;">Hex</label>
+                <input id="color16" type="text" maxlength="6" value="" style="float:left;width:3em;height:1em;margin-left:2px;margin-right:2px;"/>
+                  <div id="color16Display" style="float:left;margin:2px;width:2em;height:2em;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+              </div>
             </section>
           </section>
+          <section style="height:3em;float:left;margin-left:4px;">
+            <span>Mono</span><input id="delColor" type="button" value="del"/>
+            <section id="colorPalette" class="palette" style="overflow-y:auto;width:8em;height:7.5em;border:1px dotted black;margin-top:2px;"></section>
+          </section>
+          <section style="height:3em;float:left;margin-left:4px;">
+            <span>Grad</span><input id="delColor" type="button" value="del"/>
+            <section id="gradPalette" class="palette" style="overflow-y:auto;width:8em;height:7.5em;border:1px dotted black;margin-top:2px;"></section>
+          </section>          
         </section>
       </div>
-      
-      <hr />
-      <div>
+      <hr style="clear:both;" />
+      <div >
 			  <span class="openCloseTrigger">Tag Preset</span><br>
         <div class="openCloseTarget">
           <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
@@ -397,7 +409,7 @@
       </div>
 		</section>
     <section id="css_test_model" class="menu_bar float_menu" style="position:absolute; top:50px;right:500px;z-index:101;width:280px;height:160px; border-radius-x:20px;overflow:hidden;">
-      <div id="oprt_model" style="position:absolute;bottom:3em;top:auto;right:auto;left:5em;width:120px;height:80px;border:1px solid black;"></di-yv>
+      <div id="oprt_model" class="menuHandler" style="position:absolute;bottom:3em;top:auto;right:auto;left:5em;width:120px;height:80px;border:1px solid black;"></div>
     </section>
     
 		<footer style="position:fixed; bottom:0px;z-index:100;">

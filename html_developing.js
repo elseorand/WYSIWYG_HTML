@@ -5,6 +5,7 @@ $(function(){
      * undo / redo (style)
      * shadow
      * css tree eg text-align  => left center right
+     * wizard, easy menu
      * parse Real HTML
      * parse some html template
      * SVG reinforcing
@@ -28,7 +29,6 @@ $(function(){
      * insert element
      * position fix,left,bottom,top,right
      * undo / redo (dimension)
-     * wizard, easy menu
      * dot by dot move
      */
     var FUNC_ID = "HtmlDeveloping";
@@ -178,7 +178,7 @@ $(function(){
     var el_sandbox_style_screen_area = $('#sandbox_style', el_basic_menu);
     var el_saved_serialized = $('#saved_serialized', el_header_menu_bar);
     var el_sandbox_hidden = $('#sandbox_hidden', el_header_menu_bar);
-    var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable();
+    var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable({"handle":".menuHandler"});
     var el_history = $('#history');
     var el_sandbox_screen =  $('#sandbox_screen');
     var el_func_new_page_element = $('#func_new_page_element').on(MY_CLICK, function(){
@@ -258,7 +258,9 @@ $(function(){
     });
     var el_colors = {};
     var els_colorEdit;
-    var el_color16Display = $('#color16Display');
+    var el_gradPalette = $('#gradPalette').sortable({"revert":true, "placeholder":".objCopy"});
+    var el_colorPalette = $('#colorPalette').sortable({"revert":true, "placeholder":".objCopy"});
+    var el_color16Display = $('#color16Display').draggable({"helper":"clone", "connectToSortable":".palette", "revert":"invalid"});
     var el_color16 = $('#color16').on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP,function(){
 	var _this = $(this);
 	var colorHex = _this.val();
