@@ -1,9 +1,11 @@
 $(function(){
     /**TODO
-     * color editor
+     * sync BOX Model inputs
+     * text-align
+     * font-size
      * thumbnail (transform:scale)
      * undo / redo (style)
-     * shadow
+     * customizable key binding
      * css tree eg text-align  => left center right
      * wizard, easy menu
      * parse Real HTML
@@ -14,6 +16,7 @@ $(function(){
      * Append Func supports char
      * save biz obj arr
      * psuedo link
+     * table cell concat
      * split window => iframe support
      * Edit supports ordinary wysiwyg html editors
      * rotate3d
@@ -30,6 +33,8 @@ $(function(){
      * position fix,left,bottom,top,right
      * undo / redo (dimension)
      * dot by dot move
+     * color editor
+     * shadow box text
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -224,14 +229,26 @@ $(function(){
     var oprt_type = {
 	"size":{"l":sizeFuncSupplier("width", "-="), "u":sizeFuncSupplier("height", "+="), "r":sizeFuncSupplier("width", "+="), "d":sizeFuncSupplier("height", "-=")}, 
 	"position":{"l":positionFuncSupplier('left', '-='), "u":positionFuncSupplier('top', '-='), "r":positionFuncSupplier('left', '+='), "d":positionFuncSupplier('top', '+=')},
-	"rotateXY":{"l":rotateFuncSupplier('rotateY', '-'), "u":rotateFuncSupplier('rotateX', '+'), "r":rotateFuncSupplier('rotateY', '+'), "d":rotateFuncSupplier('rotateX', '-')}, 
-	"rotateZ":{"l":rotateFuncSupplier('rotate', '-'), "u":rotateFuncSupplier('rotateZ', '-'), "r":rotateFuncSupplier('rotate', '+'), "d":rotateFuncSupplier('rotateZ', '+')}	
+	"rotateXY":{"l":transformFuncSupplier('rotateY', '-'), "u":transformFuncSupplier('rotateX', '+'), "r":transformFuncSupplier('rotateY', '+'), "d":transformFuncSupplier('rotateX', '-')}, 
+	"rotateZ":{"l":transformFuncSupplier('rotate', '-'), "u":transformFuncSupplier('rotateZ', '-'), "r":transformFuncSupplier('rotate', '+'), "d":transformFuncSupplier('rotateZ', '+')}	
     };
     var els_openCloseTrigger = $('.openCloseTrigger').on(MY_CLICK,function(){
 	var _this = $(this);
 	_this.siblings('.openCloseTarget').toggleClass('displayNone');
     });//.trigger(MY_CLICK);
-
+    //Box Model
+    var el_transform_scale = $('#transform_scale').on(MY_CLICK+' '+MY_KEYUP, function(){
+	var _this = $(this);
+	var scaleVal = _this.val();
+	var cssFunc = transformFuncSupplier('scale');
+	cssFunc(el_oprt_model, scaleVal);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    cssFunc(el_oprt_model, scaleVal, el_now_selected[key]);
+	}
+    });
+    var els_boxShadow = $('.box-shadow');
+    var els_textShadow = $('.text-shadow');
+    var els_box_xyz = {};
     var els_xyz = $('.xyz').on(MY_CLICK+' '+MY_CHANGE, function(){
 	var _this = $(this);
 	var css = _this.attr('id');
@@ -241,10 +258,41 @@ $(function(){
 	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
 	    el_now_selected[key].css(css, cssVal);
 	}
-	
+    }).on('myInit', function(){
+	var _this = $(this);
+	var css = _this.attr('id');
+	els_box_xyz[css] = _this;
+    }).trigger('myInit');
+
+    els_boxShadow.on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP, function(){
+	var boxShadow = [];
+	els_boxShadow.each(function(){
+	    var _this = $(this);
+	    boxShadow.push(_this.val()+'px');
+	});
+	var cssVal = boxShadow.join(' ')+' black';
+	el_oprt_model.css('box-shadow', cssVal);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    el_now_selected[key].css('box-shadow', cssVal);
+	}
+    });
+    els_textShadow.on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP, function(){
+	var textShadow = [];
+	els_textShadow.each(function(){
+	    var _this = $(this);
+	    textShadow.push(_this.val()+'px');
+	});
+	var cssVal = textShadow.join(' ')+' black';
+	el_oprt_model.css('text-shadow', cssVal);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    el_now_selected[key].css('text-shadow', cssVal);
+	}
     });
 
-    // color edit
+
+    // Color edit
+    var el_colors = {};
+    var els_colorEdit;
     var el_operate_color_option = $('#operate_color_option');
     var el_transparent = $('#transparent').on(MY_CHANGE, function(){
 	if(el_transparent.prop('checked')){
@@ -256,25 +304,142 @@ $(function(){
 	    els_colorEdit.trigger(MY_CHANGE);
 	}
     });
-    var el_colors = {};
-    var els_colorEdit;
-    var el_gradPalette = $('#gradPalette').sortable({"revert":true, "placeholder":".objCopy"});
-    var el_colorPalette = $('#colorPalette').sortable({"revert":true, "placeholder":".objCopy"});
+
+    function extractColor(){
+	var _this = $(this);
+	var colorExp = _this.css('background-color').trim();
+	var colorRgba = _this.css('background').trim();
+	if(colorExp.startsWith('#')){
+	    colorExp = colorExp.substring(1);
+	}else if(colorExp.startsWith('rgb(')){
+	    colorExp = colorExp.slice('rgb('.length, -1).split(',').map(function(x,i,a){
+		return parseFloat(x.trim(), 10);
+	    });
+	    colorExp.push(1);
+	    els_colorEdit.each(function(idx){
+		$(this).val(colorExp[idx]);
+	    });
+	}else if(colorExp.startsWith('rgba(')){
+	    colorExp = colorExp.slice('rgba('.length, -1).split(',').map(function(x,i,a){
+		return parseFloat(x.trim(), 10);
+	    });
+	    els_colorEdit.each(function(idx){
+		$(this).val(colorExp[idx]);
+	    });
+	}else{
+	    return ;
+	}
+	el_color16.val(colorExp.splice(0, 3).map(function(obj){
+	    var color = obj.toString(16);
+	    return color.length === 1 ? '0'+color : color;
+	}).join('')).trigger(MY_CHANGE);
+    }
+    var el_trashPalette = $('#trashPalette').sortable({"revert":true, "delay":300, "connectWith":".palette", "receive":function(){
+	var kept = [];
+	var newTrashColor;
+	$(' > div', this).each(function(){
+	    var _this = $(this);
+	    if(_this.hasClass('newColor')){
+		_this.remove();
+		return true;
+	    }else if(_this.hasClass('monoColor')){
+		newTrashColor = _this.css('background-color');
+		_this.removeClass('monoColor');
+	    }
+	    kept.push(_this);
+	});
+	$(' > div', el_colorPalette).each(function(){
+	    var _this = $(this);
+	    if(_this.css('background-color') === newTrashColor){
+		_this.remove();
+	    }
+	});
+	if(kept.length > 3){
+	    kept[0].remove();
+	}
+    }}).on(MY_CLICK, 'div', extractColor);
+
+    var el_gradPalette = $('#gradPalette').sortable({"revert":true, "connectWith":"#colorPalette", "placeholder":".objCopy", "delay":300})
+	    .trigger('initColor');
+    var el_colorPalette = $('#colorPalette').sortable({"helper":"clone","revert":true, "connectWith":"#trashPalette",  "placeholder":".objCopy", "delay": 300, "receive":function(){
+	var thisPalette = $(this);
+	var removing = [];
+	var hasColors = {};
+	$(' > div', el_colorPalette).each(function(){
+	    var _this = $(this);
+	    var color = _this.css('background-color');
+	    if(hasColors.hasOwnProperty(color)){
+		removing.push(_this);
+	    }else{
+		hasColors[color] = true;
+	    }
+	});
+	removing.forEach(function(x,i,a){
+	    x.remove();
+	});
+	var save = [];
+	$(' > div', el_colorPalette).each(function(){
+	    var _this = $(this);
+	    var myColor = _this.css('background-color');
+	    _this.remove();
+	    $('<div class="colorObj monoColor">')
+		.draggable({"helper":"clone","connectToSortable":".palette", "revert":"invalid"})
+		.css({"float":"left", "margin": "1px", "width":"32px", "height":"32px", "background-color":"rgb("+myColor+")", "right":"auto", "bottom":"auto"})
+		.html('&nbsp;&nbsp;&nbsp;&nbsp;').appendTo(thisPalette);
+	    _this.removeClass('newColor');
+	    save.push(myColor);
+	});
+	MY_STORAGE.transaction()
+	    .replace('monoColors', save)
+	    .commit();
+    }})
+	    .on(MY_CLICK, 'div', extractColor)
+	    .on('initColor', function(){
+		var _this = $(this);
+		var monoColors = MY_STORAGE.select('monoColors');
+		if(isEmpty(monoColors)){
+		    monoColors = ["255,255,255,1", "255,0,0,1", "0,255,0,1", "0,0,255,1", "0,0,0,1",];
+		}
+		monoColors.forEach(function(x,i,a){
+		    $('<div class="colorObj monoColor">')
+			.draggable({"helper":"clone","connectToSortable":".palette", "revert":"invalid"})
+			.css({"float":"left", "margin": "1px", "width":"32px", "height":"32px", "background-color":"rgba("+x+")", "right":"auto", "bottom":"auto"})
+			.html('&nbsp;&nbsp;&nbsp;&nbsp;').appendTo(_this);
+		});
+
+	    })
+	    .trigger('initColor');
+
     var el_color16Display = $('#color16Display').draggable({"helper":"clone", "connectToSortable":".palette", "revert":"invalid"});
     var el_color16 = $('#color16').on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP,function(){
 	var _this = $(this);
 	var colorHex = _this.val();
 	if(colorHex.length === 6){
 	    var colors = ['red', 'green', 'blue'];
+	    var forDisplay = [];
 	    colorHex2Decimals(colorHex).forEach(function(x,i,a){
-		el_colors[colors[i]].val(parseInt(x, 10));
+		var clr = parseInt(x, 10);
+		el_colors[colors[i]].val(clr);
+		forDisplay.push(clr) ;
 	    });
-	    el_color16Display.css('background-color', '#'+colorHex);
+	    forDisplay.push(el_alpha.val());
+	    el_color16Display.css('background-color', 'rgba('+forDisplay.join(',')+')');
 	    els_colorEdit.trigger(MY_CHANGE);
 	}
     }).on('colorChangeOnly', function(){
-	el_color16Display.css('background-color', '#'+$(this).val());
+	var _this = $(this);
+	var colors = ['red', 'green', 'blue'];
+	var forDisplay = [];
+	var colorHex = _this.val();
+	colorHex2Decimals(colorHex).forEach(function(x,i,a){
+	    var clr = parseInt(x, 10);
+	    el_colors[colors[i]].val(clr);
+	    forDisplay.push(clr) ;
+	});
+	forDisplay.push(el_alpha.val());
+	el_color16Display.css('background-color', 'rgba('+forDisplay.join(',')+')');
     });
+    var el_alpha = $('#alpha');
     els_colorEdit = $('.colorEdit')
 	.each(function(){
 	    var _this = $(this);
@@ -293,7 +458,26 @@ $(function(){
 	    el_oprt_model
 		.data('bgc-'+id, val);
 	    var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
-	    newBgColor = {"style":el_operate_color_option.val() + ':'+ newBgColor+';'};
+	    var css = el_operate_color_option.val();
+	    if(css.startsWith('background')){
+		newBgColor = {"style":css + ':'+ newBgColor+';background:;'};		
+	    }else if(css === 'box-shadow'){//TODO same impl
+		var coord = [];
+		els_boxShadow.each(function(){
+		    var _this = $(this);
+		    coord.push(_this.val()+'px ');
+		});
+		newBgColor = {"style":css + ':'+ coord.join('')+newBgColor+';'};
+	    }else if(css === 'text-shadow'){
+		coord = [];
+		els_textShadow.each(function(){
+		    var _this = $(this);
+		    coord.push(_this.val()+'px ');
+		});
+		newBgColor = {"style":css + ':'+ coord.join('')+newBgColor+';'};		
+	    }else{
+		newBgColor = {"style":css + ':'+ newBgColor+';'};		
+	    }
 	    update_prop(el_oprt_model, newBgColor);
 	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
 		update_prop(el_now_selected[key], newBgColor);
@@ -307,6 +491,75 @@ $(function(){
 	    c16 = c16.length === 5 ? '0'+c16:c16;	
 	    el_color16.val(c16).trigger('colorChangeOnly');
 	}).trigger(MY_CHANGE);
+
+    // Grad
+    var el_delGrad = $('#delGrad').on(MY_CLICK, function(){
+	$('.gradSelected', el_colorGrads).remove();
+	var save = [];
+	$('.gradColor', el_colorGrads).each(function(){
+	    var _this = $(this);
+	    save.push(_this.data('originalGradColor'));
+	});
+	MY_STORAGE.transaction()
+	    .replace('gradColors', save)
+	    .commit();
+    });
+    //TODO selectable
+    var el_colorGrads = $('#colorGrads').on(MY_CLICK,'.gradColor',function(){
+	var _this = $(this);
+	_this.toggleClass('gradSelected');
+	var newBgColor = {"style":'background:'+analysisCss(_this.attr('style'))['background']+';'};
+	update_prop(el_oprt_model, newBgColor);
+	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+	    update_prop(el_now_selected[key], newBgColor);
+	}
+	var colorStr = _this.data('originalGradColor');
+	var split = split_ignore_nest(colorStr.slice('linear-gradiend('.length, -1),',',[["(",")"]]).map(function(obj){
+			return obj.trim();//remove ,
+		    });
+	// analysis, redisplay
+	var direct = split[0].trim();
+	var colors = split;//spliceだとside effectの所為でdataが壊れる
+	if(direct.endsWith('deg')){direct = direct.slice(0, -'deg'.length);}
+	$('.monoColor', el_gradPalette).remove();
+	colors.forEach(function(myColor,i,a){
+	    if(i === 0){return;}
+	    $('<div class="colorObj monoColor">')
+		.draggable({"connectToSortable":".palette", "revert":"invalid"})
+		.css({"float":"left", "margin": "1px", "width":"32px", "height":"32px", "background-color":"rgb("+myColor+")", "right":"auto", "bottom":"auto"})
+		.html('&nbsp;&nbsp;&nbsp;&nbsp;').appendTo(el_gradPalette);
+	});
+	el_directionGrad.val(direct);
+    })
+	    .on('initGradColor', function(){
+		var _this = $(this);
+		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
+		    if(colorStr == null || colorStr === ''){return true;}
+		    $('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(_this);//TODO dupe code
+		});
+	    }).trigger('initGradColor');
+    var el_directionGrad = $('#directionGrad');
+    var el_addGrad = $('#addGrad').on(MY_CLICK,function(){
+	var colors = $(' > div', el_gradPalette);
+	var save = MY_STORAGE.select('gradColors');
+	if(colors.length >= 2){
+	    var arrayColor = [];
+	    colors.each(function(){
+		var _this = $(this);
+		arrayColor.push(_this.css('background-color'));
+	    });
+	    var colorStr = "linear-gradient("+el_directionGrad.val()+"deg, "+arrayColor.join(',')+")";
+	    save.push(colorStr);
+	    $('<div class="gradColor">').css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(el_colorGrads);//TODO dupe code	    
+	}
+	colors.each(function(){
+	    var _this = $(this);
+	    save.push(_this.css('background'));
+	});
+	MY_STORAGE.transaction()
+	    .replace('gradColors', save)
+	    .commit();
+    });
 
     // context menu
     var context_menu = $('#context_menu');
@@ -420,7 +673,8 @@ $(function(){
 		target = model;
 	    }
 	    var val = func === undefined || func == null || func === '' ? op_val+'px' : func+op_val;
-	    target.css(css, val); 
+	    target.css(css, val);
+	    els_box_xyz[css].val(parseInt(target.css(css), 10));
 	};
     }
 
@@ -464,7 +718,7 @@ $(function(){
 	};
     }
 
-    function rotateFuncSupplier(css, func){
+    function transformFuncSupplier(css, func){
 	return function(original, op_val, selected){
 	    var target;
 	    if(arguments.length >= 3){
@@ -472,11 +726,31 @@ $(function(){
 	    }else if(arguments.length === 2){
 		target = original;
 	    }
-	    if(target.data(css) === undefined){
-		target.data(css, 0);
+	    if(target.data('transform') === undefined){
+		var emptyObj = {};
+		emptyObj[css] = 0;
+		target.data('transform', emptyObj);
 	    }
-	    target.data(css, reverse_porlish_notation( parseInt(target.data(css), 10) +' '+ parseInt(op_val, 10)+' '+func)) ;
-	    target.css('transform', css+'('+target.data(css)+'deg)');
+	    var cssObj = target.data('transform');
+	    if(cssObj[css] === undefined){
+		cssObj[css] = 0;
+	    }
+	    if(css.startsWith('scale')){
+		cssObj[css] = op_val;
+	    }else {
+		cssObj[css] = reverse_porlish_notation( parseInt(cssObj[css], 10) +' '+ parseInt(op_val, 10)+' '+func);
+	    }
+	    target.data('transform', cssObj);
+	    
+	    var newCss = '';
+	    for(var key in cssObj) if(cssObj.hasOwnProperty(key)){
+		if(key.startsWith('rotate')){
+		    newCss += key+'('+cssObj[key]+'deg) ';
+		}else{
+		    newCss += key+'('+cssObj[key]+') ';
+		}
+	    }
+	    target.css('transform', newCss);
 	};
     }    
 
@@ -519,7 +793,7 @@ $(function(){
 	}
     });
 
-    var els_boxDesign = $('.boxDesign').on(MY_CHANGE+' '+MY_CLICK,function(){
+    var els_boxDesign = $('.boxDesign').on(MY_CLICK,function(){
 	var _this = $(this);
 	var cmd = _this.attr('id');
 	var cssFunc = cssFuncSupplier(cmd, '');
@@ -857,7 +1131,6 @@ $(function(){
 	var len_parsed = parsed.length;
 	el_sandbox_hidden.empty();
 	for(var i=0; i < len_parsed; ++i){
-	    console.log('parsed : ' + JSON.stringify(parsed[i]));
 	    display_onscreen('appendTo', el_sandbox_hidden, parsed[i]);
 	}
 
@@ -920,7 +1193,7 @@ $(function(){
 	.trigger(MY_INIT);
 
     el_func_s.modelCssApply.on(MY_CLICK, function(){
-	var apply_css = ["width", "height", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width"];
+	var apply_css = ["width", "height", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width", "transform", "border-radius", "text-shadow", "box-shadow"];//XXX
 	var apply_style = '';
 	apply_css.forEach(function(css,i,a){
 	    var temp = el_oprt_model.css(css);
@@ -932,12 +1205,14 @@ $(function(){
 	};
     });
 
+    var el_for_padding = $('#for_padding');
     el_func_s.modelCssReset.on(MY_CLICK, function(){
-	$(els_boxDesign).filter('input').val(0);
+	$('input', el_for_padding).val(0);
 	el_oprt_model.attr('style', el_oprt_model.data('my-default-prop_s'));
+	el_oprt_model.attr('transform', {});
 	update_prop(el_oprt_model, el_oprt_model.data('my-default-prop_s'));
     });
-    
+
     el_func_s.delete.on(MY_CLICK, function(){
 	//	mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
 	var in_target_css = CLASS_SELECTED;
@@ -2049,7 +2324,6 @@ $(function(){
 		    if( default_val_s.hasOwnProperty(require)){
 			prop_s[require] = default_val_s[require];
 		    }else{
-			console.log("This "+tag+" tag requires a "+require+" prop.");
 			throw new Error("This "+tag+" tag requires a "+require+" prop.");
 		    }
 		}
@@ -2548,7 +2822,6 @@ $(function(){
 		}, 
 		"undo":function(){
 		    var parent_node_id = parentNodeId(my_node_id).parent_node_id;
-		    console.log('2364 parent_node_id : ' + parent_node_id);
 		    $('[data-my-node-id='+parent_node_id+']').append(kept);
 		}, 
 		"getMyNodeId":function(){
@@ -2640,8 +2913,78 @@ $(function(){
 	return new func_cut_paste(add_method, src_s, added_candidate_s);
     };
 
-    //TODO コードの共通化
     commands.copy_paste = function(add_method, src_s, added_candidate_s){
+	function func_copy_paste(add_method, src_s, added_candidate_s){
+	    var kepts = [];
+	    var kept_src_node_id_s = [];
+	    var kept_src_parend_id_s = [];
+	    var kept_target_node_id_s = [];
+	    
+	    src_s.each(function(){//copy,move,etc 元は全ページ対象
+		var _src = myWrapElement(this);
+		var src_node_id = _src.attr('data-my-node-id');
+		if(typeof src_node_id !== 'undefined'){
+		    kepts.push(_src);
+		    kept_src_node_id_s.push(src_node_id);
+		    kept_src_parend_id_s.push(parentNodeId(src_node_id));
+		}
+	    });
+	    var target_s = added_candidate_s.filter(function(){
+		var rtn = true;
+		try{
+		    var _target = $(this);
+		    var target_node_id = _target.attr('data-my-node-id');
+		    if(typeof target_node_id !== 'undefined'){
+			kept_src_node_id_s.forEach(function(src_node_id,i,a){
+			    rtn &= ! (target_node_id+'-').startsWith(src_node_id+'-');
+			    if(rtn === false){console.log('ウロボロス検知 :' + src_node_id +' : '+target_node_id);}
+			});
+		    }
+		}catch(e){console.log(e);}
+		if(rtn === true){
+		    kept_target_node_id_s.push(target_node_id);
+		}
+		return rtn;
+	    });
+
+	    var kept_new_copy;
+	    var rtn = {
+		"execute":function(){
+		    if(target_s.length !== 0){
+			kept_new_copy = [];
+			kepts.forEach(function(src,i,a){
+			    var src_node_id = src.attr('data-my-node-id');
+			    var source = get_child_tree_select_dom(src_node_id).raw()[src_node_id];
+		//	    src.detach();
+			    kept_new_copy.push(display_onscreen(add_method, target_s, source));
+			});
+		    }
+		}, 
+		"undo":function(){
+		    if(target_s.length !== 0){
+			kept_new_copy.forEach(function(new_copy,i,a){
+			    new_copy.forEach(function(x,i,a){
+				x.detach();
+			    });
+			});
+		    }
+		}, 
+		"getMyNodeId":function(){
+		    return kept_src_node_id_s;
+		},
+		"displayName":function(){
+		    return "Copy&Paste";
+		}
+	    };
+	    command_redo_history = [];
+	    command_undo_history.push(rtn);
+	    return rtn;
+	};
+	return new func_copy_paste(add_method, src_s, added_candidate_s);
+    };
+
+    //TODO コードの共通化
+    commands.copy_paste_dev = function(add_method, src_s, added_candidate_s){
 	function func_copy_paste(add_method, src_s, added_candidate_s){
 	    var kepts = [];
 	    var kept_src_node_id_s = [];
@@ -3053,7 +3396,6 @@ $(function(){
 				 var raw = this.raw();
 				 try{	uncommit_pool = JSON.parse(raw);
 				    }catch(e){
-					console.log(e.message);
 					localStorage[FUNC_ID] = '{}';
 				    }
 				 is_locked = true;
@@ -3325,8 +3667,6 @@ $(function(){
 	    }
 	}
 	if(stack.length !== 1){
-	    console.log('resolved_param_s : '+JSON.stringify(resolved_param_s));
-	    console.log('stack : '+ JSON.stringify(stack));
 	    throw new Error("Error formula is illegal : " + formula + ' : param_s : ' + JSON.stringify(param_s));
 	}
 	var rtn = stack[0];
