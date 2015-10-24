@@ -232,15 +232,26 @@
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
 			</section>
-			<span style="white-space:nowrap;">
+			<div style="white-space:nowrap;">
         <span class="openCloseTrigger">* Tag emmet style</span><br/>
         <div class="openCloseTarget">
 				  <input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:64em;" value="" /><br />
 				  <input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
           <input type="hidden" id="part_list_input" class="json_val" value="" />
 				  <input type="hidden" id="prop_list_input" class="json_val" value="" />
+          <br>
+          <div style="margin-top:3px;">&nbsp;&nbsp;Tag Preset</div>
+          <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
+				    <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
+				    <input id="part_list_new" type="button" value="New" style="" />
+			    </section>
+          <section style="margin-top:10px;margin-bottom:-4px;">
+            <input id="repeatTimesBtn" type="button" value="times"  style="margin-right:0.5em;" /><input id="repeatTimes" type="number" value="2" min="0" style="width:4em;margin-right:2em;text-align:center;" />
+            <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
+          </section>
+			    <ul id="part_list" class="snippets"></ul>
         </div>
-			</span>
+			</div>
 			<hr />
       <div>
         <span class="openCloseTrigger">* BOX Model</span>
@@ -362,7 +373,7 @@
       <hr/>
       <div style="float:left;">
         <span class="openCloseTrigger">* Color</span><br/>
-        <section id="operate_menu" class="openCloseTarget" style="height:23em;" >
+        <section id="operate_menu" class="openCloseTarget" style="height:24em;" >
           <section style="height:3em;float:left;">
             <section style="float:left;margin-left:4px;">
               <select id="operate_color_option" style="width:8.5em;margin-bottom:0.3em;">
@@ -409,27 +420,12 @@
             <section style="float:left;height:2.3em;width:3em;border:1px dotted grey;margin-top:2px;">
               <input id="delGrad" type="button" value="del" style="margin-top:8px;float:left;"/>
             </section>
-            <br/>
             <div id="colorGrads" style="overflow-y:auto;float:left;width:28em;height:8em;border:1px dotted grey;margin-top:-4px;"></div>
+            <span style="margin-top:4px;">Right click And Push del </span>
           </section>
         </section>
       </div>
       <hr style="clear:both;" />
-      <div >
-			  <span class="openCloseTrigger">* Tag Preset</span><br>
-        <div class="openCloseTarget">
-          <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
-				    <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
-				    <input id="part_list_new" type="button" value="New" style="" />
-			    </section>
-          <section style="margin-top:10px;margin-bottom:-4px;">
-            <input id="repeatTimesBtn" type="button" value="times"  style="margin-right:0.5em;" /><input id="repeatTimes" type="number" value="2" min="0" style="width:4em;margin-right:2em;text-align:center;" />
-            <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
-          </section>
-			    <ul id="part_list" class="snippets"></ul>
-        </div>
-      </div>
-			<hr />
       <div>
         <span class="openCloseTrigger">* Style Sheet</span><br/>
         <div class="openCloseTarget">

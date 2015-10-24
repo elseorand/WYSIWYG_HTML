@@ -547,7 +547,7 @@ $(function(){
 		var _this = $(this);
 		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
 		    if(isEmpty(colorStr)){return true;}
-		    $('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(_this);//TODO dupe code
+		    createGradObject(colorStr, _this);
 		});
 	    }).trigger('initGradColor');
     var el_directionGrad = $('#directionGrad');
@@ -562,7 +562,7 @@ $(function(){
 	    });
 	    var colorStr = "linear-gradient("+el_directionGrad.val()+"deg, "+arrayColor.join(',')+")";
 	    save.push(colorStr);
-	    $('<div class="gradColor">').css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(el_colorGrads);//TODO dupe code	    
+	    createGradObject(colorStr, el_colorGrads);
 	}
 	colors.each(function(){
 	    var _this = $(this);
@@ -572,6 +572,10 @@ $(function(){
 	    .replace('gradColors', save)
 	    .commit();
     });
+
+    function createGradObject(colorStr, target){
+	$('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(target);
+    }
 
     // context menu
     var context_menu = $('#context_menu');
