@@ -546,7 +546,7 @@ $(function(){
 	    .on('initGradColor', function(){
 		var _this = $(this);
 		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
-		    if(colorStr == null || colorStr === ''){return true;}
+		    if(isEmpty(colorStr)){return true;}
 		    $('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(_this);//TODO dupe code
 		});
 	    }).trigger('initGradColor');
