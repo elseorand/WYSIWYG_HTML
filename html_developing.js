@@ -397,10 +397,17 @@ $(function(){
 	    .on('initColor', function(){
 		var _this = $(this);
 		var monoColors = MY_STORAGE.select('monoColors');
-		if(isEmpty(monoColors)){
-		    monoColors = ["255,255,255,1", "255,0,0,1", "0,255,0,1", "0,0,255,1", "0,0,0,1",];
-		}
-		monoColors.forEach(function(x,i,a){
+		monoColors = monoColors.concat(["255,255,255", "255,0,0", "255,135,25", "255,215,0", "255,240,0", "173,255,47", "0,255,0","60,205,60", "0,15,255", "0,0,255", "0,0,139", "128,0,128", "148,0,195", "75,0,130",  "0,0,0"]);
+		monoColors.map(function(x, i, a){
+		    x = x.replace(/\s/g, '');
+		    if(x.startsWith('rgb')){
+			x = x.slice(x.indexOf('(') + 1, x.indexOf(')'));
+		    }
+		    return x;
+		}).filter(function(x,i,a){
+		    if(x === 'transparent'){return false;}
+		    return a.indexOf(x) === i;// rm dupe
+		}).forEach(function(x,i,a){
 		    $('<div class="colorObj monoColor">')
 			.draggable({"helper":"clone","connectToSortable":".palette", "revert":"invalid"})
 			.css({"float":"left", "margin": "1px", "width":"32px", "height":"32px", "background-color":"rgba("+x+")", "right":"auto", "bottom":"auto"})
@@ -507,7 +514,6 @@ $(function(){
     //TODO selectable
     var el_colorGrads = $('#colorGrads').on(MY_CLICK,'.gradColor',function(){
 	var _this = $(this);
-	_this.toggleClass('gradSelected');
 	var newBgColor = {"style":'background:'+analysisCss(_this.attr('style'))['background']+';'};
 	update_prop(el_oprt_model, newBgColor);
 	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
@@ -531,6 +537,12 @@ $(function(){
 	});
 	el_directionGrad.val(direct);
     })
+	    .on('contextmenu','.gradColor',function(ev){
+		ev.preventDefault();
+		ev.stopPropagation();
+		var _this = $(this);
+		_this.toggleClass('gradSelected');
+	    })
 	    .on('initGradColor', function(){
 		var _this = $(this);
 		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
@@ -574,7 +586,7 @@ $(function(){
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
 
 	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
-	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:13em; ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:21em; ime-mode:disabled;margin-left:1em; float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
+	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:13em;ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:21em;ime-mode:disabled;margin-left:1em;float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
 	{"name":"update_var", "label":"UpVar", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
 	{"name":"update_prop", "label":"UpProp", "input":'', "style":"", "col2":true},
 	{"name":"copy", "label":"Cp", "input":'', "style":"", "col2":false},
@@ -615,7 +627,7 @@ $(function(){
 	    el_func_s[obj.name] = _this;
 	    if(isNewChild){
 		child = $('<li style="clear:both;">');
-		child.appendTo(context_menu); 
+		child.appendTo(context_menu);
 	    }
 	    var defa_size = 10;
 	    if(obj.col2){
@@ -659,7 +671,7 @@ $(function(){
 	    ev.stopPropagation();
 	    var _this = myWrapElement(this);
 	    context_menu.el_selector.val(_this.val());
-	    // el_func_s['cxlselected'].trigger(MY_CLICK); // 複数tableが選択し辛くなるため、無効化コメントアウト
+	    // el_func_s['cxlselected'].trigger(MY_CLICK);// 複数tableが選択し辛くなるため、無効化コメントアウト
 	});
     })();
 
@@ -793,7 +805,7 @@ $(function(){
 	}
     });
 
-    var els_boxDesign = $('.boxDesign').on(MY_CLICK,function(){
+    var els_boxDesign = $('.boxDesign').on(MY_CLICK+' '+MY_CHANGE,function(){
 	var _this = $(this);
 	var cmd = _this.attr('id');
 	var cssFunc = cssFuncSupplier(cmd, '');
@@ -817,8 +829,8 @@ $(function(){
 	var _page = {};
 	page_s['screen'+name] = _page;
 	var now_id = STATUS.getNewMyObjId();
-	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute; top:0px;bottom:44px;right:0px;z-index:100;width:'+width+'; height:'+height+';border-left:1px solid black;" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
-	    .on('contextmenu',display_contextmenu)
+	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';border-left:1px solid black;" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
+	    .on('contextmenu', display_contextmenu)
 	    .on(MY_CLICK,function(ev){
 		if(context_menu.is_close_menu){
 		    context_menu.css({"display":"none"});
@@ -1130,7 +1142,7 @@ $(function(){
 	}
 	var len_parsed = parsed.length;
 	el_sandbox_hidden.empty();
-	for(var i=0; i < len_parsed; ++i){
+	for(var i=0;i < len_parsed;++i){
 	    display_onscreen('appendTo', el_sandbox_hidden, parsed[i]);
 	}
 
@@ -1367,7 +1379,7 @@ $(function(){
 	    parsed = [parsed];
 	}
 	var len_parsed = parsed.length;
-	for(var i=0; i < len_parsed; ++i){
+	for(var i=0;i < len_parsed;++i){
 	    display_onscreen('appendTo', page.screen, parsed[i]);
 	}
 	draw_arrow_s();
@@ -1438,7 +1450,7 @@ $(function(){
     $.each(el_some_key_s, function(idx, some_key){
 	var el_some = {};
 	var length_el_some_func_suffix_s = el_some_func_suffix_s.length;
-	for(var f=0; f < length_el_some_func_suffix_s; ++f){
+	for(var f=0;f < length_el_some_func_suffix_s;++f){
 	    var suffix = el_some_func_suffix_s[f];
 	    el_some[suffix] = $('#'+some_key+'_'+suffix, el_basic_menu);
 	}
@@ -1667,7 +1679,7 @@ $(function(){
 	var nested_char_stack = [];
 	var now_close_char = '';
 
-	for(var i=0; i<length_str; ++i){
+	for(var i=0;i<length_str;++i){
 	    var char = str[i];
 	    //nestを$nest$ など単階層同一文字もサポートするため
 	    if(char === now_close_char){
@@ -1736,7 +1748,7 @@ $(function(){
 		}
 		var tag = tag_num[0];
 		//[] と {}の処理
-		for(var l_idx=0; l_idx < loop_num; ++l_idx){
+		for(var l_idx=0;l_idx < loop_num;++l_idx){
 		    pooled_tag_s.push(tag);
 		}
 	    });
@@ -1780,14 +1792,14 @@ $(function(){
 			}else{
 			    selector_s = [tag];
 			}
-			for(var t=0; t < selector_s.length; ++t){
+			for(var t=0;t < selector_s.length;++t){
 			    var tmp_key = selector_s[t].trim();
 			    var kept = {};
 			    var tmp_kept_key = '';
 			    kept['style'] = {};//TODO Classにまとめよう･･･
 			    kept['class'] = '';
 			    if(rtn.hasOwnProperty(tmp_key)){
-				for(var k=0; k < kept_element_s.length; ++k){
+				for(var k=0;k < kept_element_s.length;++k){
 				    tmp_kept_key = kept_element_s[k];
 				    if(rtn[tmp_key].hasOwnProperty(tmp_kept_key)){
 					if(tmp_kept_key === 'style'){
@@ -1837,7 +1849,7 @@ $(function(){
 	var parenthesis_last = -1;
 	var nest_counter = 0;
 	var parenthesis_counter = 0;
-	for(var idx=0; idx < length_input_tag; ++idx){
+	for(var idx=0;idx < length_input_tag;++idx){
 	    var c = _input_tag[idx];
 	    if(c === '[') ++nest_counter;
 	    if(c === ']') --nest_counter;
@@ -1862,7 +1874,7 @@ $(function(){
 	    var param_s = {};
 	    var resolved = {};
 	    $.extend(true, resolved, param_map, parent_param_s);
-	    for(var p=0; p<length_raw_param_split; ++p){
+	    for(var p=0;p<length_raw_param_split;++p){
 		var val_param_extract = reverse_porlish_notation_logic(raw_param_split[p], resolved,{});
 		$.extend(resolved,val_param_extract[2]);
 		//TODO mod same param_map n
@@ -1889,7 +1901,7 @@ $(function(){
 	var tmp_attr_s = {};
 	var nest_counter = 0;
 	var tag;
-	for(var ic=0; ic <= length_input_tag; ++ic){
+	for(var ic=0;ic <= length_input_tag;++ic){
 	    var c = input_tag[ic];
 	    if(c === ']')	--nest_counter;
 	    if( nest_counter === 0 && ( c === '#' || c === '.' || c === '[' || c === ']' || ic === length_input_tag)){
@@ -1933,7 +1945,7 @@ $(function(){
 
 	if(prop_map.hasOwnProperty('*')){$.extend(true,prop_s, prop_map['*']);}
 	var concat_cl_s = '';
-	for(var cl=0; cl < cls_s.length; ++cl){
+	for(var cl=0;cl < cls_s.length;++cl){
 	    var tmp = cls_s[cl];
 	    concat_cl_s += tmp+' ';
 	    if(prop_map.hasOwnProperty( '.'+tmp)){
@@ -1955,7 +1967,7 @@ $(function(){
 
     function check_input_data(tag, prop_s, infinite_loop_check){
 	// var length_forbidden = 関数タグの対象外css_selector.length;
-	// for(var i=0; i < length_forbidden; ++i){
+	// for(var i=0;i < length_forbidden;++i){
 	//     var tgt = 関数タグの対象外css_selector[i];
 	//     if(prop_s.hasOwnProperty(tgt) && prop_s[tgt] != ''){
 	// 	alert("Sorry. parts in Tag don't support #.[]");
@@ -1987,7 +1999,8 @@ $(function(){
 	// 初期サイズ決定のため､最下層から要素数とサイズを調査する
 	var tag_size_s = [];
 	var counter = 1;
-	for(var i=length_tag_s2 - 1; i >= 0; --i){
+	var isResolevdByPartMap = false;
+	for(var i=length_tag_s2 - 1;i >= 0;--i){
 	    tag_size_s.push(counter);
 	    counter *= tag_s2[i].tag_s.length;
 	};
@@ -1996,7 +2009,7 @@ $(function(){
 	$.each(tag_s2, function(layer_idx, tag_s ){
 	    var new_parent_s = [];
 	    $.each(parent_s, function(pIdx, parent){
-		for(var i=0; i < tag_s.tag_s.length; ++i){
+		for(var i=0;i < tag_s.tag_s.length;++i){
 		    //tag_s.tag_s[i] :  tag#hoge.fuga.hage($col 4 =,5,0) //removed "*n"
 		    //副作用 param_mapへ
 		    var input_tag_param_s = extract_param_from(tag_s.tag_s[i], param_map, parent_param_s);
@@ -2009,6 +2022,7 @@ $(function(){
 		    //サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
 		    set_default_size(tag, prop_s, tag_size_s, layer_idx, i);
 		    if(part_map.hasOwnProperty(tag)){//part nest route
+			isResolevdByPartMap = true;
 			//error check
 			check_input_data(tag, prop_s, infinite_loop_check);
 			infinite_loop_check.push(tag);//new
@@ -2019,11 +2033,11 @@ $(function(){
 			var child_last = null;
 			if(stringified_tag.startsWith('[') || stringified_tag.startsWith('{')){
 			    child_last = {"child_s":resolve_tag};
-			    last_child_s = [];
+			    var last_child_s = [];
 			    recursive_collect_last_child(resolve_tag, last_child_s);
 			    child_last.last_child_s = last_child_s;
 			}else{
-			    child_last = convert_lineardata_to_child_s(format_raw_tag_s(resolve_tag, param_s), prop_map, part_map, param_map, param_s, infinite_loop_check);//TODO XXX
+			    child_last = convert_lineardata_to_child_s(format_raw_tag_s(resolve_tag, param_s), prop_map, part_map, param_map, param_s, infinite_loop_check)[0];
 			}
 			infinite_loop_check[infinite_loop_check.indexOf(tag)] = "";//delete
 			$.merge(parent.child_s, child_last.child_s);
@@ -2048,7 +2062,7 @@ $(function(){
 	    parent_s = new_parent_s;
 	});
 	root_s.last_child_s = parent_s;
-	return root_s;
+	return [root_s, isResolevdByPartMap];
     };
 
     /**
@@ -2116,10 +2130,13 @@ $(function(){
 	    var length_val_s = val_s.length;
 	    var prop_map = format_raw_prop_s(raw_prop_s, length_val_s);
 	    var part_map = format_raw_tag_holder_s(raw_tag_holder_s);
+	    // processing > + *, not tag preset resolved
 	    var linear_data = format_raw_tag_s(raw_tag_s, [], length_val_s);//return [[tag#hoge.fuga.hage($col=4,5,0)*3]]
 	    var param_map = {};
 	    var infinite_loop_check = [];//再帰を使用しているため無限ループや無限トランポリン対策
-	    var root = convert_lineardata_to_child_s(linear_data, prop_map, part_map, param_map, [], infinite_loop_check);
+	    // resolving tag preset
+	    var root_isResolevedByPartMap = convert_lineardata_to_child_s(linear_data, prop_map, part_map, param_map, [], infinite_loop_check);
+	    var root = root_isResolevedByPartMap[0];
 	    //値埋め
 	    if(val_s !== null && val_s.length > 0){
 		$.each(root.last_child_s, function(pIdx, obj){
@@ -2138,7 +2155,9 @@ $(function(){
 		});
 	    }
 	    delete root.last_child_s;
-	    adjustSize(root.child_s);
+	    if(root_isResolevedByPartMap[1] === false){
+		adjustSize(root.child_s);
+	    }
 	    return root;
 	}catch(e){
 	    throw e;
@@ -2249,7 +2268,7 @@ $(function(){
     function myWrapElement(raw){
 	var elm;
 	if(raw instanceof jQuery){
-	    if(raw.length > 1){	throw new TypeError('myWrapElement doesnot accepts array.'); }
+	    if(raw.length > 1){	throw new TypeError('myWrapElement doesnot accepts array.');}
 	    raw = raw[0];
 	    elm = $(raw);
 	}else{
@@ -2333,7 +2352,7 @@ $(function(){
 	var length_target_s = target_s.length;
 	var parent_is_svg = false;
 	var rtn_work_jq_s = [];
-	for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt){
+	for(var idx_tgt=0;idx_tgt < length_target_s;++idx_tgt){
 	    var target = myWrapElement(target_s[idx_tgt]);
 	    var parent_tag = target[0].localName.toLowerCase();
 	    var is_relative禁止タグ = position_relative禁止タグ.indexOf(parent_tag) >= 0;
@@ -2409,7 +2428,7 @@ $(function(){
 		    _this.data('my-obj-val', _this.val());
 		});
 	    var length_child_s = child_s.length;
-	    for(var idx_child=0; idx_child < length_child_s; ++idx_child){
+	    for(var idx_child=0;idx_child < length_child_s;++idx_child){
 		display_onscreen('appendTo', [work_jq], child_s[idx_child], is_draggable, is_svg);
 	    }
 
@@ -2438,7 +2457,7 @@ $(function(){
 		    var my_id = _this.attr('data-my-node-id');
 		    cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 		    var tag = _this[0].localName;
-		    x_sibl = null; y_sibl = null;
+		    x_sibl = null;y_sibl = null;
 		    if(tag === 'td' || tag === 'th'){
 			var parent = _this.parent();
 			var parent_id = parent.attr('data-my-node-id');
@@ -2553,7 +2572,7 @@ $(function(){
 		    .addClass('snap');
 	    }
 	    rtn_work_jq_s.push(work_jq);
-	}//	for(var idx_tgt=0; idx_tgt < length_target_s; ++idx_tgt)
+	}//	for(var idx_tgt=0;idx_tgt < length_target_s;++idx_tgt)
 	return rtn_work_jq_s;
     }// function display_onscreen
 
@@ -2586,7 +2605,7 @@ $(function(){
 	    var svg_cmd = LinePathCmdFactory();//BezierPathCmdFactory();//
 	    var path_d_array = arrow[1];// 1 means path_d.
 	    var path_d = '';
-	    for(var p_idx=0; p_idx < path_d_array.length; ++p_idx){
+	    for(var p_idx=0;p_idx < path_d_array.length;++p_idx){
 		path_d += svg_cmd(get_center_abs_coord(get_offset_width_height(path_d_array[p_idx])));
 	    }
 	    console.log('arrow' + JSON.stringify(arrow));
@@ -2649,7 +2668,7 @@ $(function(){
 	    var length_selector_s = selector_s.length;
 	    var path_d = [];
 	    var path_d_idx = 0;
-	    for(var idx = 0; idx < length_selector_s; ++idx){
+	    for(var idx = 0;idx < length_selector_s;++idx){
 		var node_selector = selector_s[idx].trim();
 		if(!node_selector.startsWith('#') && !node_selector.startsWith('.')){
 		    if(node_selector.indexOf('-') > -1){
@@ -2662,7 +2681,7 @@ $(function(){
 		if(typeof node_s === 'undefined' || node_s == null || node_s.length === 0){
 		    continue;
 		}
-		for(var node_idx = 0; node_idx < node_s.length; ++node_idx){
+		for(var node_idx = 0;node_idx < node_s.length;++node_idx){
 		    var node = $(node_s[node_idx]);
 		    var ch_my_id = node.attr('data-my-node-id');
 		    path_d.push(node);
@@ -2770,9 +2789,9 @@ $(function(){
 				});
 			    });
 			}else{
-			    var raw_tag_s = el_val_tag.val();
+			    var raw_tag_s = el_val_tag.val().trim();//Preset Name. not resolved
 			    if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
-				var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val() );
+				var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val());
 				kept_new = [];
 				$.each(root.child_s, function(cIdx, child){
 				    kept_new.push(display_onscreen('appendTo', kept_target_s, child));
@@ -3166,7 +3185,7 @@ $(function(){
 	var keys_list_s = Object.keys(list_s_in_storage);
 	var length_keys_list_s = keys_list_s.length;
 	el_some_select.empty();
-	for(var i=0; i < length_keys_list_s; ++i){
+	for(var i=0;i < length_keys_list_s;++i){
 	    var val = keys_list_s[i];
 	    $('<option>').val(val).html(val).appendTo(el_some_select);
 	}
@@ -3190,7 +3209,7 @@ $(function(){
 	var part_list_func_s = [">","+"];
 	var new_li = $('<li>',{"style":"white-space:nowrap;","class":"p_list_child"});
 	if(is_add_button){
-	    for(var idx=0; idx < part_list_func_s.length; ++idx){
+	    for(var idx=0;idx < part_list_func_s.length;++idx){
 		$('<input />').attr({"type":"button","value":part_list_func_s[idx]}).css({"width":"2.5em","margin-right":"4px","text-align":"center"})	//TODO style
 		    .on(MY_CLICK,function (){
 			var now_val = el_val_tag.val();
@@ -3272,7 +3291,7 @@ $(function(){
     function merge_css(){
 	var pool = {};
 	var length_arguments = arguments.length;
-	for(var i=0; i < length_arguments; ++i){
+	for(var i=0;i < length_arguments;++i){
 	    var raw = arguments[i];
 	    if( typeof raw !== 'string'){
 		continue;
@@ -3442,7 +3461,7 @@ $(function(){
 	    "remove":function(){
 		var loop = arguments.length - 1;
 		var target_pool = uncommit_pool;
-		for(var i=0; i <= loop; ++i){
+		for(var i=0;i <= loop;++i){
 		    var key = arguments[i];
 		    if(typeof key !== 'undefined' && typeof target_pool[key] !== 'undefined'){
 			if(i === loop){
@@ -3566,11 +3585,11 @@ $(function(){
     var IDX_PAREN = OPERATOR_CHAR_S.indexOf('(');
     var IDX_EQUAL = OPERATOR_CHAR_S.indexOf('=');
     var operator_s =[ //null
-	,function(a0, a1){is_calcable(a0,a1); return a1 + a0;}
-	,function(a0, a1){is_calcable(a0,a1); return a1 - a0;}
-	,function(a0, a1){is_calcable(a0,a1); return a1 * a0;}
-	,function(a0, a1){is_calcable(a0,a1); return a1 / a0;}
-	,function(a0, a1){is_calcable(a0,a1); return a1 % a0;}
+	,function(a0, a1){is_calcable(a0,a1);return a1 + a0;}
+	,function(a0, a1){is_calcable(a0,a1);return a1 - a0;}
+	,function(a0, a1){is_calcable(a0,a1);return a1 * a0;}
+	,function(a0, a1){is_calcable(a0,a1);return a1 / a0;}
+	,function(a0, a1){is_calcable(a0,a1);return a1 % a0;}
     ];
     function is_calcable(a0, a1){
 	if($.isNumeric(a0) && $.isNumeric(a1)){
@@ -3589,8 +3608,8 @@ $(function(){
 	return reverse_porlish_notation_logic(formula, param_s, {})[0];
     }
     function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
-	var param_s = {}; $.extend(true,param_s, _param_s);
-	var resolved_param_s = {}; $.extend(true,resolved_param_s, _resolved_param_s);
+	var param_s = {};$.extend(true,param_s, _param_s);
+	var resolved_param_s = {};$.extend(true,resolved_param_s, _resolved_param_s);
 	var formula = _formula;
 	var _parent_counter = 0;
 	if($.isArray(formula)){
@@ -3604,7 +3623,7 @@ $(function(){
 	    var pool = '';
 	    var num = 0;
 	    var length_formula = formula.length;
-	    for(var i=0; i<length_formula; ++i){
+	    for(var i=0;i<length_formula;++i){
 		var c = formula.charAt(i);
 		var op_idx = OPERATOR_CHAR_S.indexOf(c);
 		if (op_idx === 0) {
@@ -3628,7 +3647,7 @@ $(function(){
 		    ++i;
 		    ++_parent_counter;
 		    var pool_formula = "";
-		    for(; i<length_formula; ++i){
+		    for(;i<length_formula;++i){
 			c = formula.charAt(i);
 			if( c === '('){
 			    ++_parent_counter;
