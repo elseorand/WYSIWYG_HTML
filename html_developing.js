@@ -397,6 +397,7 @@ $(function(){
 	    .on('initColor', function(){
 		var _this = $(this);
 		var monoColors = MY_STORAGE.select('monoColors');
+		if(isEmpty(monoColors)){monoColors = [];}
 		monoColors = monoColors.concat(["255,255,255", "255,0,0", "255,135,25", "255,215,0", "255,240,0", "173,255,47", "0,255,0","60,205,60", "0,15,255", "0,0,255", "0,0,139", "128,0,128", "148,0,195", "75,0,130",  "0,0,0"]);
 		monoColors.map(function(x, i, a){
 		    x = x.replace(/\s/g, '');
@@ -545,7 +546,9 @@ $(function(){
 	    })
 	    .on('initGradColor', function(){
 		var _this = $(this);
-		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
+		var gradColors = MY_STORAGE.select('gradColors');
+		if(isEmpty(gradColors)){gradColors = [];}
+		    gradColors.forEach(function(colorStr,i,a){
 		    if(isEmpty(colorStr)){return true;}
 		    createGradObject(colorStr, _this);
 		});
