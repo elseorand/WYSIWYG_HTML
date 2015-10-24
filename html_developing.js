@@ -1477,7 +1477,7 @@ $(function(){
 	    if(list_s_in_storage != null && typeof list_s_in_storage !== 'undefined'){
 		var keys_list_s = Object.keys(list_s_in_storage);
 		if(keys_list_s.length > 0){
-		    if(typeof some_name !== 'undefined' && some_name != null && some_name !== '' ){
+		    if(!isEmpty(some_name)){
 			el_some.name.val(some_name);
 			el_some.select.val(some_name);
 			if( name_in_storage !== some_name){
@@ -1495,18 +1495,16 @@ $(function(){
 	    }else{
 		return false;
 	    }
-
 	    tmp_el_list.empty();//clear
 	    $.each(Object.keys(list_in_storage), function(idx,key){
 		new_empty_line(tmp_el_list, key, force_stringify(list_in_storage[key]), is_add_button);
 	    });
+	    
 	    // for new empty input
 	    new_empty_line (tmp_el_list,'','', is_add_button);
-	    //tmp_el_list.parent().height(tmp_el_list.height() + 100);//TODO 高さ関数の修正
 
 	    tmp_el_list
 		.on(MY_CHANGE,'input.key',function(){
-		    var pre_height = tmp_el_list.height();
 		    $('input.key', tmp_el_list).each(function(){
 			var _this = myWrapElement(this);
 			if(_this.val().trim().length === 0){
@@ -1514,9 +1512,6 @@ $(function(){
 			}
 		    });
 		    new_empty_line(tmp_el_list,'','', is_add_button);
-		    var added_height = tmp_el_list.height() - pre_height;
-		    var parent = tmp_el_list.parent();
-		    parent.height(parent.height() + added_height);
 		})
 		.on(MY_CLICK +','+ MY_CHANGE,'input',function(){
 		    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
@@ -3209,6 +3204,9 @@ $(function(){
 	return input_val;
     }
 
+    /**
+     * Tar preset 行追加
+     */
     function new_empty_line(parent, key, val, is_add_button){
 	var part_list_func_s = [">","+"];
 	var new_li = $('<li>',{"style":"white-space:nowrap;","class":"p_list_child"});
