@@ -4,6 +4,9 @@ Creating a HTML mock on Your Real browser.
         emmet-like inputting.  
 required a html, jquery 2.0 over, a js, a modern browser.
 
+# Sample
+![img](https://raw.githubusercontent.com/wiki/elseorand/WYSIWYG_HTML/images/WYSIWG_BASIC_SAMPLE.png)
+
 # 1st step Appending div tag on screen<a id="orgheadline6"></a>
 
 ## Input "div" to the textbox under "Tag emmet style".<a id="orgheadline1"></a>
