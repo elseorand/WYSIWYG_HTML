@@ -3,10 +3,13 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>HTML Developing</title>
+		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-		<script src="./html_developing.js"></script>
+		<script src="/default/jquery-2.1.4.min.js" ></script>
+ 		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+		<script src="/default/html_developing.js"></script>
 		<style type="text/css" >
 			/* For this app */
 			#screenDefault {
@@ -98,6 +101,13 @@
       }
       .gradSelected{
         border-left:16px solid grey !important;
+      }
+      .openCloseTrigger{
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .openCloseTrigger.hiddenState{
+        text-overflow: ellipsis;
       }
       
 			/* As you like */
@@ -241,28 +251,30 @@
 				<input id="basic_menu_backward" type="button" value=">"/>
 			</section>
 			<div style="white-space:nowrap;">
-        <span class="openCloseTrigger">* Tag emmet style</span><br/>
+        <div class="openCloseTrigger">* Tag emmet style</div>
         <div class="openCloseTarget">
 				  <input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:64em;" value="" /><br />
 				  <input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
           <input type="hidden" id="part_list_input" class="json_val" value="" />
 				  <input type="hidden" id="prop_list_input" class="json_val" value="" />
           <br>
-          <div style="margin-top:3px;">&nbsp;&nbsp;Tag Preset</div>
-          <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
-				    <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
-				    <input id="part_list_new" type="button" value="New" style="" />
-			    </section>
-          <section style="margin-top:10px;margin-bottom:-4px;">
-            <input id="repeatTimesBtn" type="button" value="times"  style="margin-right:0.5em;" /><input id="repeatTimes" type="number" value="2" min="0" style="width:4em;margin-right:2em;text-align:center;" />
-            <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
-          </section>
-			    <ul id="part_list" class="snippets"></ul>
-          <hr style="margin-top:8px;"/>
-        </div>
-			</div>
+          <div class="openCloseTrigger" style="margin-top:3px;">** Tag Preset</div>
+          <div class="openCloseTarget">
+            <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
+				      <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
+				      <input id="part_list_new" type="button" value="New" style="" />
+			      </section>
+            <section style="margin-top:10px;margin-bottom:-4px;">
+              <input id="repeatTimesBtn" type="button" value="times"  style="margin-right:0.5em;" /><input id="repeatTimes" type="number" value="2" min="0" style="width:4em;margin-right:2em;text-align:center;" />
+              <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
+            </section>
+			      <ul id="part_list" class="snippets"></ul>
+            <hr style="margin-top:8px;"/>
+          </div>
+			  </div>
+      </div>
       <div>
-        <span class="openCloseTrigger">* BOX Model</span>
+        <div class="openCloseTrigger">* BOX Model</div>
         <section class="openCloseTarget">
           <div>
             <section style="float:left;margin-left:4px;margin-right:4px;">
@@ -376,11 +388,11 @@
               </div>
             </div>
           </div>
+          <hr/>
         </section>
       </div>
-      <hr/>
       <div style="float:left;">
-        <span class="openCloseTrigger">* Color</span><br/>
+        <div class="openCloseTrigger">* Color</div>
         <section id="operate_menu" class="openCloseTarget" style="height:24em;" >
           <section style="height:3em;float:left;">
             <section style="float:left;margin-left:4px;">
@@ -430,12 +442,12 @@
             </section>
             <div id="colorGrads" style="overflow-y:auto;float:left;width:28em;height:8em;border:1px dotted grey;margin-top:-4px;"></div>
             <span style="margin-top:4px;">Right click And Push del </span>
+            <hr />
           </section>
         </section>
       </div>
-      <hr style="clear:both;" />
-      <div>
-        <span class="openCloseTrigger">* Style Sheet</span><br/>
+      <div style="clear:both;" >
+        <div class="openCloseTrigger">* Style Sheet</div>
         <div class="openCloseTarget">
 			    <span><input value="Style" id="func_style_element" style="float:left;" type="button" /><input id="style_list_name" style="float:left;" type="text" value=""/>
 				    <input id="style_list_reg" style="float:left;" type="button" value="Reg"/>
@@ -447,11 +459,11 @@
 			    <div id="" style="width:40px;">
 				    <textarea id="sandbox_style" style="height:16em;width:84em;"></textarea>
           </div>
+          <hr/>
         </div>
       </div>
-			<hr/>
       <div>
-        <span class="openCloseTrigger">* Default Prop Attr</span><br/>
+        <div class="openCloseTrigger">* Default Prop Attr</div>
         <div class="openCloseTarget">
 			    <span><input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
 				    <select id="prop_list_select"></select><input id="prop_list_del" type="button" value="Del" style="float:right;" />

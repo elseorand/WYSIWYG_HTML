@@ -234,8 +234,16 @@ $(function(){
     };
     var els_openCloseTrigger = $('.openCloseTrigger').on(MY_CLICK,function(){
 	var _this = $(this);
-	_this.siblings('.openCloseTarget').toggleClass('displayNone');
-    });//.trigger(MY_CLICK);
+	_this
+	    .toggleClass('hiddenState')
+	    .siblings('.openCloseTarget').toggleClass('displayNone');
+    }).on('myInit', function(){
+	var _this = $(this);
+	var nowStr = _this.text();
+	$('<span>').text('_______').css({"color":"transparent"}).appendTo(_this);
+	// width, height  1/2 font
+	_this.css('width', (nowStr.length/2+1)+'em');
+    }).trigger('myInit');
     //Box Model
     var el_transform_scale = $('#transform_scale').on(MY_CLICK+' '+MY_KEYUP, function(){
 	var _this = $(this);
