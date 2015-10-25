@@ -2,7 +2,6 @@ $(function(){
     /**TODO
      * sync BOX Model inputs
      * text-align
-     * font-size
      * thumbnail (transform:scale)
      * undo / redo (style)
      * customizable key binding
@@ -35,6 +34,7 @@ $(function(){
      * dot by dot move
      * color editor
      * shadow box text
+     * font-size
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -397,7 +397,6 @@ $(function(){
 	    .on('initColor', function(){
 		var _this = $(this);
 		var monoColors = MY_STORAGE.select('monoColors');
-		if(isEmpty(monoColors)){monoColors = [];}
 		monoColors = monoColors.concat(["255,255,255", "255,0,0", "255,135,25", "255,215,0", "255,240,0", "173,255,47", "0,255,0","60,205,60", "0,15,255", "0,0,255", "0,0,139", "128,0,128", "148,0,195", "75,0,130",  "0,0,0"]);
 		monoColors.map(function(x, i, a){
 		    x = x.replace(/\s/g, '');
@@ -546,9 +545,7 @@ $(function(){
 	    })
 	    .on('initGradColor', function(){
 		var _this = $(this);
-		var gradColors = MY_STORAGE.select('gradColors');
-		if(isEmpty(gradColors)){gradColors = [];}
-		    gradColors.forEach(function(colorStr,i,a){
+		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
 		    if(isEmpty(colorStr)){return true;}
 		    createGradObject(colorStr, _this);
 		});
@@ -1448,7 +1445,7 @@ $(function(){
 		, []
 	       )
 	.ifelse(true
-		, ['merge',{"prop_list":{"latest_example":{"table":{"style":"border-collapse:collapse;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"},"svg":{"xmlns":"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink","style":"height:800px;width:1200px;"},"path":{"fill":"black","stroke":"black","stroke-width":1,"d":""}}}}]
+		, ['merge',{"prop_list":{"latest_example":{"table":{"cellspacing":0, "style":"border-collapse:separate;background-color:white;table-layout:fixed;"},"td,th":{"style":"border:1px solid black;"},"th":{"style":"color:red;"},"svg":{"xmlns":"http://www.w3.org/2000/svg","xmlns:xlink":"http://www.w3.org/1999/xlink","style":"height:800px;width:1200px;"},"path":{"fill":"black","stroke":"black","stroke-width":1,"d":""}}}}]
 		,[]
 	       )
 	.commit();
