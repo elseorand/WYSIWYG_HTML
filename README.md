@@ -2,7 +2,7 @@
 
 Creating a HTML mock on Your Real browser.  
 emmet-like inputting.  
-required this app html, jquery 2.0 over, this app js, and your modern browser.
+required this app html, jquery 2.0 over, this app js, and your modern browser.  
 if you'd like to use your css, js files,
 Please add them to this app html's head.
 
