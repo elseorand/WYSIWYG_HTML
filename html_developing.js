@@ -404,7 +404,7 @@ $(function(){
 	    .on(MY_CLICK, 'div', extractColor)
 	    .on('initColor', function(){
 		var _this = $(this);
-		var monoColors = MY_STORAGE.select('monoColors');
+		var monoColors = orDefault(MY_STORAGE.select('monoColors'), []);
 		monoColors = monoColors.concat(["255,255,255", "255,0,0", "255,135,25", "255,215,0", "255,240,0", "173,255,47", "0,255,0","60,205,60", "0,15,255", "0,0,255", "0,0,139", "128,0,128", "148,0,195", "75,0,130",  "0,0,0"]);
 		monoColors.map(function(x, i, a){
 		    x = x.replace(/\s/g, '');
@@ -553,7 +553,8 @@ $(function(){
 	    })
 	    .on('initGradColor', function(){
 		var _this = $(this);
-		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
+		var gradColor = orDefault(MY_STORAGE.select('gradColors'), []);
+		gradColor.forEach(function(colorStr,i,a){
 		    if(isEmpty(colorStr)){return true;}
 		    createGradObject(colorStr, _this);
 		});
@@ -561,7 +562,7 @@ $(function(){
     var el_directionGrad = $('#directionGrad');
     var el_addGrad = $('#addGrad').on(MY_CLICK,function(){
 	var colors = $(' > div', el_gradPalette);
-	var save = MY_STORAGE.select('gradColors');
+	var save = orDefault(MY_STORAGE.select('gradColors'), []);
 	if(colors.length >= 2){
 	    var arrayColor = [];
 	    colors.each(function(){
@@ -1293,8 +1294,7 @@ $(function(){
 	el_saved_serialized.val(JSON.stringify(save));
 
 	/* delete old */
-	var save_s = MY_STORAGE.select('save_s');
-	save_s = save_s == null ? {} : save_s;
+	var save_s = orDefault(MY_STORAGE.select('save_s'), {});
 	++history_counter;
 	var tmp_counter = 0;
 	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
@@ -1416,7 +1416,7 @@ $(function(){
     el_history.on(MY_CHANGE+' '+MY_CLICK,function(){
 	var _this = myWrapElement(this);
 	var saved = MY_STORAGE.select('save_s');
-	if(saved != null){
+	if(!isEmpty(saved)){
 	    var selected = _this.val();
 	    el_saved_serialized.val(JSON.stringify(saved[selected]));
 	}
@@ -1473,7 +1473,7 @@ $(function(){
 	refresh_select_list(some_key, el_some.select);
 	//pull donw init
 	var name_in_storage = MY_STORAGE.select(some_key+'_selected');
-	if( name_in_storage != null && name_in_storage !== '' ){
+	if(!isEmpty(name_in_storage)){
 	    el_some.name.val(name_in_storage);
 	    el_some.select.val(name_in_storage);
 	}
@@ -1482,7 +1482,7 @@ $(function(){
 	    var some_name = this.value;
 	    var input_name = el_some.name.val();
 	    var list_s_in_storage = MY_STORAGE.select(some_key);
-	    if(list_s_in_storage != null && typeof list_s_in_storage !== 'undefined'){
+	    if(!isEmpty(list_s_in_storage)){
 		var keys_list_s = Object.keys(list_s_in_storage);
 		if(keys_list_s.length > 0){
 		    if(!isEmpty(some_name)){
@@ -1544,8 +1544,7 @@ $(function(){
 	    var some_name = el_some.name.val();
 	    var tmp_el_list = el_some_list[some_key];
 	    var list_s_in_storage = MY_STORAGE.select(some_key);
-	    if(typeof list_s_in_storage === 'undefined' 
-	       || list_s_in_storage === null || ! $.isPlainObject(list_s_in_storage)){
+	    if(isEmpty(list_s_in_storage) || ! $.isPlainObject(list_s_in_storage)){
 		list_s_in_storage = {};
 	    }
 	    list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
@@ -3186,7 +3185,7 @@ $(function(){
     function refresh_select_list(some_key, el_some_select){
 	// creating option in select
 	var list_s_in_storage = MY_STORAGE.select(some_key);
-	if(typeof list_s_in_storage === 'undefined' || list_s_in_storage == null){
+	if(isEmpty(list_s_in_storage)){
 	    return;
 	}
 	var keys_list_s = Object.keys(list_s_in_storage);
@@ -3708,7 +3707,7 @@ $(function(){
     }
 
     function orDefault(param, init){
-	if(typeof param === 'undefined' || param == null ){
+	if(isEmpty(param)){
 	    return init;
 	}else{
 	    return param;
