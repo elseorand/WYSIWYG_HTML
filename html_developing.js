@@ -1,12 +1,16 @@
 $(function(){
-    /**TODO
+    /** TODO
      * sync BOX Model inputs
      * text-align
-     * thumbnail (transform:scale)
+     * directory tree
+     * explorer window function
+     * command line user interface
+     * undo / redo by screen
      * undo / redo (style)
      * customizable key binding
      * css tree eg text-align  => left center right
      * wizard, easy menu
+     * Sas
      * parse Real HTML
      * parse some html template
      * SVG reinforcing
@@ -20,7 +24,7 @@ $(function(){
      * Edit supports ordinary wysiwyg html editors
      * rotate3d
      */
-    /**DONE
+    /** DONE
      * grid 
      * style editor
      * css selector 
@@ -35,6 +39,7 @@ $(function(){
      * color editor
      * shadow box text
      * font-size
+     * thumbnail (transform:scale)
      */
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -67,6 +72,8 @@ $(function(){
     var DEFAULT_WIDTH = 100;
     var DEFAULT_HEIGHT = 30;
     var DISTANT_HEIGHT = 45;
+    var NEW_WIDTH = 480;
+    var MIN_HEIGHT = 30;
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
     var XLink_NS = 'http://www.w3.org/1999/xlink';
@@ -79,7 +86,8 @@ $(function(){
     var MY_CHANGE = 'change'+NMS_EDIT;
     var MY_KEYUP = 'keyup'+NMS_EDIT;
     var MY_MOUSEOUT = 'mouseout'+NMS_EDIT;
-    var MY_INIT = FUNC_ID + 'INIT';
+    var MY_FOCUS = 'focus'+NMS_EDIT;    
+    var MY_INIT = FUNC_ID + '_INIT';
 
     // settings
     var tag毎の入力規則 ={"input":{"require_s":["type", "value"],"default":{"type":"text", "value":""}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
@@ -103,13 +111,10 @@ $(function(){
     var el_func_json_val = $('.json_val');
     
     // main menu singleton
-    var new_width = 480;
     var el_basic_menu = $('body > #basic_menu');
     var el_basic_menu_operator = $('#basic_menu_operator', el_basic_menu);
-    var minmum_height = 30;
     var el_basic_menu_forward = $('#basic_menu_forward', el_basic_menu)
 	    .on(MY_INIT, function(){
-		var _this = $(this);
 		el_basic_menu
 		    .data('right', parseInt(el_basic_menu.css('right'), 10))
 		    .data('original-height', el_basic_menu.height());
@@ -118,11 +123,11 @@ $(function(){
 		var original = el_basic_menu.data('right');
 		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
 		if(btn_posi < 720){
-		    btn_posi += new_width;
-		    el_basic_menu_operator.css('left', "+="+new_width);
-		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"+="+new_width});
+		    btn_posi += NEW_WIDTH;
+		    el_basic_menu_operator.css('left', "+="+NEW_WIDTH);
+		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"+="+NEW_WIDTH});
 		}
-		if(parseInt(el_basic_menu.height(), 10) <= minmum_height){
+		if(parseInt(el_basic_menu.height(), 10) <= MIN_HEIGHT){
 		    el_basic_menu
 			.css({"height":el_basic_menu.data('original-height')+'px'});
 		}
@@ -132,12 +137,12 @@ $(function(){
 		var original = el_basic_menu.data('right');
 		var btn_posi = parseInt(el_basic_menu_operator.css('left'), 10);
 		if(btn_posi > 0){
-		    el_basic_menu_operator.css('left', "-="+new_width);
-		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"-="+new_width});
-		}else if(parseInt(el_basic_menu.height(), 10) > minmum_height){
+		    el_basic_menu_operator.css('left', "-="+NEW_WIDTH);
+		    el_basic_menu.css({"right":original+'px', "left":"auto", "width":"-="+NEW_WIDTH});
+		}else if(parseInt(el_basic_menu.height(), 10) > MIN_HEIGHT){
 		    el_basic_menu
 			.data('original-height', el_basic_menu.height())
-			.css({"height":minmum_height+'px'});
+			.css({"height":MIN_HEIGHT+'px'});
 		}else{
 		    el_basic_menu
 			.css({"height":el_basic_menu.data('original-height')+'px'});
@@ -145,9 +150,7 @@ $(function(){
 	    });
     var el_header_menu_bar = $('body > header > #header_menu_bar');
     var el_val_tag = $('#ValTag', el_basic_menu);
-    var el_del_val_tag = $('#delValTag', el_basic_menu).on(MY_CLICK, function(){
-	el_val_tag.val('');
-    });
+    var el_del_val_tag = $('#delValTag', el_basic_menu).on(MY_CLICK, function(){el_val_tag.val('');});
 
     var el_repeatTimes = $('#repeatTimes');
     var el_repeatTimesBtn = $('#repeatTimesBtn').on(MY_CLICK,function(){
@@ -233,29 +236,25 @@ $(function(){
 	"rotateZ":{"l":transformFuncSupplier('rotate', '-'), "u":transformFuncSupplier('rotateZ', '-'), "r":transformFuncSupplier('rotate', '+'), "d":transformFuncSupplier('rotateZ', '+')}	
     };
     var els_openCloseTrigger = $('.openCloseTrigger').on(MY_CLICK,function(){
-	var _this = $(this);
-	_this
+	$(this)
 	    .toggleClass('hiddenState')
 	    .siblings('.openCloseTarget').toggleClass('displayNone');
-    }).on('myInit', function(){
+    }).on(MY_INIT, function(){
 	var _this = $(this);
 	var nowStr = _this.text();
 	$('<span>').text('_______').css({"color":"transparent"}).appendTo(_this);
 	// width, height  1/2 font
 	_this.css('width', (nowStr.length/2+1)+'em');
-    }).trigger('myInit');
+    }).trigger(MY_INIT);
     //Box Model
     var el_transform_scale = $('#transform_scale').on(MY_CLICK+' '+MY_KEYUP, function(){
-	var _this = $(this);
-	var scaleVal = _this.val();
+	var scaleVal = $(this).val() / 100;
 	var cssFunc = transformFuncSupplier('scale');
 	cssFunc(el_oprt_model, scaleVal);
 	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
 	    cssFunc(el_oprt_model, scaleVal, el_now_selected[key]);
 	}
     });
-    var els_boxShadow = $('.box-shadow');
-    var els_textShadow = $('.text-shadow');
     var els_box_xyz = {};
     var els_xyz = $('.xyz').on(MY_CLICK+' '+MY_CHANGE, function(){
 	var _this = $(this);
@@ -266,37 +265,27 @@ $(function(){
 	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
 	    el_now_selected[key].css(css, cssVal);
 	}
-    }).on('myInit', function(){
+    }).on(MY_INIT, function(){
 	var _this = $(this);
 	var css = _this.attr('id');
 	els_box_xyz[css] = _this;
-    }).trigger('myInit');
+    }).trigger(MY_INIT);
 
-    els_boxShadow.on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP, function(){
-	var boxShadow = [];
-	els_boxShadow.each(function(){
-	    var _this = $(this);
-	    boxShadow.push(_this.val()+'px');
+    var els_shadows = {};
+    ["box-shadow", "text-shadow"].forEach(function(cssStr,i,a){
+	els_shadows[cssStr] = $('.'+cssStr);
+	els_shadows[cssStr].on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP, function(){
+	    var cssVal = ' ';
+	    els_shadows[cssStr].each(function(){
+		cssVal += ' '+$(this).val()+'px';
+	    });
+	    cssVal += ' black';
+	    el_oprt_model.css(cssStr, cssVal);
+	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
+		el_now_selected[key].css(cssStr, cssVal);
+	    }
 	});
-	var cssVal = boxShadow.join(' ')+' black';
-	el_oprt_model.css('box-shadow', cssVal);
-	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
-	    el_now_selected[key].css('box-shadow', cssVal);
-	}
     });
-    els_textShadow.on(MY_CLICK+' '+MY_CHANGE+' '+MY_KEYUP, function(){
-	var textShadow = [];
-	els_textShadow.each(function(){
-	    var _this = $(this);
-	    textShadow.push(_this.val()+'px');
-	});
-	var cssVal = textShadow.join(' ')+' black';
-	el_oprt_model.css('text-shadow', cssVal);
-	for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
-	    el_now_selected[key].css('text-shadow', cssVal);
-	}
-    });
-
 
     // Color edit
     var el_colors = {};
@@ -404,8 +393,7 @@ $(function(){
 	    .on(MY_CLICK, 'div', extractColor)
 	    .on('initColor', function(){
 		var _this = $(this);
-		var monoColors = MY_STORAGE.select('monoColors');
-		monoColors = monoColors.concat(["255,255,255", "255,0,0", "255,135,25", "255,215,0", "255,240,0", "173,255,47", "0,255,0","60,205,60", "0,15,255", "0,0,255", "0,0,139", "128,0,128", "148,0,195", "75,0,130",  "0,0,0"]);
+		var monoColors = orDefault(MY_STORAGE.select('monoColors'), []).concat(["255,255,255", "255,0,0", "255,135,25", "255,215,0", "255,240,0", "173,255,47", "0,255,0","60,205,60", "0,15,255", "0,0,255", "0,0,139", "128,0,128", "148,0,195", "75,0,130",  "0,0,0"]);
 		monoColors.map(function(x, i, a){
 		    x = x.replace(/\s/g, '');
 		    if(x.startsWith('rgb')){
@@ -476,20 +464,13 @@ $(function(){
 	    var css = el_operate_color_option.val();
 	    if(css.startsWith('background')){
 		newBgColor = {"style":css + ':'+ newBgColor+';background:;'};		
-	    }else if(css === 'box-shadow'){//TODO same impl
+	    }else if(css === 'box-shadow' || css === 'text-shadow'){
 		var coord = [];
-		els_boxShadow.each(function(){
+		els_shadows[css].each(function(){
 		    var _this = $(this);
 		    coord.push(_this.val()+'px ');
 		});
 		newBgColor = {"style":css + ':'+ coord.join('')+newBgColor+';'};
-	    }else if(css === 'text-shadow'){
-		coord = [];
-		els_textShadow.each(function(){
-		    var _this = $(this);
-		    coord.push(_this.val()+'px ');
-		});
-		newBgColor = {"style":css + ':'+ coord.join('')+newBgColor+';'};		
 	    }else{
 		newBgColor = {"style":css + ':'+ newBgColor+';'};		
 	    }
@@ -551,17 +532,17 @@ $(function(){
 		var _this = $(this);
 		_this.toggleClass('gradSelected');
 	    })
-	    .on('initGradColor', function(){
+	    .on(MY_INIT, function(){
 		var _this = $(this);
-		MY_STORAGE.select('gradColors').forEach(function(colorStr,i,a){
+		orDefault(MY_STORAGE.select('gradColors'), []).forEach(function(colorStr,i,a){
 		    if(isEmpty(colorStr)){return true;}
 		    createGradObject(colorStr, _this);
 		});
-	    }).trigger('initGradColor');
+	    }).trigger(MY_INIT);
     var el_directionGrad = $('#directionGrad');
     var el_addGrad = $('#addGrad').on(MY_CLICK,function(){
 	var colors = $(' > div', el_gradPalette);
-	var save = MY_STORAGE.select('gradColors');
+	var save = orDefault(MY_STORAGE.select('gradColors'), []);
 	if(colors.length >= 2){
 	    var arrayColor = [];
 	    colors.each(function(){
@@ -584,6 +565,8 @@ $(function(){
     function createGradObject(colorStr, target){
 	$('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(target);
     }
+    // directory
+    var el_HDevDirectorySpace = $('#HDevDirectorySpace');
 
     // context menu
     var context_menu = $('#context_menu');
@@ -598,34 +581,38 @@ $(function(){
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
 
 	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
-	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:13em;ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:21em;ime-mode:disabled;margin-left:1em;float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
-	{"name":"update_var", "label":"UpVar", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
-	{"name":"update_prop", "label":"UpProp", "input":'', "style":"", "col2":true},
-	{"name":"copy", "label":"Cp", "input":'', "style":"", "col2":false},
-	{"name":"cut", "label":"Mv", "input":'', "style":"", "col2":false},
-	{"name":"pastePrepend", "label":"PstPrep", "input":'', "style":"", "col2":false},
-	{"name":"pasteInsertBefore", "label":"PstBefore", "input":'', "style":"", "col2":false},
-	{"name":"pasteAppend", "label":"PstAppend", "input":'', "style":"", "col2":false},
-	{"name":"pasteInsertAfter", "label":"PstAfter", "input":'', "style":"", "col2":false},
-	{"name":"delete", "label":"Del", "input":'', "style":"", "col2":false},
+	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:12em;ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:20em;ime-mode:disabled;margin-left:1em;float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
+	{"name":"update_var", "label":"Up var ", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
+	{"name":"update_prop", "label":"Up prop ", "input":'<input type="text" id="updateAttr" class="" style="width:5em"/><input type="text" id="updateAttrValue" class="" style="width:8em"/>', "style":"", "col2":true},
+	{"name":"copy", "label":"Copy", "input":'', "style":"", "col2":false},
+	{"name":"cut", "label":"Mv (Cut)", "input":'', "style":"", "col2":false},
+//	{"name":"pasteInsertBefore", "label":"PstBefore", "input":'', "style":"", "col2":false},
+	{"name":"pasteAppend", "label":"Paste Append", "input":'', "style":"", "col2":false},
+	{"name":"pasteInsertAfter", "label":"Paste After", "input":'', "style":"", "col2":false},
+	{"name":"delete", "label":"rm (Delete)", "input":'', "style":"", "col2":false},
 	{"name":"save", "label":"", "input":'', "style":""},
 	{"name":"load", "label":"", "input":'', "style":""},
-	{"name":"register_part", "label":"RegPart", "input":'', "style":"", "col2":false},
-	{"name":"cxlselected", "label":"CxlSel", "input":'', "style":"", "col2":false},
-	{"name":"positionFix", "label":"Position Fix", "input":'', "style":"", "col2":false},
-	{"name":"undo", "label":"Undo", "style":"", "col2":false},
-	{"name":"redo", "label":"Redo", "style":"", "col2":false}
+	{"name":"register_part", "label":"Register", "input":'', "style":"", "col2":false},
+	{"name":"cxlselected", "label":"Cxl Select", "input":'', "style":"", "col2":false},
+	{"name":"positionFix", "label":"Fix Position", "input":'', "style":"", "col2":false},
+	{"name":"undo", "label":"Undo Structure", "style":"", "col2":false},
+	{"name":"redo", "label":"Redo Structure", "style":"", "col2":false}
     ];
 
     //init
+    // Directory Explorer
+    var el_directoryList = $('#directoryList');
     // page
     var el_HtmlDeveloping = $('#HtmlDeveloping');
     var page;
     var el_func_s = {};
+    var ROOT_PAGE ;
     (function(){
-	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":10000,"padding-left":"2.5em","display":"none", "background-color":"white"})
+	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
-	page = create_page('Default');
+	page = create_page('Root');
+	ROOT_PAGE = page;
+	page.screen.addClass('notDirectory');
 	var child;
 	var isNewChild = true;
 	var li_s;
@@ -634,14 +621,12 @@ $(function(){
 		el_func_s[obj.name] = $('#func_'+obj.name+'_element');
 		return;
 	    }
-	    var _this = $('<input type="button" id="func_'+obj.name+'_element" value="'+obj.label+'" class="menu_button" style="display:none;">');
-	    _this.appendTo(el_header_menu_bar);
-	    el_func_s[obj.name] = _this;
+	    el_func_s[obj.name] = $('<input type="button" id="func_'+obj.name+'_element" value="'+obj.label+'" class="menu_button" style="display:none;">').appendTo(el_header_menu_bar);
 	    if(isNewChild){
 		child = $('<li style="clear:both;">');
 		child.appendTo(context_menu);
 	    }
-	    var defa_size = 10;
+	    var defa_size = 9;
 	    if(obj.col2){
 		defa_size *= 2;
 	    }
@@ -672,7 +657,7 @@ $(function(){
 	    },function(){
 		context_menu.is_close_menu = true;
 	    });
-	context_menu.el_edit_mode = $('#'+MODE_EDIT).html(is_suspend.toString());
+	context_menu.el_edit_mode = $('#'+MODE_EDIT).html('start');
 	context_menu.el_selector = $('#SelectedMyObjId', context_menu).on(MY_CLICK, function(ev){
 	    ev.stopPropagation();
 	});
@@ -685,6 +670,16 @@ $(function(){
 	    context_menu.el_selector.val(_this.val());
 	    // el_func_s['cxlselected'].trigger(MY_CLICK);// 複数tableが選択し辛くなるため、無効化コメントアウト
 	});
+	context_menu.el_updateAttr = $('#updateAttr').on(MY_CLICK,function(ev){
+	    ev.preventDefault();
+	    ev.stopPropagation();
+	})
+//	    .autocomplete()
+	;
+	context_menu.el_updateAttrValue = $('#updateAttrValue').on(MY_CLICK,function(ev){
+	    ev.preventDefault();
+	    ev.stopPropagation();
+	});;
     })();
 
     // operator
@@ -696,7 +691,7 @@ $(function(){
 	    }else{
 		target = model;
 	    }
-	    var val = func === undefined || func == null || func === '' ? op_val+'px' : func+op_val;
+	    var val = isEmpty(func) ? op_val+'px' : func+op_val;
 	    target.css(css, val);
 	    els_box_xyz[css].val(parseInt(target.css(css), 10));
 	};
@@ -726,7 +721,6 @@ $(function(){
 		var counter_part = target.css(counter_part_css);
 		if(isEmpty(counter_part) || counter_part === 'auto' ){return '';}
 		target.css(counter_part_css, counter_operator[func]+op_val);
-
 	    }else{
 		target.css(css, func+op_val);
 	    }
@@ -829,19 +823,21 @@ $(function(){
 	    cssFunc(el_oprt_model, op_val, el_now_selected[key]);
 	}
     });
-
+    
+    var el_ObjectName = isEmpty(el_ObjectName) ? $('#ObjectName') : el_ObjectName;
     function create_page(name, width, height){
 	if(arguments.length <= 2){ height = '1440px';}//TODO
 	if($.isNumeric(width)){ width +='px';}//TODO
-	if(arguments.length ===  1){ width = '100%';}//TODO 
-	if(page_s.hasOwnProperty(name)){
+	if(arguments.length ===  1){ width = '100%';}//TODO
+	var screenName = 'screen'+name;
+	if(page_s.hasOwnProperty(screenName)){
 	    console.log('There are the same name:' + name + ' .');
-	    return page_s[name];
+	    return page_s[screenName];
 	}
 	var _page = {};
-	page_s['screen'+name] = _page;
+	page_s[screenName] = _page;
 	var now_id = STATUS.getNewMyObjId();
-	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';border-left:1px solid black;" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
+	_page.screen = $('<section id="'+screenName+'" class="screen" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
 	    .on('contextmenu', display_contextmenu)
 	    .on(MY_CLICK,function(ev){
 		if(context_menu.is_close_menu){
@@ -849,12 +845,16 @@ $(function(){
 		}
 		el_func_s.cxlselected.trigger(MY_CLICK);
 		page = _page;
-	    });
+	    }).data('name', name);
 	_page.prop_history = [];
 	context_menu.is_close_menu = true;
 	var _btn_name = name;
-	$('<input class="func_scrn_change" type="button" value="'+_btn_name+'">').data('page', _page).appendTo(el_header_menu_bar);
+	$('<input class="func_scrn_change" type="button" value="'+_btn_name+'">').data('page', _page).appendTo(el_directoryList);
 	el_HtmlDeveloping.append(_page.screen);
+	if(isEmpty(el_ObjectName)){
+	    el_ObjectName = $('#ObjectName');
+	}
+	el_ObjectName.html(_page.screen.data('name'));
 	return _page;
     }
 
@@ -863,19 +863,36 @@ $(function(){
 	ev.stopPropagation();
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
-    
-    el_header_menu_bar.on(MY_CLICK, '.func_scrn_change', function(){
-	var _this = $(this);
-	var _page = _this.data('page');//TODO page_sに変更??
-	if(_page.screen.attr('id') === 'screenDefault'){
-	    _page.screen.css({"width":"100%", "display":""}).siblings().css({"display":"none"});
-	    //TODO observe siblings except self
-	}else{
-	    _page.screen
-		.css({"display":"", "width":"70%"})
-		.siblings(':not("#screenDefault")').css({"display":"none"});
+    // Directory
+    var el_directory = $('#directory');
+    el_directoryList.on(MY_CLICK, '.func_scrn_change', function(){
+	var _page = $(this).data('page');//TODO page_sに変更??
+	var selectedName = _page.screen.data('name');
+	ROOT_PAGE.screen.siblings(':not(.notDirectory)').each(function(idx){
+	    var minimizedScrn = $(this);
+	    var pageName = minimizedScrn.data('name');
+	    if(isEmpty(pageName) || isEmpty(selectedName)){
+		return true;
+	    }
+	    if(pageName === selectedName){
+		return true;
+	    }
+	    minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.25)", "height":""}).detach();
+	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"640px", "height":"360px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace);
+	});
+	if(ROOT_PAGE !== _page && page !== _page){
+	    page = _page;
+	    var parent =_page.screen.parent();
+	    var selectedScreen = _page.screen
+		    .css({"transform":"scale(1)", "margin":"0px"});
+	    if(parent.hasClass('directoryContainer')){
+		selectedScreen.detach().appendTo(el_HtmlDeveloping);
+		parent.remove();
+	    }
+	}else if(ROOT_PAGE === _page){
+	    page = _page;
 	}
-	page = _page;
+	el_ObjectName.html(page.screen.data('name'));
     });
 
     // screen util setting
@@ -950,8 +967,7 @@ $(function(){
 	var tag = target.get(0).localName;
 	if(target.hasClass('wrapper')){return true;}
 	//prop
-	var org_prop_s = target.data('my-org-prop_s');
-	if(isEmpty(org_prop_s)){org_prop_s = {};}
+	var org_prop_s = orDefault(target.data('my-org-prop_s'), {});
 	var kept_prop_s = {};
 	var prop_history = orDefault(target.data('prop-history'), {});
 	for(var _p_key in prop_s){
@@ -1000,7 +1016,11 @@ $(function(){
 	if( target_s.length === 0){ return;}
 	var prop_s = JSON.parse( el_selected_val_prop_json.val() );
 	if( ! $.isPlainObject(prop_s)){throw new TypeError('prop is not JSON style.');}
-
+	var overrideAttr = context_menu.el_updateAttr.val();
+	var overrideAttrVal = context_menu.el_updateAttrValue.val();
+	if(!isEmpty(overrideAttr)){
+	    prop_s[overrideAttr] = overrideAttrVal;
+	}
 	$.each(target_s, function(idx, _target){
 	    //	    var prop_history_id = STATUS.getNewProp();
 	    update_prop($(_target), prop_s);
@@ -1042,12 +1062,12 @@ $(function(){
 	互いに排他機能のCLASSを含まないセレクタ += ':not(.'+now_class+')';
     });
 
-    el_func_s.pastePrepend.on(MY_CLICK, function(){
-	paste_method('prependTo');
-    });
-    el_func_s.pasteInsertBefore.on(MY_CLICK, function(){
-	paste_method('insertBefore');
-    });
+    // el_func_s.pastePrepend.on(MY_CLICK, function(){
+    // 	paste_method('prependTo');
+    // });
+    // el_func_s.pasteInsertBefore.on(MY_CLICK, function(){
+    // 	paste_method('insertBefore');
+    // });
     el_func_s.pasteAppend.on(MY_CLICK, function(){
 	paste_method('appendTo');
     });
@@ -1217,7 +1237,7 @@ $(function(){
 	.trigger(MY_INIT);
 
     el_func_s.modelCssApply.on(MY_CLICK, function(){
-	var apply_css = ["width", "height", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width", "transform", "border-radius", "text-shadow", "box-shadow"];//XXX
+	var apply_css = ["font-size", "width", "height", "color", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width", "transform", "border-radius", "text-shadow", "box-shadow"];//XXX
 	var apply_style = '';
 	apply_css.forEach(function(css,i,a){
 	    var temp = el_oprt_model.css(css);
@@ -1229,9 +1249,50 @@ $(function(){
 	};
     });
 
-    var el_for_padding = $('#for_padding');
+    var el_boxModel = $('#boxModel').data('cursorTarget', {});
+    $('input[type=number]', el_boxModel)
+	.on(MY_INIT,function(){
+	    var _this = $(this);
+	    var min = _this.attr('min');
+	    min = isEmpty(min) ? 1 : parseInt(min, 10);
+	    var max = _this.attr('max');
+	    max = isEmpty(max) ? null : parseInt(max, 10);
+	    var step = _this.attr('step');
+	    step = isEmpty(step) ? 1 : parseInt(step, 10);
+	    var step5 = step * 5;
+	    _this.data('keyCodeSetting', {"min":min, "max":max, "step":step, "step5":step5});
+	}).trigger(MY_INIT)
+	.on('focus',function(){
+	    var _this = $(this);
+	}).on('keydown',function(ev){
+	    var _this = $(this);
+	    var setting = _this.data('keyCodeSetting');
+	    var keyCd = ev.keyCode;
+	    switch(keyCd){
+	    case 37:
+		_this.val(parseInt(_this.val(), 10) - setting.step5);
+		break;
+	    case 38:
+		_this.val(parseInt(_this.val(), 10) + setting.step);
+		break;
+	    case 39:
+		_this.val(parseInt(_this.val(), 10) + setting.step5);
+		break;
+	    case 40:
+		_this.val(parseInt(_this.val(), 10) - setting.step);
+		break;		
+	    }
+	    var nowVal = _this.val();
+	    if(!isEmpty(setting.min) && nowVal < setting.min){
+		_this.val(setting.min);
+	    }else if(!isEmpty(setting.max) && nowVal > setting.max){
+		_this.val(setting.max);
+	    }
+	    _this.trigger(MY_CLICK);
+	    var cursorTarget = el_boxModel.data('cursorTarget');	    
+	});
     el_func_s.modelCssReset.on(MY_CLICK, function(){
-	$('input', el_for_padding).val(0);
+	$('input[type=number]', el_boxModel).val(0);
 	el_oprt_model.attr('style', el_oprt_model.data('my-default-prop_s'));
 	el_oprt_model.attr('transform', {});
 	update_prop(el_oprt_model, el_oprt_model.data('my-default-prop_s'));
@@ -1263,8 +1324,8 @@ $(function(){
 
     el_func_s.edit.on(MY_CLICK,function(ev, obj){
 	is_suspend = ! is_suspend;
-	context_menu.el_edit_mode.html(is_suspend.toString());
 	if(is_suspend){
+	    context_menu.el_edit_mode.html('end');
 	    var NOW_SELECTED = $('.'+CLASS_SELECTED, page.screen)
 		    .addClass(CLASS_ON_EDIT)
 		    .each(function(idx,obj){
@@ -1274,6 +1335,7 @@ $(function(){
 		    });
 	    el_func_s.cxlselected.trigger(MY_CLICK);
 	}else{
+	    context_menu.el_edit_mode.html('start');
 	    $('.'+CLASS_ON_EDIT + ' > .'+CLASS_EDIT_DATA, page.screen)
 		.each(function(idx,obj){
 		    var _this = $(this);
@@ -1293,8 +1355,7 @@ $(function(){
 	el_saved_serialized.val(JSON.stringify(save));
 
 	/* delete old */
-	var save_s = MY_STORAGE.select('save_s');
-	save_s = save_s == null ? {} : save_s;
+	var save_s = orDefault(MY_STORAGE.select('save_s'), {});
 	++history_counter;
 	var tmp_counter = 0;
 	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
@@ -1416,7 +1477,7 @@ $(function(){
     el_history.on(MY_CHANGE+' '+MY_CLICK,function(){
 	var _this = myWrapElement(this);
 	var saved = MY_STORAGE.select('save_s');
-	if(saved != null){
+	if(!isEmpty(saved)){
 	    var selected = _this.val();
 	    el_saved_serialized.val(JSON.stringify(saved[selected]));
 	}
@@ -1472,8 +1533,8 @@ $(function(){
 	//pull down
 	refresh_select_list(some_key, el_some.select);
 	//pull donw init
-	var name_in_storage = MY_STORAGE.select(some_key+'_selected');
-	if( name_in_storage != null && name_in_storage !== '' ){
+	var name_in_storage = orDefault(MY_STORAGE.select(some_key+'_selected'), []);
+	if( !isEmpty(name_in_storage)){
 	    el_some.name.val(name_in_storage);
 	    el_some.select.val(name_in_storage);
 	}
@@ -1481,8 +1542,8 @@ $(function(){
 	el_some.select.on(MY_CHANGE,function(){
 	    var some_name = this.value;
 	    var input_name = el_some.name.val();
-	    var list_s_in_storage = MY_STORAGE.select(some_key);
-	    if(list_s_in_storage != null && typeof list_s_in_storage !== 'undefined'){
+	    var list_s_in_storage = orDefault(MY_STORAGE.select(some_key), []);
+	    if(!isEmpty(list_s_in_storage)){
 		var keys_list_s = Object.keys(list_s_in_storage);
 		if(keys_list_s.length > 0){
 		    if(!isEmpty(some_name)){
@@ -1544,8 +1605,7 @@ $(function(){
 	    var some_name = el_some.name.val();
 	    var tmp_el_list = el_some_list[some_key];
 	    var list_s_in_storage = MY_STORAGE.select(some_key);
-	    if(typeof list_s_in_storage === 'undefined' 
-	       || list_s_in_storage === null || ! $.isPlainObject(list_s_in_storage)){
+	    if(isEmpty(list_s_in_storage) || ! $.isPlainObject(list_s_in_storage)){
 		list_s_in_storage = {};
 	    }
 	    list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
@@ -2362,10 +2422,13 @@ $(function(){
 	for(var idx_tgt=0;idx_tgt < length_target_s;++idx_tgt){
 	    var target = myWrapElement(target_s[idx_tgt]);
 	    var parent_tag = target[0].localName.toLowerCase();
-	    var is_relative禁止タグ = position_relative禁止タグ.indexOf(parent_tag) >= 0;
+	    var isParentRelative禁止タグ = position_relative禁止タグ.indexOf(parent_tag) >= 0;
+	    var amRelative禁止タグ =  position_relative禁止タグ.indexOf(tag) >= 0;
 	    var is_resizable = true;
 
-	    if( !is_relative禁止タグ && is_default_draggable){var is_draggable = true;}
+	    if( !isParentRelative禁止タグ && is_default_draggable){
+		var is_draggable = true;
+	    }
 	    if( tag === 'svg'){
 		is_svg = true;
 		is_draggable = false;
@@ -2555,20 +2618,20 @@ $(function(){
 		//nothing
 	    }else{
 		if( is_draggable ){
-		    if(!is_relative禁止タグ){
+		    if(!isParentRelative禁止タグ){
 			work_jq.draggable(draggableOption)
 			    .data('draggableOption', draggableOption);
 		    }else{
 			work_jq.css({"top":0, "left":0});
 		    }
 		}else{
-		    if(!is_relative禁止タグ){
+		    if(!isParentRelative禁止タグ){
 			work_jq.css('position','relative');//子要素のpositionがabsoluteになり得るため
 		    }else{
 			work_jq.css({"top":0, "left":0});
 		    }
 		}
-		if(!is_relative禁止タグ){
+		if(!isParentRelative禁止タグ){
 		    work_jq.css('position','absolute');
 		}else{
 		    work_jq.css('position','relative');
@@ -2577,6 +2640,9 @@ $(function(){
 		    .resizable(resizableOption)
 		    .data('resizableOption', resizableOption)
 		    .addClass('snap');
+	    }
+	    if(amRelative禁止タグ){
+		work_jq.css({"top":0, "left":0});    
 	    }
 	    rtn_work_jq_s.push(work_jq);
 	}//	for(var idx_tgt=0;idx_tgt < length_target_s;++idx_tgt)
@@ -3120,7 +3186,7 @@ $(function(){
     var history_counter = 0;
     function init_save_history(){
 	var appender = '';
-	var save_s = MY_STORAGE.select('save_s');
+	var save_s = orDefault(MY_STORAGE.select('save_s'), []);
 	history_counter = 0;
 	for(var key in save_s) if(save_s.hasOwnProperty(key) && key.startsWith('save')){
 	    appender = '<option value="'+key+'">'+key+'</option>' + appender;
@@ -3185,8 +3251,8 @@ $(function(){
 
     function refresh_select_list(some_key, el_some_select){
 	// creating option in select
-	var list_s_in_storage = MY_STORAGE.select(some_key);
-	if(typeof list_s_in_storage === 'undefined' || list_s_in_storage == null){
+	var list_s_in_storage = orDefault(MY_STORAGE.select(some_key), []);
+	if(isEmpty(list_s_in_storage)){
 	    return;
 	}
 	var keys_list_s = Object.keys(list_s_in_storage);
@@ -3232,11 +3298,23 @@ $(function(){
 			}
 			// extract param
 			var expression =  $(' ~ .val', this).val();
-			var counter = 0;
+			var counter = {};
+			var startDoller = false;
+			var pool = '';
 			expression.split('').forEach(function(x,i,a){
-			    if( x === '$' ) ++counter;
+			    if( x === '$' ) startDoller = true;
+			    if(startDoller){
+				if(x === ')' || x === ' ' || x === ','){
+				    startDoller = false;
+				    counter[pool] = true;
+				    pool = '';
+				    return;
+				}
+				pool += x;
+			    }
 			});
-			var params = counter > 0 ? '(,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,'.substring(0, counter) +')' : '';
+			counter = Object.keys(counter).length;
+			var params = counter > 0 ? '(,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,'.substring(0, counter) +')' : '';
 			el_val_tag.val(now_val + new_val + params);
 		    }).appendTo(new_li);
 	    }
@@ -3316,8 +3394,10 @@ $(function(){
 
     function cssStringify(pool){
 	var rtn = '';
-	for(var css_key in pool){
-	    rtn += css_key+':'+pool[css_key]+';';
+	for(var css_key in pool)if(pool.hasOwnProperty(css_key)){
+	    if(!isEmpty(pool[css_key])){
+		rtn += css_key+':'+pool[css_key]+';';
+	    }
 	}
 	return rtn;
     }
@@ -3330,7 +3410,7 @@ $(function(){
 	    var key_val = x.trim().split(':');
 	    if( key_val.length >= 2){
 		var val = key_val[1].trim();
-		if( typeof val === 'undefined' || val == null || val == 'null'){
+		if( typeof val === 'undefined' || val == null || val === 'null'){
 		    return;
 		}
 		pool[key_val[0].trim()] = val;
@@ -3708,7 +3788,7 @@ $(function(){
     }
 
     function orDefault(param, init){
-	if(typeof param === 'undefined' || param == null ){
+	if(isEmpty(param)){
 	    return init;
 	}else{
 	    return param;
