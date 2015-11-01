@@ -837,11 +837,7 @@ $(function(){
 	var _page = {};
 	page_s[screenName] = _page;
 	var now_id = STATUS.getNewMyObjId();
-<<<<<<< HEAD
 	_page.screen = $('<section id="'+screenName+'" class="screen" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
-=======
-	_page.screen = $('<section id="screen'+name+'" class="screen" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';border:4px solid black;" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
->>>>>>> cebf416b426ad5dc691d2a3e7f76a9eb7fe2aa50
 	    .on('contextmenu', display_contextmenu)
 	    .on(MY_CLICK,function(ev){
 		if(context_menu.is_close_menu){
@@ -867,7 +863,6 @@ $(function(){
 	ev.stopPropagation();
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
-<<<<<<< HEAD
     // Directory
     var el_directory = $('#directory');
     el_directoryList.on(MY_CLICK, '.func_scrn_change', function(){
@@ -898,20 +893,6 @@ $(function(){
 	    page = _page;
 	}
 	el_ObjectName.html(page.screen.data('name'));
-=======
-    
-    el_header_menu_bar.on(MY_CLICK, '.func_scrn_change', function(){
-	var _page = $(this).data('page');//TODO page_sに変更??
-	if(_page.screen.attr('id') === 'screenDefault'){
-	    _page.screen.css({"width":"100%", "display":""}).siblings(':not(#context_menu)').css({"transform":"scale(0.25)"});
-//.css({"display":"none"});
-	}else{
-	    _page.screen
-		.css({"display":"", "transform":"scale(1)"})
-		.siblings(':not("#screenDefault")').css({"display":"none"});
-	}
-	page = _page;
->>>>>>> cebf416b426ad5dc691d2a3e7f76a9eb7fe2aa50
     });
 
     // screen util setting
