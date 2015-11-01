@@ -1,14 +1,17 @@
 # WYSIWYG\_HTML
 
-Creating a HTML mock on Your Real browser.  
+Creating a HTML  on Your Real browser.  
 emmet-like inputting.  
-required this app html, jquery 2.0 over, this app js, and your modern browser.  
-if you'd like to use your css, js files,
+required this app html, jquery 2.0 over, this app js, and your modern browser,
+not FLASH.  
+If you'd like to use your css, js files,
 Please add them to this app html's head.
 
 # App Screenshot
 ![img](https://raw.githubusercontent.com/wiki/elseorand/WYSIWYG_HTML/images/WYSIWG_BASIC_SAMPLE.png)
 
+
+This is a simple tutorial. Please check wiki.  
 # 1st step Appending div tag on screen<a id="orgheadline6"></a>
 
 ## Input "div" to the textbox under "Tag emmet style".<a id="orgheadline1"></a>
