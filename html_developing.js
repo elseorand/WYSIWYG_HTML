@@ -41,6 +41,41 @@ $(function(){
      * font-size
      * thumbnail (transform:scale)
      */
+    // Selenium on ScalaTest
+    $('input[type=text]').on('click', function(){
+	var _this = $(this);
+	var id = _this.attr('id');
+	var name = _this.attr('name');
+	var value = _this.val();
+	if(!isEmpty(value)){
+	    if(!isEmpty(id)){
+		console.log('textField(id("'+id+'")).value = "'+value+'"');
+	    }else if(!isEmpty(name)){
+		console.log('textField(name("'+name+'")).value = "'+value+'"');
+	    }
+	}
+    });
+    $('input[type=button],button').on('click', function(){
+	var _this = $(this);
+	var id = _this.attr('id');
+	var name = _this.attr('name');
+	var value = _this.val();
+	if(!isEmpty(value)){
+	    if(!isEmpty(id)){
+		console.log('click on (id("'+id+'"))');
+	    }else if(!isEmpty(name)){
+		console.log('click on (name("'+name+'"))');
+	    }
+	}
+    });
+    // startsWith
+    if (!String.prototype.startsWith) {
+	String.prototype.startsWith = function(searchString, position) {
+	    position = position || 0;
+	    return this.lastIndexOf(searchString, position) === position;
+	};
+    }
+    
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
     var MAX_SAVE_SLOT_S = 16;
@@ -191,7 +226,8 @@ $(function(){
     var el_sandbox_screen =  $('#sandbox_screen');
     var el_func_new_page_element = $('#func_new_page_element').on(MY_CLICK, function(){
 	var name = el_new_page_element.val().trim();
-	page = create_page(name);
+	var btn_page = create_page(name, el_directoryList);
+	page = btn_page.page;
 	el_some_name.style_list.val(name);
 	if(name.endsWith('.json')){//TODO now Developing
 	    $.getJSON(name)
@@ -217,6 +253,10 @@ $(function(){
 		    }
 		});
 	}
+    });
+    var el_func_newDirectory = $('#func_newDirectory').on(MY_CLICK, function(){
+	var name = el_new_page_element.val().trim();
+	var btn_dir = create_directory(name);
     });
     var el_new_page_element = $('#new_page_element');
     var el_style = $('style#MyEditableStyle');
@@ -601,18 +641,22 @@ $(function(){
 
     //init
     // Directory Explorer
+    var el_directorySpace = $('#directorySpace');
+    var el_directoryRoot = $('#directoryRoot');
     var el_directoryList = $('#directoryList');
+    var el_directory = $('#directory');
     // page
     var el_HtmlDeveloping = $('#HtmlDeveloping');
     var page;
     var el_func_s = {};
     var ROOT_PAGE ;
+    var el_ObjectName = isEmpty(el_ObjectName) ? $('#ObjectName') : el_ObjectName;
     (function(){
 	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
-	page = create_page('Root');
+	var btn_page = create_page('Root', el_directoryRoot, 'dir');
+	page = btn_page.page;
 	ROOT_PAGE = page;
-	page.screen.addClass('notDirectory');
 	var child;
 	var isNewChild = true;
 	var li_s;
@@ -634,7 +678,7 @@ $(function(){
 		isNewChild = !isNewChild;
 	    }
 
-	    var btn = $('<div>').attr("style", merge_css('float:left;width:'+defa_size+'em;height:2em;', obj.style));
+	    var btn = $('<div class="func_'+obj.name+'">').attr("style", merge_css('float:left;width:'+defa_size+'em;height:2em;', obj.style));
 	    child.append(btn.append(obj.label)
 			 .append(obj.input)
 			 .css({"border-bottom":"1px dotted grey","padding":"2px","opacity":1,"user-select":"none"})
@@ -824,11 +868,10 @@ $(function(){
 	}
     });
     
-    var el_ObjectName = isEmpty(el_ObjectName) ? $('#ObjectName') : el_ObjectName;
-    function create_page(name, width, height){
-	if(arguments.length <= 2){ height = '1440px';}//TODO
+    function create_page(name, appendTarget, type, width, height){
+	if(arguments.length < 5){ height = '1440px';}//TODO
 	if($.isNumeric(width)){ width +='px';}//TODO
-	if(arguments.length ===  1){ width = '100%';}//TODO
+	if(arguments.length < 4){ width = '100%';}//TODO
 	var screenName = 'screen'+name;
 	if(page_s.hasOwnProperty(screenName)){
 	    console.log('There are the same name:' + name + ' .');
@@ -849,13 +892,16 @@ $(function(){
 	_page.prop_history = [];
 	context_menu.is_close_menu = true;
 	var _btn_name = name;
-	$('<input class="func_scrn_change" type="button" value="'+_btn_name+'">').data('page', _page).appendTo(el_directoryList);
+	$('.func_scrn_change').removeClass("selectedScrnBtn");
+	var appndDirClass = type === 'dir' ? ' func_dir_change' : '';
+	var pageBtn = $('<input class="func_scrn_change freeScrnBtn selectedScrnBtn '+appndDirClass+'" type="button" value="'+_btn_name+'" />').data('page', _page).appendTo(appendTarget);
 	el_HtmlDeveloping.append(_page.screen);
-	if(isEmpty(el_ObjectName)){
-	    el_ObjectName = $('#ObjectName');
-	}
 	el_ObjectName.html(_page.screen.data('name'));
-	return _page;
+	return {"btn":pageBtn, "page":_page};
+    }
+
+    function create_directory(name){
+	return create_page(name, el_directoryList, 'dir');
     }
 
     function display_contextmenu(ev){
@@ -864,21 +910,25 @@ $(function(){
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
     // Directory
-    var el_directory = $('#directory');
-    el_directoryList.on(MY_CLICK, '.func_scrn_change', function(){
-	var _page = $(this).data('page');//TODO page_sに変更??
+    el_directorySpace.on(MY_CLICK, '.func_scrn_change', function(){
+	el_directorySpace.find('.func_scrn_change').removeClass('selectedScrnBtn');
+	var _this = $(this).addClass('selectedScrnBtn');
+	var _page = _this.data('page');//TODO page_sに変更??
 	var selectedName = _page.screen.data('name');
-	ROOT_PAGE.screen.siblings(':not(.notDirectory)').each(function(idx){
+	ROOT_PAGE.screen.siblings().each(function(idx){
 	    var minimizedScrn = $(this);
 	    var pageName = minimizedScrn.data('name');
-	    if(isEmpty(pageName) || isEmpty(selectedName)){
+	    if(isEmpty(pageName) || isEmpty(selectedName) || pageName === selectedName){
 		return true;
 	    }
-	    if(pageName === selectedName){
-		return true;
-	    }
-	    minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.25)", "height":""}).detach();
-	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"640px", "height":"360px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace);
+	    minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach();
+	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace).on(MY_CLICK, '.shim', function(){
+		var _this = $(this);
+		var btnName = _this.find('>div').html();
+		el_directoryList.find('.func_scrn_change').filter(function(){
+		    return this.value === btnName;
+		}).trigger(MY_CLICK);
+	    });
 	});
 	if(ROOT_PAGE !== _page && page !== _page){
 	    page = _page;
@@ -3796,7 +3846,7 @@ $(function(){
     }
 
     function isEmpty(val){
-	return typeof val === 'undefined' || val == null || val === '';
+	return typeof val === 'undefined' || val === null || val === '';
     }
 
     function colorHex2Decimals(hex){

@@ -4,9 +4,9 @@
 		<meta charset="UTF-8" />
 		<title>HTML Developing</title>
 		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <!--  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
+    <!--    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+    <!--    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
 		<script src="/default/jquery-2.1.4.min.js" ></script>
  		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script>
 		<script src="/default/html_developing.js"></script>
@@ -30,7 +30,7 @@
         border-style:dotted;
         border-color:grey;
 				border-collapse:collapse;
-			}      
+			}
 			.ui-resizable-e,.ui-resizable-s,.ui-resizable-se{
 				opacity: 0.2;
 			}
@@ -109,6 +109,29 @@
       .openCloseTrigger.hiddenState{
         text-overflow: ellipsis;
       }
+      #directoryList >.selectedScrnBtn{
+        background-color:#FF6E41;
+      }
+      #directorySpace input.func_dir_change{
+        border:none;
+        background-color:#000fff;
+        color:white;
+        text-align:center; 
+      }
+      #directorySpace input.func_dir_change.selectedScrnBtn{
+        background-color:#FF6E41;
+      }
+      #directoryList >input{
+        margin-left:8px;
+      }
+      .freeScrnBtn{
+        border:none;
+        background-color:transparent;
+        text-align:left;        
+      }
+      .borderRadius{
+        width:3em;height:1em;position:absolute;
+      }
       
 			/* As you like */
 			body {
@@ -153,7 +176,7 @@
       #basic_menu input[type=number]{
         text-align:center;
       }
-      .func_scrn_change {
+      .directorySpace >input {
         border:none;
         background-color:transparent;
         text-align:left;
@@ -223,7 +246,7 @@
 				top:0px !important;
 				left:0px !important;
 			}
-			.screen > .htmlize{
+			.screen >.htmlize{
 				animation: anime1 5s ease -2s 1 normal;
 			}
 
@@ -240,11 +263,9 @@
 				<span id="sandbox_screen" style="width:40px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
 				<input value="Save" id="func_save_element" style="" type="button">
 				<select id="history" style=""></select>
-				<input id="saved_serialized" placeholder="click save => The data comes here" style="" type="text">
+				<input id="saved_serialized" placeholder="click save =>The data comes here" style="" type="text">
 				<input value="Load" id="func_load_element" style="" type="button">
 				<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
-				<input value="NewPage" id="func_new_page_element" style="" type="button">
-				<input value="" id="new_page_element" style="" type="text" placeholder="new page name">
 			</section>
 		</header>
 		<section id="HtmlDeveloping" style="width:100%;">
@@ -336,18 +357,18 @@
             </div>
             <div id="for_padding" style="border:1px dotted grey;width:420px;height:250px;position:relative;top:4px;margin-left:25px;margin-bottom:16px;clear:both;">
               <label for="" style="color:blue;">margin</label>
-              <input id="borderRadius0"class="borderRadius borderRadiusX" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:3.5em;bottom:auto;left:-0.5em;right:auto;margin:auto;"/>
-              <input id="borderRadius1"class="borderRadius borderRadiusY" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:1.5em;bottom:auto;left:3.5em;right:auto;margin:auto;"/>
-              <input id="borderRadius2"class="borderRadius borderRadiusY" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:1.5em;bottom:auto;right:3.5em;left:auto;margin:auto;"/>
-              <input id="borderRadius3"class="borderRadius borderRadiusX" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:3.5em;bottom:auto;right:-0.5em;left:auto;margin:auto;"/>            
-              <input id="borderRadius4"class="borderRadius borderRadiusX" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:auto;bottom:2.5em;right:-0.5em;left:auto;margin:auto;"/>
-              <input id="borderRadius5"class="borderRadius borderRadiusY" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:auto;bottom:0.5em;right:3.5em;left:auto;margin:auto;"/>
-              <input id="borderRadius6"class="borderRadius borderRadiusY" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:auto;bottom:0.5em;left:3.5em;right:auto;margin:auto;"/>
-              <input id="borderRadius7"class="borderRadius borderRadiusX" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:auto;bottom:2.5em;left:-0.5em;right:auto;margin:auto;"/>
-              <input class="boxDesign margin" id="margin-left" type="number" value="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:-25px;right:auto;margin:auto;z-index:110;"/>            
-              <input class="boxDesign margin" id="margin-top" type="number" value="0" style="width:3em;position:absolute;top:0px;left:0px;right:0px;margin:auto;"/>
-              <input class="boxDesign margin" id="margin-right" type="number" value="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;right:-20px;left:auto;margin:auto;z-index:110;"/>            
-              <input class="boxDesign margin" id="margin-bottom" type="number" value="0" style="width:3em;height:1em;position:absolute;top:auto;bottom:-6px;right:0px;left:0px;margin:auto;z-index:110;"/>            
+              <input id="borderRadius0" class="borderRadius borderRadiusX" type="number" value="0" min="0" style="top:3.5em;bottom:auto;left:-0.5em;right:auto;margin:auto;"/>
+              <input id="borderRadius1" class="borderRadius borderRadiusY" type="number" value="0" min="0" style="top:1.5em;bottom:auto;left:3.5em;right:auto;margin:auto;"/>
+              <input id="borderRadius2" class="borderRadius borderRadiusY" type="number" value="0" min="0" style="top:1.5em;bottom:auto;right:3.5em;left:auto;margin:auto;"/>
+              <input id="borderRadius3" class="borderRadius borderRadiusX" type="number" value="0" min="0" style="top:3.5em;bottom:auto;right:-0.5em;left:auto;margin:auto;"/>
+              <input id="borderRadius4" class="borderRadius borderRadiusX" type="number" value="0" min="0" style="top:auto;bottom:2.5em;right:-0.5em;left:auto;"/>
+              <input id="borderRadius5" class="borderRadius borderRadiusY" type="number" value="0" min="0" style="top:auto;bottom:0.5em;right:3.5em;left:auto;"/>
+              <input id="borderRadius6" class="borderRadius borderRadiusY" type="number" value="0" min="0" style="top:auto;bottom:0.5em;left:3.5em;right:auto;"/>
+              <input id="borderRadius7" class="borderRadius borderRadiusX" type="number" value="0" min="0" style="top:auto;bottom:2.5em;left:-0.5em;right:auto;"/>
+              <input id="margin-left" class="boxDesign margin" type="number" value="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:-25px;right:auto;margin:auto;z-index:110;"/>
+              <input id="margin-top" class="boxDesign margin" type="number" value="0" style="width:3em;position:absolute;top:0px;left:0px;right:0px;margin:auto;"/>
+              <input id="margin-right" class="boxDesign margin" type="number" value="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;right:-20px;left:auto;margin:auto;z-index:110;"/>
+              <input id="margin-bottom" class="boxDesign margin" type="number" value="0" style="width:3em;height:1em;position:absolute;top:auto;bottom:-6px;right:0px;left:0px;margin:0px auto 0px;z-index:110;"/>
               <div id="for_body" style="border:1px solid black;width:95px;height:50px;padding:35px 110px 80px;margin:30px 50px 25px;position:relative;">
                 <label for="" style="position:absolute;top:3px;left:3px;color:green;">border</label>
                 <select id="border-style" class="boxDesign" style="width:6em;height:2em;position:absolute;top:1.5em;bottom:auto;left:0px;right:auto;">
@@ -364,12 +385,12 @@
                 </select>
                 <label for="" style="position:absolute;top:3px;left:auto;right:0px;color:red;">border-radius</label>
                 <input class="boxDesign border" id="border-top-width" type="number" value="0" min="0" style="width:3em;position:absolute;top:-23px;bottom:auto;left:0px;right:0px;margin:auto;z-index:110;"/>
-                <input class="boxDesign border" id="border-right-width" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:auto;right:-5px;margin:auto;"/>              
-                <input class="boxDesign border" id="border-bottom-width" type="number" value="0" min="0" style="width:3em;position:absolute;top:auto;bottom:-5px;left:0px;right:0px;margin:auto;"/>
+                <input class="boxDesign border" id="border-right-width" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:auto;right:-5px;margin:auto;"/>
+                <input class="boxDesign border" id="border-bottom-width" type="number" value="0" min="0" style="width:3em;position:absolute;top:auto;bottom:-5px;left:0px;right:0px;margin:0px auto 0px;"/>
                 <input class="boxDesign border" id="border-left-width" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:0px;right:auto;margin:auto;"/>
                 <input class="boxDesign padding" id="padding-top" type="number" value="0" min="0" style="width:3em;position:absolute;top:7px;bottom:auto;left:0px;right:0px;margin:auto;"/>
-                <input class="boxDesign padding" id="padding-right" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:auto;right:50px;margin:auto;"/>              
-                <input class="boxDesign padding" id="padding-bottom" type="number" value="0" min="0" style="width:3em;position:absolute;top:auto;bottom:25px;left:0px;right:0px;margin:auto;"/>
+                <input class="boxDesign padding" id="padding-right" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:auto;right:50px;margin:auto;"/>
+                <input class="boxDesign padding" id="padding-bottom" type="number" value="0" min="0" style="width:3em;position:absolute;top:auto;bottom:25px;left:0px;right:0px;margin:0px auto 0px;"/>
                 <input class="boxDesign padding" id="padding-left" type="number" value="0" min="0" style="width:3em;height:1em;position:absolute;top:0px;bottom:0px;left:55px;right:auto;margin:auto;"/>
                 <div id="for_margin" style="border:1px dotted grey;width:100px;height:80px;color:#999900;position:relative;">
                   padding
@@ -491,14 +512,15 @@
 				<label for="SelectedValPropJSON" >Detail</label><input type="text" id="SelectedValPropJSON" class="json_val" style="width:95%;" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
 		</footer>
-    <div id="directory" class="float_menu" style="border:1px solid black;position:absolute;z-index:10000;width:800px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;height:400px;">
+    <div id="directory" class="float_menu" style="border:1px solid black;position:absolute;bottom:70px;right:50px;z-index:10000;width:400px;height:200px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
       <section style="display:flex;flex-direction:column;align-items:stretch;flex-grow:1;">
-        <header class="menuHandler" style="width:100%;height:4em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;">
+        <header class="menuHandler" style="width:100%;height:4em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;padding-left:2px;">
           <div style="border:0px none transparent;margin:3px;">
             <button style="border-radius:50%;background-color:#ff6e41;border:none;">x</button>
             <button style="border-radius:50%;background-color:#999999;border:none;">_</button>
             <button style="border-radius:50%;background-color:#999999;border:none;">□</button>
             <span id="ObjectName" type="text" value="" readonly style="border:none;" ></span>
+            <span>not automatic saving. this is experimental.</span>
           </div>
           <section style="height:3.5em;">
             <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&lt;</button>
@@ -506,8 +528,13 @@
           </section>
         </header>
         <section style="display:flex;flex-direction:row;flex-grow:10;align-items:stretch;">
-          <aside style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;">
-            <div id="directoryList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:auto;margin:3px;"></>
+          <aside id="directorySpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
+            <input id="func_newDirectory" type="button" value=" + new dir"/>
+				    <input id="func_new_page_element" type="button" value="  + new file" style="">
+				    <input value="" id="new_page_element" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
+            <div id="directoryRoot" style="font-size:1.2em;margin:4px;display:flex;flex-direction:column;flex-stretch:1;"></div>
+            <div id="directoryList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:auto;margin:4px;"></div>
+            <input id="func_delDirObj" type="button" value=" - delete" style=""/>
           </aside>
           <article id="HDevDirectorySpace" style="flex-grow:4;background-color:white;align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;"></article>
         </section>
