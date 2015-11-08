@@ -512,33 +512,35 @@
 				<label for="SelectedValPropJSON" >Detail</label><input type="text" id="SelectedValPropJSON" class="json_val" style="width:95%;" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
 		</footer>
-    <div id="directory" class="float_menu" style="border:1px solid black;position:absolute;bottom:70px;right:50px;z-index:10000;width:400px;height:200px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
-      <section style="display:flex;flex-direction:column;align-items:stretch;flex-grow:1;">
-        <header class="menuHandler" style="width:100%;height:4em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;padding-left:2px;">
-          <div style="border:0px none transparent;margin:3px;">
-            <button style="border-radius:50%;background-color:#ff6e41;border:none;">x</button>
-            <button style="border-radius:50%;background-color:#999999;border:none;">_</button>
-            <button style="border-radius:50%;background-color:#999999;border:none;">□</button>
-            <span id="ObjectName" type="text" value="" readonly style="border:none;" ></span>
-            <span>not automatic saving. this is experimental.</span>
-          </div>
-          <section style="height:3.5em;">
-            <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&lt;</button>
-            <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&gt;</button>
+    <div class="hide_mode_target" style="display:none;width:800px;height:600px;position:absolute;"  data-fire-key-code="escape" >
+      <div id="directory" class="float_menu"  style="border:1px solid black;position:absolute;top:120px;left:50px;z-index:10000;width:800px;height:600px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
+        <section style="display:flex;flex-direction:column;align-items:stretch;flex-grow:1;">
+          <header class="menuHandler" style="width:100%;height:4em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;padding-left:2px;">
+            <div style="border:0px none transparent;margin:3px;">
+              <button style="border-radius:50%;background-color:#ff6e41;border:none;">x</button>
+              <button style="border-radius:50%;background-color:#999999;border:none;">_</button>
+              <button style="border-radius:50%;background-color:#999999;border:none;">□</button>
+              <span id="ObjectName" type="text" value="" readonly style="border:none;" ></span>
+              <span>not automatic saving. this is experimental.</span>
+            </div>
+            <section style="height:3.5em;">
+              <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&lt;</button>
+              <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&gt;</button>
+            </section>
+          </header>
+          <section style="display:flex;flex-direction:row;flex-grow:10;align-items:stretch;">
+            <aside id="directorySpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
+              <input id="func_newDirectory" type="button" value=" + new dir"/>
+				      <input id="func_new_page_element" type="button" value="  + new file" style="">
+				      <input value="" id="new_page_element" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
+              <div id="directoryRoot" style="font-size:1.2em;margin:4px;display:flex;flex-direction:column;flex-stretch:1;"></div>
+              <div id="directoryList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:auto;margin:4px;"></div>
+              <input id="func_delDirObj" type="button" value=" - delete" style=""/>
+            </aside>
+            <article id="HDevDirectorySpace" style="flex-grow:4;background-color:white;align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;"></article>
           </section>
-        </header>
-        <section style="display:flex;flex-direction:row;flex-grow:10;align-items:stretch;">
-          <aside id="directorySpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
-            <input id="func_newDirectory" type="button" value=" + new dir"/>
-				    <input id="func_new_page_element" type="button" value="  + new file" style="">
-				    <input value="" id="new_page_element" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
-            <div id="directoryRoot" style="font-size:1.2em;margin:4px;display:flex;flex-direction:column;flex-stretch:1;"></div>
-            <div id="directoryList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:auto;margin:4px;"></div>
-            <input id="func_delDirObj" type="button" value=" - delete" style=""/>
-          </aside>
-          <article id="HDevDirectorySpace" style="flex-grow:4;background-color:white;align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;"></article>
         </section>
-      </section>
+      </div>
     </div>
 	</body>
 </html>
