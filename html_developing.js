@@ -1,18 +1,27 @@
 $(function(){
+    /** On developing
+     * explorer window function
+     * emacs keybinding
+     * bootstrap css support
+     */
     /** TODO
+     * Angularjs support
+     * bootstrap js support
+     * scripting mode
+     * display flex mode & update grid by using flex
+     * customizable key binding
+     * transform perspective
      * sync BOX Model inputs
      * text-align
      * directory tree
-     * explorer window function
      * command line user interface
-     * undo / redo by screen
+     * undo / redo by a screen
      * undo / redo (style)
-     * customizable key binding
      * css tree eg text-align  => left center right
      * wizard, easy menu
      * Sas
      * parse Real HTML
-     * parse some html template
+     * parse ylesome html template
      * SVG reinforcing
      * scalatest seleniumのコードの生成
      * autocomplete
@@ -41,33 +50,6 @@ $(function(){
      * font-size
      * thumbnail (transform:scale)
      */
-    // Selenium on ScalaTest
-    $('input[type=text]').on('click', function(){
-	var _this = $(this);
-	var id = _this.attr('id');
-	var name = _this.attr('name');
-	var value = _this.val();
-	if(!isEmpty(value)){
-	    if(!isEmpty(id)){
-		console.log('textField(id("'+id+'")).value = "'+value+'"');
-	    }else if(!isEmpty(name)){
-		console.log('textField(name("'+name+'")).value = "'+value+'"');
-	    }
-	}
-    });
-    $('input[type=button],button').on('click', function(){
-	var _this = $(this);
-	var id = _this.attr('id');
-	var name = _this.attr('name');
-	var value = _this.val();
-	if(!isEmpty(value)){
-	    if(!isEmpty(id)){
-		console.log('click on (id("'+id+'"))');
-	    }else if(!isEmpty(name)){
-		console.log('click on (name("'+name+'"))');
-	    }
-	}
-    });
     // startsWith
     if (!String.prototype.startsWith) {
 	String.prototype.startsWith = function(searchString, position) {
@@ -75,6 +57,11 @@ $(function(){
 	    return this.lastIndexOf(searchString, position) === position;
 	};
     }
+    // Global key bind
+    var fn_ctrlB = undefined;
+    var fn_ctrlP = undefined;
+    var fn_ctrlF = undefined;
+    var fn_ctrlN = undefined;
     
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID);
@@ -121,12 +108,12 @@ $(function(){
     var MY_CHANGE = 'change'+NMS_EDIT;
     var MY_KEYUP = 'keyup'+NMS_EDIT;
     var MY_MOUSEOUT = 'mouseout'+NMS_EDIT;
-    var MY_FOCUS = 'focus'+NMS_EDIT;    
+    var MY_FOCUS = 'focus'+NMS_EDIT;
     var MY_INIT = FUNC_ID + '_INIT';
 
     // settings
     var tag毎の入力規則 ={"input":{"require_s":["type", "value"],"default":{"type":"text", "value":""}},"svg":{"require_s":["xmlns"],"default":{"xmlns":SVG_NS}}};
-    var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input","select","textarea","ol" ,"ul","svg"];
+    var draggableとresizableが同時には正常に動かないためwrapするタグ = ["input","select","textarea","ol" ,"ul","svg", "button"];
     var 必ず子要素のタグ = ["tbody","thead","tr","td","th","li","option"];
     var サイズを持たせないタグ = ["table","tbody","thead","tr"];
     var resizableのみ対象のタグ = [];
@@ -371,7 +358,7 @@ $(function(){
 	    return color.length === 1 ? '0'+color : color;
 	}).join('')).trigger(MY_CHANGE);
     }
-    var el_trashPalette = $('#trashPalette').sortable({"revert":true, "delay":300, "connectWith":".palette", "receive":function(){
+    var el_trashPalette = $('#trashPalette').sortable({"revert":true, "delay":700, "connectWith":".palette", "receive":function(){
 	var kept = [];
 	var newTrashColor;
 	$(' > div', this).each(function(){
@@ -396,9 +383,9 @@ $(function(){
 	}
     }}).on(MY_CLICK, 'div', extractColor);
 
-    var el_gradPalette = $('#gradPalette').sortable({"revert":true, "connectWith":"#colorPalette", "placeholder":".objCopy", "delay":300})
+    var el_gradPalette = $('#gradPalette').sortable({"revert":true, "connectWith":"#colorPalette", "placeholder":".objCopy", "delay":700})
 	    .trigger('initColor');
-    var el_colorPalette = $('#colorPalette').sortable({"helper":"clone","revert":true, "connectWith":"#trashPalette",  "placeholder":".objCopy", "delay": 300, "receive":function(){
+    var el_colorPalette = $('#colorPalette').sortable({"helper":"clone","revert":true, "connectWith":"#trashPalette",  "placeholder":".objCopy", "delay": 700, "receive":function(){
 	var thisPalette = $(this);
 	var removing = [];
 	var hasColors = {};
@@ -496,14 +483,14 @@ $(function(){
 	    }else if(id === 'green'){
 		_this.next().css('background-color', 'rgba(0,'+val+',0,1)');
 	    }else if(id === 'blue'){
-		_this.next().css('background-color', 'rgba(0,0,'+val+',1)');	    
+		_this.next().css('background-color', 'rgba(0,0,'+val+',1)');
 	    }
 	    el_oprt_model
 		.data('bgc-'+id, val);
 	    var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
 	    var css = el_operate_color_option.val();
 	    if(css.startsWith('background')){
-		newBgColor = {"style":css + ':'+ newBgColor+';background:;'};		
+		newBgColor = {"style":css + ':'+ newBgColor+';background:;'};	
 	    }else if(css === 'box-shadow' || css === 'text-shadow'){
 		var coord = [];
 		els_shadows[css].each(function(){
@@ -512,7 +499,7 @@ $(function(){
 		});
 		newBgColor = {"style":css + ':'+ coord.join('')+newBgColor+';'};
 	    }else{
-		newBgColor = {"style":css + ':'+ newBgColor+';'};		
+		newBgColor = {"style":css + ':'+ newBgColor+';'};	
 	    }
 	    update_prop(el_oprt_model, newBgColor);
 	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
@@ -524,7 +511,7 @@ $(function(){
 	    c16 = parseInt(el_colors['green'].val(), 10).toString(16)+c16;
 	    c16 = c16.length === 3 ? '0'+c16:c16;
 	    c16 = parseInt(el_colors['red'].val(), 10).toString(16)+c16;
-	    c16 = c16.length === 5 ? '0'+c16:c16;	
+	    c16 = c16.length === 5 ? '0'+c16:c16;
 	    el_color16.val(c16).trigger('colorChangeOnly');
 	}).trigger(MY_CHANGE);
 
@@ -621,9 +608,9 @@ $(function(){
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
 
 	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
-	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:12em;ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:20em;ime-mode:disabled;margin-left:1em;float:right;" placeholder="append css selector" />', "style":"height:4em;", "col2":true},
+	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:11em;ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:19em;ime-mode:disabled;margin-left:1em;float:right;" placeholder="append css selector" />', "style":"height:5em;", "col2":true},
 	{"name":"update_var", "label":"Up var ", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
-	{"name":"update_prop", "label":"Up prop ", "input":'<input type="text" id="updateAttr" class="" style="width:5em"/><input type="text" id="updateAttrValue" class="" style="width:8em"/>', "style":"", "col2":true},
+	{"name":"update_prop", "label":"Up prop ", "input":'<input type="text" id="updateAttr" class="" style="width:3.5em"/><input type="text" id="updateAttrValue" class="" style="width:9.5em"/>', "style":"", "col2":true},
 	{"name":"copy", "label":"Copy", "input":'', "style":"", "col2":false},
 	{"name":"cut", "label":"Mv (Cut)", "input":'', "style":"", "col2":false},
 //	{"name":"pasteInsertBefore", "label":"PstBefore", "input":'', "style":"", "col2":false},
@@ -832,6 +819,10 @@ $(function(){
 		cssFunc(el_oprt_model, op_val, el_now_selected[key]);
 	    }
 	});
+	if(cmd === 'l'){fn_ctrlB = function(){_this.trigger(MY_CLICK);};}
+	if(cmd === 'u'){fn_ctrlP = function(){_this.trigger(MY_CLICK);};}
+	if(cmd === 'r'){fn_ctrlF = function(){_this.trigger(MY_CLICK);};}
+	if(cmd === 'd'){fn_ctrlN = function(){_this.trigger(MY_CLICK);};}
     });
 
     var els_borderRadiusX = $('.borderRadiusX');
@@ -869,7 +860,7 @@ $(function(){
     });
     
     function create_page(name, appendTarget, type, width, height){
-	if(arguments.length < 5){ height = '1440px';}//TODO
+	if(arguments.length < 5){ height = '1400px';}//TODO
 	if($.isNumeric(width)){ width +='px';}//TODO
 	if(arguments.length < 4){ width = '100%';}//TODO
 	var screenName = 'screen'+name;
@@ -1300,11 +1291,11 @@ $(function(){
     });
 
     var el_boxModel = $('#boxModel').data('cursorTarget', {});
-    $('input[type=number]', el_boxModel)
+    $('input[type=number]', el_basic_menu)
 	.on(MY_INIT,function(){
 	    var _this = $(this);
 	    var min = _this.attr('min');
-	    min = isEmpty(min) ? 1 : parseInt(min, 10);
+	    min = isEmpty(min) ? null : parseInt(min, 10);
 	    var max = _this.attr('max');
 	    max = isEmpty(max) ? null : parseInt(max, 10);
 	    var step = _this.attr('step');
@@ -1320,17 +1311,32 @@ $(function(){
 	    var keyCd = ev.keyCode;
 	    switch(keyCd){
 	    case 37:
-		_this.val(parseInt(_this.val(), 10) - setting.step5);
+		_this.val(parseInt(_this.val(), 10) - setting.step5);break;
+	    case 66:
+		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step5);} 
+		ev.stopPropagation();
 		break;
 	    case 38:
 		_this.val(parseInt(_this.val(), 10) + setting.step);
 		break;
+	    case 80:
+		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) + setting.step);}
+		ev.stopPropagation();
+		break;
 	    case 39:
 		_this.val(parseInt(_this.val(), 10) + setting.step5);
 		break;
+	    case 70:
+		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) + setting.step5);}
+		ev.stopPropagation();
+		break;	
 	    case 40:
 		_this.val(parseInt(_this.val(), 10) - setting.step);
-		break;		
+		break;
+	    case 78:
+		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step);}
+		ev.stopPropagation();
+		break;			
 	    }
 	    var nowVal = _this.val();
 	    if(!isEmpty(setting.min) && nowVal < setting.min){
@@ -1339,10 +1345,9 @@ $(function(){
 		_this.val(setting.max);
 	    }
 	    _this.trigger(MY_CLICK);
-	    var cursorTarget = el_boxModel.data('cursorTarget');	    
+	    var cursorTarget = el_boxModel.data('cursorTarget');
 	});
     el_func_s.modelCssReset.on(MY_CLICK, function(){
-	$('input[type=number]', el_boxModel).val(0);
 	el_oprt_model.attr('style', el_oprt_model.data('my-default-prop_s'));
 	el_oprt_model.attr('transform', {});
 	update_prop(el_oprt_model, el_oprt_model.data('my-default-prop_s'));
@@ -1481,10 +1486,10 @@ $(function(){
 	    }else{
 		var rl = lr === 'left' ? 'right' : 'left';
 		position[lr] = relativeLeftRightValue.val();
-		position[rl] = 'auto';				
+		position[rl] = 'auto';			
 	    }
 
-	    _this.css(position);	    
+	    _this.css(position);
 	});
     });
 
@@ -1546,13 +1551,29 @@ $(function(){
 	}
     });
 
-    // Key bind
-    $(document).on('keydown',function(_ev, _this ){
-	switch(_ev.keyCode){
+    // Global Key bind
+    $(document).on('keydown',function(ev, _this ){
+	switch(ev.keyCode){
 	case 27 ://ESC
 	    $('[class*="hide_mode_target"][data-fire-key-code="escape"]').toggle('clip',null,500);
 	    break;
-	    default :
+	case 66:
+	    if(ev.ctrlKey){ fn_ctrlB();} 
+	    ev.stopPropagation();
+	    break;
+	case 80:
+	    if(ev.ctrlKey){ fn_ctrlP();} 
+	    ev.stopPropagation();
+	    break;
+	case 70:
+	    if(ev.ctrlKey){ fn_ctrlF();} 
+	    ev.stopPropagation();
+	    break;
+	case 78:
+	    if(ev.ctrlKey){ fn_ctrlN();} 
+	    ev.stopPropagation();
+	    break;
+	default :
 	    break;
 	}
     });
@@ -2168,7 +2189,7 @@ $(function(){
 			new_parent_s.push(child);//子供もやがて親になる･･･
 			//wrap
 			if($.inArray(tag, draggableとresizableが同時には正常に動かないためwrapするタグ) > -1){
-			    if(! child.prop_s.hasOwnProperty('class')){	child.prop_s['class'] = '';	}
+			    if(! child.prop_s.hasOwnProperty('class')){	child.prop_s['class'] = '';}
 			    child.prop_s['class'] += ' wrapped';
 			    child = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding-bottom:12px;padding-right:12px;"},[child] );//wrapper
 			}
@@ -2604,7 +2625,7 @@ $(function(){
 		"autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
 		//TODO , "containment":page.screen bugるため範囲内に収める独自処理を
 	    };
-	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":page.screen, 
+	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":page.screen, "delay":150, 
 				  "stop":function(ev, ui){
 				      var _this = $(this);
 				      _this.removeClass('snap_border')
@@ -2633,7 +2654,7 @@ $(function(){
 		resizableOption["alsoResize"] = '[data-my-node-id^="'+my_node_id+MY_NODE_SEP+'"]';
 		resizableOption["stop"] = function(ev, ui){
 		    var tmp = $('*',work_jq);
-		    work_jq.height(tmp.height() + 16).width(tmp.width() + 16);
+		    work_jq.height(tmp.height() + 32).width(tmp.width() + 32);
 		};
 	    }
 
@@ -2692,7 +2713,7 @@ $(function(){
 		    .addClass('snap');
 	    }
 	    if(amRelative禁止タグ){
-		work_jq.css({"top":0, "left":0});    
+		work_jq.css({"top":0, "left":0});
 	    }
 	    rtn_work_jq_s.push(work_jq);
 	}//	for(var idx_tgt=0;idx_tgt < length_target_s;++idx_tgt)
@@ -3252,7 +3273,7 @@ $(function(){
 	var draggableOption = obj.data('draggableOption');
 	if(typeof resizableOption !== 'undefined'){obj.data('resizableOption', resizableOption).resizable('destroy');}
 	if(typeof draggableOption !== 'undefined'){obj.draggable('destroy');}
-	return {"resizableOption":resizableOption, "draggableOption":draggableOption};	
+	return {"resizableOption":resizableOption, "draggableOption":draggableOption};
     }
     function recovery_position(obj, resizableOption, draggableOption){
 	try{
@@ -3546,7 +3567,7 @@ $(function(){
 	return {
 	    "raw":function(){
 		var raw = localStorage[FUNC_ID];
-		if(typeof raw === 'undefined'){	raw = '{}';	}
+		if(typeof raw === 'undefined'){	raw = '{}';}
 		return raw;
 	    },
 	    "transaction":function(){
@@ -3585,7 +3606,7 @@ $(function(){
 							 }
 		}else{
 		    try{pooled = JSON.parse(pooled);
-		       }catch(e){console.log('JSON parse Error:' + e);	}
+		       }catch(e){console.log('JSON parse Error:' + e);}
 		    return pooled;
 		}
 	    },
