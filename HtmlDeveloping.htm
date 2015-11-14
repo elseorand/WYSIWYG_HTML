@@ -2,14 +2,22 @@
 <html>
 	<head>
 		<meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> 
-		<script src="/html_developing.js"></script> 
+    <!-- <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> -->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> -->
+		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />
+    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap-theme.min.css" />
+		<script src="/default/jquery-2.1.4.min.js" ></script>
+ 		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+    <script src="/default/angular.min.js"></script>
+		<script src="/default/html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
 			#screenRoot {
@@ -136,6 +144,9 @@
       }
       .wrapper{
         padding-right:2em !important;
+      }
+      #basic_menu input[type=text]{
+        padding:0px 5px 0px;
       }
       
 			/* As you like */
@@ -418,7 +429,7 @@
                 </div>
               </div>
             </div>
-            <div style="width:100%;border-bottom:1px solid grey;"></div>
+            <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </section>
         </div>
         <div style="border:0px none transparent;float:left;">
@@ -478,7 +489,7 @@
         <div style="border:0px none transparent;clear:both;" >
           <div style="border:0px none transparent;" class="openCloseTrigger">* Style Sheet</div>
           <div style="border:0px none transparent" class="openCloseTarget">
-			      <div style="width:100%;height:1.2em;">
+			      <div style="width:100%;height:1.3em;">
               <input value="Style" id="func_style_element" style="float:left;" type="button" />
               <input id="style_list_name" style="float:left;height:24px;" type="text" value=""/>
 				      <input id="style_list_reg" style="float:left;" type="button" value="Reg"/>
@@ -487,13 +498,31 @@
 				      <input id="style_list_new" type="button" value="New" style="float:left;" />
 			      </div>
             <br>
-			      <ul id="style_list" class="snippets"></ul><br>
 			      <div id="" style="width:40px;margin-top:-8px;">
 				      <textarea id="sandbox_style" style="height:16em;width:84em;"></textarea>
             </div>
-            <div style="width:100%;border-bottom:1px solid grey;"></div>
+            <ul id="style_list" class="snippets"></ul>
+            <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </div>
         </div>
+        <div style="border:0px none transparent;clear:both;" >
+          <div style="border:0px none transparent;" class="openCloseTrigger">* Script</div>
+          <div style="border:0px none transparent" class="openCloseTarget">
+			      <div style="width:100%;height:1.3em;">
+              <input value="Script" id="func_script_element" style="float:left;" type="button" />
+              <input id="script_list_name" style="float:left;height:24px;" type="text" value=""/>
+				      <input id="script_list_reg" style="float:left;" type="button" value="Reg"/>
+				      <select id="script_list_select" style="float:left;"></select>
+              <input id="script_list_del" type="button" value="Del" style="float:right;" />
+				      <input id="script_list_new" type="button" value="New" style="float:left;" />
+			      </div>
+            <br>
+			      <div id="" style="width:40px;margin-top:-8px;">
+              <textarea id="script_list" style="height:16em;width:84em;"></textarea>
+            </div>
+            <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
+          </div>
+        </div>        
         <div>
           <div style="border:0px none transparent" class="openCloseTrigger">* Default Prop Attr</div>
           <div style="border:0px none transparent" class="openCloseTarget">
@@ -546,5 +575,8 @@
         </section>
       </div>
     </div>
+    <script id="MyEditableScript">
+      
+    </script>
 	</body>
 </html>

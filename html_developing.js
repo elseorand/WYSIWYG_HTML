@@ -195,7 +195,7 @@ $(function(){
     var el_selected_val_tag = $('#SelectedValTag', el_footer_menu_bar);
     var el_selected_val_prop_json = $('#SelectedValPropJSON', el_footer_menu_bar);
 
-    var el_some_key_s = ["part_list", "prop_list", "style_list"];
+    var el_some_key_s = ["part_list", "prop_list", "style_list", "script_list"];
     var el_some_list = {};
     var el_some_input = {};
     var el_some_name = {};
@@ -247,6 +247,7 @@ $(function(){
     });
     var el_new_page_element = $('#new_page_element');
     var el_style = $('style#MyEditableStyle');
+    var el_script = $('script#MyEditableScript');
     var el_now_selected = {};
 
     // operator menu
@@ -603,6 +604,7 @@ $(function(){
     var func_name_s = [
 	{"name":"html", "label":"", "input":'', "style":""},
 	{"name":"style", "label":"", "input":'', "style":""},
+	{"name":"script", "label":"", "input":'', "style":""},	
 	{"name":"modelCssApply", "label":"", "input":'', "style":""},
 	{"name":"modelCssReset", "label":"", "input":'', "style":""},
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
@@ -648,7 +650,7 @@ $(function(){
 	var isNewChild = true;
 	var li_s;
 	func_name_s.forEach(function(obj,a){
-	    if(obj.label === ''){
+	    if(isEmpty(obj.label)){
 		el_func_s[obj.name] = $('#func_'+obj.name+'_element');
 		return;
 	    }
@@ -1277,6 +1279,13 @@ $(function(){
 	})
 	.trigger(MY_INIT);
 
+    el_func_s.script
+	.on(MY_CLICK, function(){
+	    $('<script>').html(el_some_list['script_list'].val()).appendTo(el_script.empty());
+	}).on(MY_INIT, function(){
+	    $('<script>').html(el_some_list['script_list'].val()).appendTo(el_script.empty());	    
+	}).trigger(MY_INIT);    
+
     el_func_s.modelCssApply.on(MY_CLICK, function(){
 	var apply_css = ["font-size", "width", "height", "color", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width", "transform", "border-radius", "text-shadow", "box-shadow"];//XXX
 	var apply_style = '';
@@ -1594,11 +1603,11 @@ $(function(){
     $.each(el_some_key_s, function(idx, some_key){
 	var el_some = {};
 	var length_el_some_func_suffix_s = el_some_func_suffix_s.length;
-	for(var f=0;f < length_el_some_func_suffix_s;++f){
-	    var suffix = el_some_func_suffix_s[f];
+	el_some_func_suffix_s.forEach(function(suffix,i,a){
 	    el_some[suffix] = $('#'+some_key+'_'+suffix, el_basic_menu);
-	}
+	});
 	var tmp_el_list = el_some_list[some_key].sortable();
+	var tagName = tmp_el_list.get(0).localName;
 	var tmp_el_input = el_some_input[some_key];
 	var is_add_button = some_key === 'part_list'? true : false;//TODO
 	//pull down
@@ -1610,67 +1619,72 @@ $(function(){
 	    el_some.select.val(name_in_storage);
 	}
 
-	el_some.select.on(MY_CHANGE,function(){
-	    var some_name = this.value;
-	    var input_name = el_some.name.val();
-	    var list_s_in_storage = orDefault(MY_STORAGE.select(some_key), []);
-	    if(!isEmpty(list_s_in_storage)){
+	if(tagName === 'ul' || tagName === 'ol'){
+	    el_some.select.on(MY_CHANGE,function(){
+		var some_name = this.value;
+		var input_name = el_some.name.val();
+		var list_s_in_storage = orDefault(MY_STORAGE.select(some_key), []);
+		if(isEmpty(list_s_in_storage)){return false;}
 		var keys_list_s = Object.keys(list_s_in_storage);
-		if(keys_list_s.length > 0){
-		    if(!isEmpty(some_name)){
-			el_some.name.val(some_name);
-			el_some.select.val(some_name);
-			if( name_in_storage !== some_name){
-			    MY_STORAGE.transaction().replace(some_key+'_selected', some_name).commit();
-			    name_in_storage = some_name;
-			}
+		if(keys_list_s.length <= 0){return false;}
+		if(!isEmpty(some_name)){
+		    el_some.name.val(some_name);
+		    el_some.select.val(some_name);
+		    if( name_in_storage !== some_name){
+			MY_STORAGE.transaction().replace(some_key+'_selected', some_name).commit();
+			name_in_storage = some_name;
 		    }
-		}else{
-		    return false;
 		}
 		var list_in_storage = list_s_in_storage[el_some.name.val()];
-		if(typeof list_in_storage === 'undefined'){
-		    return false;
-		}
-	    }else{
-		return false;
-	    }
-	    tmp_el_list.empty();//clear
-	    $.each(Object.keys(list_in_storage), function(idx,key){
-		new_empty_line(tmp_el_list, key, force_stringify(list_in_storage[key]), is_add_button);
-	    });
-	    
-	    // for new empty input
-	    new_empty_line (tmp_el_list,'','', is_add_button);
+		if(typeof list_in_storage === 'undefined'){return false;}
+		tmp_el_list.empty();//clear
+		Object.keys(list_in_storage).forEach(function(key,idx,a){
+		    new_empty_line(tmp_el_list, key, force_stringify(list_in_storage[key]), is_add_button);
+		});
+		// for new empty input
+		new_empty_line (tmp_el_list,'','', is_add_button);
 
-	    tmp_el_list
-		.on(MY_CHANGE,'input.key',function(){
-		    $('input.key', tmp_el_list).each(function(){
-			var _this = myWrapElement(this);
-			if(_this.val().trim().length === 0){
-			    _this.parent().remove();
+		tmp_el_list
+		    .on(MY_CHANGE,'input.key',function(){
+			$('input.key', tmp_el_list).each(function(){
+			    var _this = myWrapElement(this);
+			    if(_this.val().trim().length === 0){
+				_this.parent().remove();
+			    }
+			});
+			new_empty_line(tmp_el_list,'','', is_add_button);
+		    })
+		    .on(MY_CLICK +','+ MY_CHANGE,'input',function(){
+			tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
+			el_some.name.animate({"background-color":"#ffaaaa"}, 500).animate({"background-color":""}, 500);
+		    });
+		tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
+		if(some_key === 'style_list'){//TODO 個別処理
+		    var style_html = '';
+		    $('>li.p_list_child', el_some_list[some_key]).each(function(){
+			var _this = $(this);
+			var key = $('>input.key', _this).val().trim();
+			var val = $('>input.val', _this).val().trim().replace(/\t/g, '');
+			if(key.length > 0){
+			    style_html += key+'{\n'+val.replace(/;/g, ';\n')+'}\n';
 			}
 		    });
-		    new_empty_line(tmp_el_list,'','', is_add_button);
-		})
-		.on(MY_CLICK +','+ MY_CHANGE,'input',function(){
-		    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
-		    el_some.name.animate({"background-color":"#ffaaaa"}, 500).animate({"background-color":""}, 500);
-		});
-	    tmp_el_input.val(force_stringify(collect_some_list(tmp_el_list)));
-	    if(some_key === 'style_list'){//TODO 個別処理
-		var style_html = '';
-		$('>li.p_list_child', el_some_list[some_key]).each(function(){
-		    var _this = $(this);
-		    var key = $('>input.key', _this).val().trim();
-		    var val = $('>input.val', _this).val().trim().replace(/\t/g, '');
-		    if(key.length > 0){
-			style_html += key+'{\n'+val.replace(/;/g, ';\n')+'}\n';
-		    }
-		});
-		el_sandbox_style_screen_area.val(style_html);
-	    }
-	}).trigger(MY_CHANGE);//end el_some.select
+		    el_sandbox_style_screen_area.val(style_html);
+		}
+	    }).trigger(MY_CHANGE);//end el_some.select
+	}else if(tagName === 'textarea' || tagName === 'intput'){ 
+	    el_some.select.on(MY_CHANGE,function(){
+		var some_name = this.value;
+		if(isEmpty(some_name)){return false;}
+		var input_name = el_some.name.val();
+		var data_instorage = orDefault(MY_STORAGE.select(some_key), []);
+		if(isEmpty(data_instorage)){return false;}
+		var script = data_instorage[some_name];
+		el_some_list[some_key].val(script);
+		el_some.name.val(some_name);
+		el_some.select.val(some_name);
+	    }).trigger(MY_CHANGE);//end el_some.select
+	}
 
 	el_some.reg.on(MY_CLICK,function(){
 	    var some_name = el_some.name.val();
@@ -1679,7 +1693,16 @@ $(function(){
 	    if(isEmpty(list_s_in_storage) || ! $.isPlainObject(list_s_in_storage)){
 		list_s_in_storage = {};
 	    }
-	    list_s_in_storage[some_name] = collect_some_list(tmp_el_list);
+	    var saveValue = null;
+	    var tagName = tmp_el_list.get(0).localName.toLowerCase();
+	    if(tagName === 'ul' || tagName === 'ol'){
+		saveValue = collect_some_list(tmp_el_list);
+	    }else if(tagName === 'textarea' || tagName === 'input'){
+		saveValue = tmp_el_list.val();
+	    }else{
+		saveValue = tmp_el_list.html();
+	    }
+	    list_s_in_storage[some_name] = saveValue;
 	    MY_STORAGE
 		.transaction()
 		.replace(some_key, list_s_in_storage)
@@ -2736,8 +2759,6 @@ $(function(){
 	if(typeof operated !== 'undefined' && operated !=  null){
 	    if(operated.attr !== undefined){
 		my_id = operated.attr('data-my-node-id');
-	    }else{
-		//console.log('JSON 2160' + JSON.stringify(operated));
 	    }
 	}
 	if(typeof cache === 'undefined' || cache == null){
@@ -2752,7 +2773,6 @@ $(function(){
 	    for(var p_idx=0;p_idx < path_d_array.length;++p_idx){
 		path_d += svg_cmd(get_center_abs_coord(get_offset_width_height(path_d_array[p_idx])));
 	    }
-	    console.log('arrow' + JSON.stringify(arrow));
 	    arrow[0].attr('d',path_d);
 	});
     }
