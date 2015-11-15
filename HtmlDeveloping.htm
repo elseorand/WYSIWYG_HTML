@@ -5,19 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
-    <!-- <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> -->
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> -->
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> 
     <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> -->
-		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />
-    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap-theme.min.css" />
-		<script src="/default/jquery-2.1.4.min.js" ></script>
- 		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script>
-    <script src="/default/angular.min.js"></script>
-		<script src="/default/html_developing.js"></script> 
+		<script src="/html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
 			#screenRoot {
@@ -288,6 +283,7 @@
 			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:100%;">
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
+        <input id="angular_boot" type="button" value="Angular Boot"/>
 			</section>
 			<div style="border:0px none transparent;white-space:nowrap;overflow:auto;height:98%;	background-color: rgba(221, 221, 221, 0.5);">
         <div style="border:0px none transparent;" class="openCloseTrigger">* Tag emmet style</div>
@@ -499,7 +495,7 @@
 			      </div>
             <br>
 			      <div id="" style="width:40px;margin-top:-8px;">
-				      <textarea id="sandbox_style" style="height:16em;width:84em;"></textarea>
+				      <textarea id="sandbox_style" style="height:16em;width:32em;"></textarea>
             </div>
             <ul id="style_list" class="snippets"></ul>
             <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
@@ -518,7 +514,7 @@
 			      </div>
             <br>
 			      <div id="" style="width:40px;margin-top:-8px;">
-              <textarea id="script_list" style="height:16em;width:84em;"></textarea>
+              <textarea id="script_list" style="height:16em;width:32em;"></textarea>
             </div>
             <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </div>
@@ -575,8 +571,53 @@
         </section>
       </div>
     </div>
-    <script id="MyEditableScript">
-      
+    <script>
+      $(function(){
+        if(angular){
+          var MyAppName = 'app';// pg tgt
+          var backups = {};
+          var el_angular_boot = $('#angular_boot').on('click',function(){
+            var backupedKeys = Object.keys(backups);
+            if(backupedKeys.length !== 0){
+              console.log('already started : '+ JSON.stringify(backupedKeys));
+              return false;
+            }
+            var angularApp = angular.module(MyAppName, []);
+            ddoSuppliers.forEach(function(func,i,a){
+              var ddo = func();
+              if(ddo.restrict.indexOf('E') > -1){
+                if($(ddo.controllerAs).length > 0){
+                  angularApp.directive(ddo.controllerAs, func);
+                  backups[ddo.controllerAs] = true;
+                }}});
+            backupedKeys = Object.keys(backups);
+            if(backupedKeys.length !== 0){            
+              bootstrap();
+            }
+          });
+          //pg tgt
+          var ddoSuppliers = [
+            function() {
+              return {
+                restrict: 'E',
+                scope: {},
+                controllerAs: 'main',
+                controller:['$scope', function(){
+                  this.action = function(){
+                    console.log('click ang');
+                  }
+                }],
+                template: '<input type="button" value="Ang Click" data-ng-click="main.action()"/>'
+              };
+            }];
+          function bootstrap(){
+            angular.bootstrap(document, [MyAppName]);
+          }
+        }
+      });
     </script>
+    <div id="MyEditableScript" class="htmlize">
+      <script></script>
+    </div>
 	</body>
 </html>
