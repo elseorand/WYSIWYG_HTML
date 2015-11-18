@@ -5,14 +5,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> 
-    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> -->
-		<script src="/html_developing.js"></script> 
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> -->
+<!--    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> -->
+<!--		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />  -->
+<!--    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap.min.css" />  -->
+<!--    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap-theme.min.css" />  -->
+<!--		<script src="/default/jquery-2.1.4.min.js" ></script> -->
+<!-- 		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script> -->
+<!--    <script src="/default/angular.min.js"></script> -->
+<!--		<script src="/default/html_developing.js"></script> -->
 		<style type="text/css" >
 			/* For this app */
 			#screenRoot {
@@ -111,6 +117,12 @@
       .openCloseTrigger.hiddenState{
         text-overflow: ellipsis;
       }
+      .menu_container {
+        width:470px;
+      }
+      .menu_container > div {
+
+      }      
       #directoryList >.selectedScrnBtn{
         background-color:#FF6E41;
       }
@@ -280,36 +292,37 @@
 			<ol id="context_menu" class="notDirectory"></ol>
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:101;width:480px;border-radius:20px;height:1000px;" >
-			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:100%;">
-				<input id="basic_menu_forward" type="button" value="<"/>
-				<input id="basic_menu_backward" type="button" value=">"/>
-        <input id="angular_boot" type="button" value="Angular Boot"/>
-			</section>
-			<div style="border:0px none transparent;white-space:nowrap;overflow:auto;height:98%;	background-color: rgba(221, 221, 221, 0.5);">
-        <div style="border:0px none transparent;" class="openCloseTrigger">* Tag emmet style</div>
-        <div style="border:0px none transparent;" class="openCloseTarget">
-				  <input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:64em;" value="" /><br />
-				  <input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
-          <input type="hidden" id="part_list_input" class="json_val" value="" />
-				  <input type="hidden" id="prop_list_input" class="json_val" value="" />
-          <br>
-          <div class="openCloseTrigger" style="margin-top:3px;border:0px none transparent;">** Tag Preset</div>
+			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:450px;">
+				<input id="basic_menu_forward" type="button" value="<"/>  -->
+				<input id="basic_menu_backward" type="button" value=">"/>  -->
+        <input id="angular_boot" type="button" value="Angular Boot"/>  -->
+			</section> -->
+			<div style="border:0px none transparent;white-space:nowrap;overflow-x:hidden;overflow-y:a -->uto;height:98%;background-color: rgba(221, 221, 221, 0.5);display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;"> -->
+        <div class="menu_container" style="flex-basis:1430px;">
+          <div style="border:0px none transparent;" class="openCloseTrigger">* Tag emmet style</div>
           <div style="border:0px none transparent;" class="openCloseTarget">
-            <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
-				      <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
-				      <input id="part_list_new" type="button" value="New" style="" />
-			      </section>
-            <section style="margin-top:10px;margin-bottom:10px;">
-              <input id="repeatTimesBtn" type="button" value="times"  style="margin-right:0.5em;" />
-              <input id="repeatTimes" type="number" value="2" min="0" style="width:4em;margin-right:2em;text-align:center;" />
-              <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
-            </section>
-			      <ul id="part_list" class="snippets"></ul>
-            <div style="width:100%;border-bottom:1px solid grey;">
-            </div>
-			    </div>
+				    <input type="text" placeholder="Tag : emmet div>div*?" id="ValTag" class="autoExtend" style="ime-mode:disabled;width:64em;" value="" /><br />
+				    <input type="text" placeholder="Val : 'w o r d', JSON, a b c d" id="ValArrayJSON" class="autoExtend" style="width:15em" value="" />
+            <input type="hidden" id="part_list_input" class="json_val" value="" />
+				    <input type="hidden" id="prop_list_input" class="json_val" value="" />
+            <br>
+            <div class="openCloseTrigger" style="margin-top:3px;border:0px none transparent;">** Tag Preset</div>
+            <div style="border:0px none transparent;" class="openCloseTarget">
+              <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
+				        <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
+				        <input id="part_list_new" type="button" value="New" style="" />
+			        </section>
+              <section style="margin-top:10px;margin-bottom:10px;">
+                <input id="repeatTimesBtn" type="button" value="times"  style="margin-right:0.5em;" />
+                <input id="repeatTimes" type="number" value="2" min="0" style="width:4em;margin-right:2em;text-align:center;" />
+                <input type="button" id="delValTag" value="del Tag" style="margin-right:2em;" /><input type="button" id="delValArrayJSON" value="del Value"  style="margin-right:2em;" />
+              </section>
+			        <ul id="part_list" class="snippets"></ul>
+			      </div>
+            <div style="width:100%;border-bottom:1px solid grey;"></div>
+          </div>
         </div>
-        <div>
+        <div class="menu_container">
           <div style="border:0px none transparent;" class="openCloseTrigger">* BOX Model</div>
           <section class="openCloseTarget">
             <div id="boxModel">
@@ -428,7 +441,7 @@
             <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </section>
         </div>
-        <div style="border:0px none transparent;float:left;">
+        <div  class="menu_container" class="menu_container" style="border:0px none transparent;float:left;">
           <div style="border:0px none transparent;" class="openCloseTrigger">* Color</div>
           <section id="operate_menu" class="openCloseTarget" style="height:24em;" >
             <section style="height:3em;float:left;">
@@ -458,13 +471,13 @@
             </section>
             <section style="height:10em;float:left;margin-left:4px;">
               <span>Mono Palette</span>
-              <section id="colorPalette" class="palette" style="overflow-y:auto;width:16em;height:10em;border:1px dotted black;margin-top:2px;"></section>
+              <section id="colorPalette" class="palette" style="overflow-y:auto;width:270px;height:10em;border:1px dotted black;margin-top:2px;"></section>
             </section>
             <section style="height:10em;float:left;margin-left:4px;">
               <span>Trash</span>
               <section id="trashPalette" class="palette" style="overflow-y:auto;width:2.5em;height:10em;border:1px dotted black;margin-top:2px;"></section>
             </section>
-            <section style="height:190px;float:left;margin-left:4px;margin-top:30px;">
+            <section style="height:150px;float:left;margin-left:4px;margin-top:30px;">
               <span>Grad Palette</span><br>
               <section style="float:left;height:38px;width:7.5em;border:1px dotted grey;margin-top:2px;">
                 <input id="addGrad" type="button" value="add"/>
@@ -476,13 +489,13 @@
               <section style="float:left;height:2.3em;width:3em;border:1px dotted grey;margin-top:2px;">
                 <input id="delGrad" type="button" value="del" style="margin-top:8px;float:left;"/>
               </section>
-              <div id="colorGrads" style="overflow-y:auto;float:left;width:28em;height:8em;border:1px dotted grey;margin-top:-4px;"></div>
+              <div id="colorGrads" style="overflow-y:auto;float:left;width:440px;height:5em;border:1px dotted grey;margin-top:-4px;"></div>
             </section>
             <div style="margin-top:2px;float:left;">Right click And Push del </div>
             <div style="width:100%;border-bottom:1px solid grey;float:left;margin-bottom:8px;"></div>
           </section>
         </div>
-        <div style="border:0px none transparent;clear:both;" >
+        <div class="menu_container" style="border:0px none transparent;clear:both;" >
           <div style="border:0px none transparent;" class="openCloseTrigger">* Style Sheet</div>
           <div style="border:0px none transparent" class="openCloseTarget">
 			      <div style="width:100%;height:1.3em;">
@@ -501,7 +514,7 @@
             <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </div>
         </div>
-        <div style="border:0px none transparent;clear:both;" >
+        <div class="menu_container" style="border:0px none transparent;clear:both;" >
           <div style="border:0px none transparent;" class="openCloseTrigger">* Script</div>
           <div style="border:0px none transparent" class="openCloseTarget">
 			      <div style="width:100%;height:1.3em;">
@@ -519,7 +532,7 @@
             <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </div>
         </div>        
-        <div>
+        <div class="menu_container" >
           <div style="border:0px none transparent" class="openCloseTrigger">* Default Prop Attr</div>
           <div style="border:0px none transparent" class="openCloseTarget">
 			      <span><input id="prop_list_reg" type="button" value="Reg"/><input id="prop_list_name" type="text" value=""/>
@@ -574,14 +587,19 @@
     <script>
       $(function(){
         if(angular){
-          var MyAppName = 'app';// pg tgt
+          var MyAppName = '';
           var backups = {};
-          var el_angular_boot = $('#angular_boot').on('click',function(){
-            var backupedKeys = Object.keys(backups);
-            if(backupedKeys.length !== 0){
-              console.log('already started : '+ JSON.stringify(backupedKeys));
+          var el_angular_boot = $('#angular_boot').on('refresh.edit',function(){
+            console.log('refresh');
+            var els_nowPage = $('.nowPage');
+            if(els_nowPage.length > 1){
+              console.log('Error now page : ' + els_nowPage.length );
               return false;
             }
+            var el_nowPage = els_nowPage.eq(0);
+            var nowPageId = el_nowPage.attr('id');
+            MyAppName = nowPageId;
+            console.log('MyAppName : ' + MyAppName);
             var angularApp = angular.module(MyAppName, []);
             ddoSuppliers.forEach(function(func,i,a){
               var ddo = func();
@@ -590,9 +608,9 @@
                   angularApp.directive(ddo.controllerAs, func);
                   backups[ddo.controllerAs] = true;
                 }}});
-            backupedKeys = Object.keys(backups);
+            var backupedKeys = Object.keys(backups);
             if(backupedKeys.length !== 0){            
-              bootstrap();
+              bootstrap(document.getElementById(MyAppName));
             }
           });
           //pg tgt
@@ -610,8 +628,8 @@
                 template: '<input type="button" value="Ang Click" data-ng-click="main.action()"/>'
               };
             }];
-          function bootstrap(){
-            angular.bootstrap(document, [MyAppName]);
+          function bootstrap(element){
+            angular.bootstrap(element, [MyAppName]);
           }
         }
       });

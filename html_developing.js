@@ -7,7 +7,8 @@ $(function(){
     /** TODO
      * Angularjs support
      * bootstrap js support
-     * scripting mode
+     * Web Component
+     * Component mixin
      * display flex mode & update grid by using flex
      * customizable key binding
      * transform perspective
@@ -21,17 +22,17 @@ $(function(){
      * wizard, easy menu
      * Sas
      * parse Real HTML
-     * parse ylesome html template
+     * parse thymeleaf html template
      * SVG reinforcing
-     * scalatest seleniumのコードの生成
      * autocomplete
      * Append Func supports char
      * save biz obj arr
      * psuedo link
      * table cell concat
-     * split window => iframe support
+     * split window
      * Edit supports ordinary wysiwyg html editors
      * rotate3d
+     * scalatest seleniumのコードの生成
      */
     /** DONE
      * grid 
@@ -49,6 +50,7 @@ $(function(){
      * shadow box text
      * font-size
      * thumbnail (transform:scale)
+     * scripting mode
      */
     // startsWith
     if (!String.prototype.startsWith) {
@@ -591,7 +593,7 @@ $(function(){
     });
 
     function createGradObject(colorStr, target){
-	$('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"7.3em", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(target);
+	$('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"96px", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(target);
     }
     // directory
     var el_HDevDirectorySpace = $('#HDevDirectorySpace');
@@ -1363,18 +1365,7 @@ $(function(){
     });
 
     el_func_s.delete.on(MY_CLICK, function(){
-	//	mthd_delete_element_impl(CLASS_SELECTED+':not(.wrapped)');//TODO
-	var in_target_css = CLASS_SELECTED;
-	var target_css ;
-	if( in_target_css !== null){
-	    target_css = in_target_css.trim();
-	}else{
-	    return;
-	}
-	if(target_css[0] !== '.'){
-	    target_css = '.'+target_css;
-	}
-	$(target_css).each(function(){
+	$(CLASS_SELECTED, nowPage.screen).each(function(){
 	    var my_node_id = myWrapElement(this).attr('data-my-node-id');
 	    commands.delete(my_node_id).execute();
 	});
@@ -2997,7 +2988,7 @@ $(function(){
      */
     commands.delete = function(my_node_id){
 	function func_delete(my_node_id){
-	    var kept = $('[data-my-node-id='+my_node_id+']', nowPage.screen);
+	    var kept = $('[data-my-node-id='+my_node_id+']');
 	    var kept_my_node_id = my_node_id;
 	    var rtn = {
 		"execute":function(){
@@ -3427,6 +3418,31 @@ $(function(){
 	}
 	tgtPage.screen.addClass('nowPage');
 	nowPage = tgtPage;
+    }
+
+    // angular
+    if(angular){
+	var el_angular_boot = $('#angular_boot').on(MY_CLICK,function(){
+	    var _this = $(this);
+	    readyForAngular(_this).trigger('refresh.edit');
+	});
+	function readyForAngular(self){
+	    //save
+	    var mother_id = nowPage.screen.attr('data-my-node-id');
+	    console.log('mother_id : ' + mother_id);
+	    var child_tree = get_child_tree_select_dom(mother_id);
+	    var save = child_tree.child_s();
+	    // delete
+	    $('> *:not(#context_menu)', nowPage.screen).remove();
+	    // recover
+	    if( ! $.isArray(save)){
+		save = [save];
+	    }
+	    save.forEach(function(x,i,a){
+		display_onscreen('appendTo', nowPage.screen, x);
+	    });
+	    return self;
+	}
     }
 
     //Util
