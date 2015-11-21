@@ -769,12 +769,13 @@ $(function(){
 	    }
 	};
     }
-    function cssFuncSupplier(css, func){
+    function cssFuncSupplier(css, oprt, dim){
+	if(dim === undefined){dim = '';	}
 	return function(original, op_val, target){
 	    if(arguments.length === 3){
-		target.css(css, func+op_val);
+		target.css(css, oprt+op_val);
 	    }else if(arguments.length === 2){
-		original.css(css, func+op_val);
+		original.css(css, oprt+op_val);
 	    }
 	};
     }
@@ -839,16 +840,18 @@ $(function(){
 
     var els_borderRadiusX = $('.borderRadiusX');
     var els_borderRadiusY = $('.borderRadiusY');
+    var el_borderRadiusDimension = $('#borderRadiusDimension');
     var els_borderRadius = $('.borderRadius').on(MY_CHANGE+' '+MY_CLICK,function(){
 	var brCss = '';
+	var dimension = el_borderRadiusDimension.val();
 	els_borderRadiusX.each(function(){
 	    var _this = $(this);
-	    brCss += _this.val()+'px ';
+	    brCss += _this.val()+dimension+' ';
 	});
 	brCss +='/';
 	els_borderRadiusY.each(function(){
 	    var _this = $(this);
-	    brCss += _this.val()+'px ';
+	    brCss += _this.val()+dimension+' ';
 	});
 	var cssFunc = cssFuncSupplier('border-radius', '');
 	if(cssFunc === undefined ){return;}
@@ -2833,7 +2836,8 @@ $(function(){
 	    var path_d_idx = 0;
 	    for(var idx = 0;idx < length_selector_s;++idx){
 		var node_selector = selector_s[idx].trim();
-		if(!node_selector.startsWith('#') && !node_selector.startsWith('.')){
+		console.log('node_selector : ' + node_selector);
+		if(node_selector.indexOf('#') === -1 && node_selector.indexOf('.') === -1){
 		    if(node_selector.indexOf('-') > -1){
 			node_selector = '[data-my-node-id='+node_selector+']';
 		    }else{

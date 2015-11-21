@@ -5,20 +5,26 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
-     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css"
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
-     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script
-     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script
-     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
-     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
-		<script src="/html_developing.js"></script> 
+    <!-- <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> -->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> -->
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> -->
+		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />
+    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap-theme.min.css" />
+		<script src="/default/jquery-2.1.4.min.js" ></script>
+ 		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+    <script src="/default/angular.min.js"></script>
+		<script src="/default/html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
-			#screenRoot {
+			.screen {
 				opacity : 1 !important;
 			}
-			#screenRoot table td,#screenRoot table th{/* table の罫線を出すために必須の設定 */
+			.screenRoot table td,.screenRoot table th{/* table の罫線を出すために必須の設定 */
 				background-color:transparent;
 			}
 			.snap_border {
@@ -152,7 +158,11 @@
       }
       
 			/* As you like */
+      html {
+        height:100%;
+      }
 			body {
+        height:100%;
 				margin: 0px;
 			}
 			p,dl {
@@ -401,6 +411,11 @@
                     <option value="dotted">dotted</option>
                   </select>
                   <label for="" style="position:absolute;top:3px;left:auto;right:0px;color:red;">border-radius</label>
+                  <select id="borderRadiusDimension" class="boxDesign" style="width:3em;height:2em;position:absolute;top:1.5em;bottom:auto;left:autopx;right:0.5em;" tabindex="-1">
+                    <option value="px">px</option>
+                    <option value="%">%</option>
+                  </select>
+                  
                   <input class="boxDesign border" id="border-top-width" type="number" value="0" min="0" style="position:absolute;top:-23px;bottom:auto;left:0px;right:0px;margin:auto;z-index:110;"/>
                   <input class="boxDesign border" id="border-right-width" type="number" value="0" min="0" style="height:1em;position:absolute;top:0px;bottom:0px;left:auto;right:-5px;margin:auto;"/>
                   <input class="boxDesign border" id="border-bottom-width" type="number" value="0" min="0" style="position:absolute;top:auto;bottom:-5px;left:0px;right:0px;margin:0px auto 0px;"/>
