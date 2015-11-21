@@ -5,20 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous"> -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous"> -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> -->
-<!--    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script> -->
-<!--		<link rel="stylesheet" href="/default/jquery-ui-1.11.4/jquery-ui.min.css" />  -->
-<!--    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap.min.css" />  -->
-<!--    <link rel="stylesheet" href="/default/bootstrap355/css/bootstrap-theme.min.css" />  -->
-<!--		<script src="/default/jquery-2.1.4.min.js" ></script> -->
-<!-- 		<script src="/default/jquery-ui-1.11.4/jquery-ui.min.js"></script> -->
-<!--    <script src="/default/angular.min.js"></script> -->
-<!--		<script src="/default/html_developing.js"></script> -->
+     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css"
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script
+     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script
+     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+		<script src="/html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
 			#screenRoot {
@@ -94,6 +88,7 @@
 			}
 			.objSelected:not(.grid), objSelected.objDraggableResizable:not(.grid) {
         box-shadow:0px 0px 8px red;
+        background-color:rgba(255, 255, 255, 0.4);
 			}
 			.objSelected.grid, objSelected.objDraggableResizable.grid {
 				opacity: 0.8;
@@ -118,7 +113,7 @@
         text-overflow: ellipsis;
       }
       .menu_container {
-        width:470px;
+        width:460px;
       }
       .menu_container > div {
 
@@ -292,12 +287,12 @@
 			<ol id="context_menu" class="notDirectory"></ol>
 		</section>
 		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:101;width:480px;border-radius:20px;height:1000px;" >
-			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:450px;">
-				<input id="basic_menu_forward" type="button" value="<"/>  -->
-				<input id="basic_menu_backward" type="button" value=">"/>  -->
-        <input id="angular_boot" type="button" value="Angular Boot"/>  -->
-			</section> -->
-			<div style="border:0px none transparent;white-space:nowrap;overflow-x:hidden;overflow-y:a -->uto;height:98%;background-color: rgba(221, 221, 221, 0.5);display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;"> -->
+			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:470px;">
+				<input id="basic_menu_forward" type="button" value="<"/>
+				<input id="basic_menu_backward" type="button" value=">"/>
+        <input id="angular_boot" type="button" value="Angular Boot"/>
+			</section>
+			<div style="border:0px none transparent;white-space:nowrap;overflow-x:hidden;overflow-y:auto;height:98%;background-color: rgba(221, 221, 221, 0.5);display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;">
         <div class="menu_container" style="flex-basis:1430px;">
           <div style="border:0px none transparent;" class="openCloseTrigger">* Tag emmet style</div>
           <div style="border:0px none transparent;" class="openCloseTarget">
@@ -588,7 +583,9 @@
       $(function(){
         if(angular){
           var MyAppName = '';
+          var appNameSequence = 0;
           var backups = {};
+          var isFirst = true;
           var el_angular_boot = $('#angular_boot').on('refresh.edit',function(){
             console.log('refresh');
             var els_nowPage = $('.nowPage');
@@ -605,13 +602,11 @@
               var ddo = func();
               if(ddo.restrict.indexOf('E') > -1){
                 if($(ddo.controllerAs).length > 0){
+                  console.log('Directive : ' + ddo.controllerAs);
                   angularApp.directive(ddo.controllerAs, func);
                   backups[ddo.controllerAs] = true;
                 }}});
-            var backupedKeys = Object.keys(backups);
-            if(backupedKeys.length !== 0){            
-              bootstrap(document.getElementById(MyAppName));
-            }
+            bootstrap(document.getElementById(MyAppName));
           });
           //pg tgt
           var ddoSuppliers = [

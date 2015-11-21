@@ -2,21 +2,19 @@ $(function(){
     /** On developing
      * explorer window function
      * emacs keybinding
-     * bootstrap css support
      */
-    /** TODO
-     * Angularjs support
-     * bootstrap js support
-     * Web Component
-     * Component mixin
+    /** TODO CLIENT
+     * psuedo link
      * display flex mode & update grid by using flex
      * customizable key binding
      * transform perspective
      * sync BOX Model inputs
      * text-align
      * directory tree
+     * multi language
      * command line user interface
      * undo / redo by a screen
+     * undo / redo by module , component
      * undo / redo (style)
      * css tree eg text-align  => left center right
      * wizard, easy menu
@@ -25,15 +23,24 @@ $(function(){
      * parse thymeleaf html template
      * SVG reinforcing
      * autocomplete
-     * Append Func supports char
+     * Append Func supports String
      * save biz obj arr
-     * psuedo link
      * table cell concat
      * split window
      * Edit supports ordinary wysiwyg html editors
-     * rotate3d
+     * 3D editor / sample support 3D
+     * animation editor
+     * jQuery 3 support
+     * bootstrap js support
+     * Web Component
+     * Component mixin
      * scalatest seleniumのコードの生成
      */
+    /** TODO SERVER
+     * Websocket sharing
+     * Master Slave system
+     * Angularjs support
+     */    
     /** DONE
      * grid 
      * style editor
@@ -51,6 +58,7 @@ $(function(){
      * font-size
      * thumbnail (transform:scale)
      * scripting mode
+     * bootstrap css support
      */
     // startsWith
     if (!String.prototype.startsWith) {
@@ -97,7 +105,7 @@ $(function(){
     var DEFAULT_HEIGHT = 30;
     var DISTANT_HEIGHT = 45;
     var NEW_WIDTH = 480;
-    var MIN_HEIGHT = 30;
+    var MIN_HEIGHT = 15;
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
     var XLink_NS = 'http://www.w3.org/1999/xlink';
@@ -612,9 +620,9 @@ $(function(){
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
 
 	{"name":"edit", "label":"Edit","input":'<span id="EditMode" style="margin-left:2em;"></span>', "style":"", "col2":false},
-	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:11em;ime-mode:disabled;float:right;"/><br><input type="text" id="AppendCssSelector" class="" style="width:19em;ime-mode:disabled;margin-left:1em;float:right;" placeholder="append css selector" />', "style":"height:5em;", "col2":true},
-	{"name":"update_var", "label":"Up var ", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em"/>', "style":"", "col2":true},
-	{"name":"update_prop", "label":"Up prop ", "input":'<input type="text" id="updateAttr" class="" style="width:3.5em"/><input type="text" id="updateAttrValue" class="" style="width:9.5em"/>', "style":"", "col2":true},
+	{"name":"select", "label":"Sel", "input":'<select id="parent_list" style=""></select><input type="text" id="SelectedMyObjId" class="" style="width:10em;ime-mode:disabled;float:right;height:28px;"/><br><input type="text" id="AppendCssSelector" class="" style="width:18.5em;ime-mode:disabled;margin-left:1em;float:right;height:28px;" placeholder="append css selector" />', "style":"height:5em;", "col2":true},
+	{"name":"update_var", "label":"Up var ", "input":'<input type="text" id="SelectedValArrayJSON" class="" style="width:10em;height:24px;"/>', "style":"", "col2":true},
+	{"name":"update_prop", "label":"Up prop ", "input":'<input type="text" id="updateAttr" class="" style="width:3.5em;height:24px;"/><input type="text" id="updateAttrValue" class="" style="width:9.5em;height:24px;"/>', "style":"", "col2":true},
 	{"name":"copy", "label":"Copy", "input":'', "style":"", "col2":false},
 	{"name":"cut", "label":"Mv (Cut)", "input":'', "style":"", "col2":false},
 //	{"name":"pasteInsertBefore", "label":"PstBefore", "input":'', "style":"", "col2":false},
@@ -714,7 +722,7 @@ $(function(){
 	context_menu.el_updateAttrValue = $('#updateAttrValue').on(MY_CLICK,function(ev){
 	    ev.preventDefault();
 	    ev.stopPropagation();
-	});;
+	});
     })();
 
     // operator
@@ -917,7 +925,7 @@ $(function(){
 		return true;
 	    }
 	    minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach();
-	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace).on(MY_CLICK, '.shim', function(){
+	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace).on(MY_CLICK, '.shim', function(){
 		var _this = $(this);
 		var btnName = _this.find('>div').html();
 		el_directoryList.find('.func_scrn_change').filter(function(){
@@ -1325,28 +1333,28 @@ $(function(){
 		_this.val(parseInt(_this.val(), 10) - setting.step5);break;
 	    case 66:
 		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step5);} 
-		ev.stopPropagation();
+		ev.stopPropagation();ev.preventDefault();
 		break;
 	    case 38:
 		_this.val(parseInt(_this.val(), 10) + setting.step);
 		break;
 	    case 80:
 		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) + setting.step);}
-		ev.stopPropagation();
+		ev.stopPropagation();ev.preventDefault();
 		break;
 	    case 39:
 		_this.val(parseInt(_this.val(), 10) + setting.step5);
 		break;
 	    case 70:
 		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) + setting.step5);}
-		ev.stopPropagation();
+		ev.stopPropagation();ev.preventDefault();
 		break;	
 	    case 40:
 		_this.val(parseInt(_this.val(), 10) - setting.step);
 		break;
 	    case 78:
 		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step);}
-		ev.stopPropagation();
+		ev.stopPropagation();ev.preventDefault();
 		break;			
 	    }
 	    var nowVal = _this.val();
@@ -1365,7 +1373,7 @@ $(function(){
     });
 
     el_func_s.delete.on(MY_CLICK, function(){
-	$(CLASS_SELECTED, nowPage.screen).each(function(){
+	$('.'+CLASS_SELECTED, nowPage.screen).each(function(){
 	    var my_node_id = myWrapElement(this).attr('data-my-node-id');
 	    commands.delete(my_node_id).execute();
 	});
