@@ -1,15 +1,101 @@
 $(function(){
+    /**
+     * dirをbaseとし、pageをfilter/layerとする
+     * baseのクリックで適用しているレイヤーの一覧を下層から表示する
+     * 各レイヤーは所属するbase要素を定義できる
+     * 定義しない場合は、画面に対して0,0の絶対表示となる
+     * html化ないしは焼き込み命令でbaseにマージされる
+     * レイヤーはグローバルで各ベースで共有可能
+     * ベースがどのレイヤーを使用しているか記憶する
+     * 使用しているレイヤーに対しmerge時にinjection可能
+     * レイヤーはネストやコピー可能
+     * ベースはレイヤーというtraitを集めるディレクトリーの感覚
+     * レイヤーやベースはタグorラベルによるグルーピングが可能
+     * 焼き込みはwebworker
+     * レイヤー
+     */
     /** On developing
      * explorer window function
      * emacs keybinding
      */
+    /** TODO CLIENT wizard
+     * font text
+     * 3D
+     * ajax request / callback
+     * flex grid box
+     */
+    /** TODO CSS
+     * size
+     * marks
+     * page
+     * orphans
+     * widows
+     * border-image
+     * border-image-source
+     * border-image-slice
+     * border-image-width
+     * border-image-outset
+     * border-image-repeat
+     * multi box-shadow
+     * clip-path
+     * quotes
+     * content
+     * counter-reset
+     * counter-increment
+     * list-style
+     * list-style-type
+     * list-style-position
+     * list-style-image
+     * font
+     * font-style
+     * font-variant
+     * font-weight
+     * font-size
+     * font-family
+     * font-stretch
+     * font-size-adjust
+     * font-synthesis
+     * font-kerning
+     * font-feature-settings
+     * font-variant-numeric
+     * font-variant-caps
+     * font-variant-ligatures
+     * font-variant-position
+     * font-variant-alternates
+     * font-variant-east-asian
+     * font-language-override
+     * text-align
+     * text-decoration
+     * vertical-align
+     * text-underline-position
+     * text-transform
+     * white-space
+     * line-height
+     * line-break
+     * word-break
+     * word-wrap
+     * word-spacing
+     * letter-spacing
+     * columns
+     * column-count
+     * column-width
+     * column-gap
+     * column-rule
+     * column-rule-width
+     * column-rule-style
+     * column-rule-color
+     * column-span
+     * column-fill
+     * mix-blend-mode
+     * background-blend-mode
+     * isolation
+     */
     /** TODO CLIENT
+     * display : file => layer , stack or merge layers
      * psuedo link
-     * display flex mode & update grid by using flex
      * customizable key binding
      * transform perspective
      * sync BOX Model inputs
-     * text-align
      * directory tree
      * multi language
      * command line user interface
@@ -28,7 +114,6 @@ $(function(){
      * table cell concat
      * split window
      * Edit supports ordinary wysiwyg html editors
-     * 3D editor / sample support 3D
      * animation editor
      * jQuery 3 support
      * bootstrap js support
@@ -74,7 +159,7 @@ $(function(){
     var fn_ctrlN = undefined;
     
     var FUNC_ID = "HtmlDeveloping";
-    var MY_STORAGE = constructor_storage(FUNC_ID);
+    var MY_STORAGE = constructor_storage(FUNC_ID, localStorage);
     var MAX_SAVE_SLOT_S = 16;
     var MY_NODE_SEP = '-';
 
@@ -221,9 +306,9 @@ $(function(){
     var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable({"handle":".menuHandler"});
     var el_history = $('#history');
     var el_sandbox_screen =  $('#sandbox_screen');
-    var el_func_new_page_element = $('#func_new_page_element').on(MY_CLICK, function(){
-	var name = el_new_page_element.val().trim();
-	var btn_page = createPage(name, el_directoryList);
+    var el_func_new_filter_layer = $('#func_new_filter_layer').on(MY_CLICK, function(){
+	var name = el_new_layer.val().trim();
+	var btn_page = createLayer(name, el_HDfilterLayerList);
 	setNowPage(btn_page.page);
 	el_some_name.style_list.val(name);
 	if(name.endsWith('.json')){//TODO now Developing
@@ -251,11 +336,11 @@ $(function(){
 		});
 	}
     });
-    var el_func_newDirectory = $('#func_newDirectory').on(MY_CLICK, function(){
-	var name = el_new_page_element.val().trim();
-	var btn_dir = createDirectory(name);
+    var el_func_new_base_layer = $('#func_new_base_layer').on(MY_CLICK, function(){
+	var name = el_new_layer.val().trim();
+	var btn_dir = createBaseLayer(name);
     });
-    var el_new_page_element = $('#new_page_element');
+    var el_new_layer = $('#new_layer_name');
     var el_style = $('style#MyEditableStyle');
     var el_script = $('#MyEditableScript');
     var el_now_selected = {};
@@ -640,10 +725,11 @@ $(function(){
 
     //init
     // Directory Explorer
-    var el_directorySpace = $('#directorySpace');
-    var el_directoryRoot = $('#directoryRoot');
-    var el_directoryList = $('#directoryList');
-    var el_directory = $('#directory');
+    var el_HDdirectorySpace = $('#HDdirectorySpace');
+    var el_HDdirectoryRoot = $('#HDdirectoryRoot');
+    var el_HDbaseLayerList = $('#HDbaseLayerList');
+    var el_HDdirectory = $('#HDdirectory');
+    var el_HDfilterLayerList = $('#HDfilterLayerList');
     // page
     var el_HtmlDeveloping = $('#HtmlDeveloping');
     var nowPage;
@@ -653,7 +739,7 @@ $(function(){
     (function(){
 	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
-	var btn_page = createPage('Root', el_directoryRoot, 'dir');
+	var btn_page = createLayer('Root', el_HDdirectoryRoot, 'dir');
 	setNowPage(btn_page.page);
 	ROOT_PAGE = nowPage;
 	var child;
@@ -874,19 +960,20 @@ $(function(){
 	}
     });
     
-    function createPage(name, appendTarget, type, width, height){
-	if(arguments.length < 5){ height = '1400px';}//TODO
-	if($.isNumeric(width)){ width +='px';}//TODO
-	if(arguments.length < 4){ width = '100%';}//TODO
-	var screenName = 'screen'+name;
-	if(page_s.hasOwnProperty(screenName)){
+    function createLayer(name, appendTarget, type, width, height){
+	if(arguments.length < 5){ height = '100%';}
+	if($.isNumeric(width)){ width +='px';}
+	if(arguments.length < 4){ width = '100%';}
+	var layerName = 'HDlayer_'+name;
+	if(page_s.hasOwnProperty(layerName)){
 	    console.log('There are the same name:' + name + ' .');
-	    return page_s[screenName];
+	    return page_s[layerName];
 	}
 	var _page = {};
-	page_s[screenName] = _page;
+	page_s[layerName] = _page;
 	var now_id = STATUS.getNewMyObjId();
-	_page.screen = $('<section id="'+screenName+'" class="screen" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
+	var adderClass = type === 'dir' ? 'HDbaseLayer' : '';
+	_page.screen = $('<section id="'+layerName+'" class="HDlayerClass '+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
 	    .on('contextmenu', display_contextmenu)
 	    .on(MY_CLICK,function(ev){
 		if(context_menu.is_close_menu){
@@ -898,16 +985,15 @@ $(function(){
 	_page.prop_history = [];
 	context_menu.is_close_menu = true;
 	var _btn_name = name;
-	$('.func_scrn_change').removeClass("selectedScrnBtn");
-	var appndDirClass = type === 'dir' ? ' func_dir_change' : '';
-	var pageBtn = $('<input class="func_scrn_change freeScrnBtn selectedScrnBtn '+appndDirClass+'" type="button" value="'+_btn_name+'" />').data('page', _page).appendTo(appendTarget);
+	$('.func_layer_change').removeClass("selectedScrnBtn");
+	var pageBtn = $('<input class="func_layer_change freeScrnBtn selectedScrnBtn '+adderClass+'" type="button" value="'+_btn_name+'" />').data('page', _page).appendTo(appendTarget);
 	el_HtmlDeveloping.append(_page.screen);
 	el_ObjectName.html(_page.screen.data('name'));
 	return {"btn":pageBtn, "page":_page};
     }
 
-    function createDirectory(name){
-	return createPage(name, el_directoryList, 'dir');
+    function createBaseLayer(name){
+	return createLayer(name, el_HDbaseLayerList, 'dir');
     }
 
     function display_contextmenu(ev){
@@ -916,8 +1002,9 @@ $(function(){
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
     // Directory
-    el_directorySpace.on(MY_CLICK, '.func_scrn_change', function(){
-	el_directorySpace.find('.func_scrn_change').removeClass('selectedScrnBtn');
+    el_HDdirectorySpace.on(MY_CLICK, '.func_layer_change', function(){
+	el_HDdirectorySpace.find('.func_layer_change').removeClass('selectedScrnBtn');
+	console.log('992');
 	var _this = $(this).addClass('selectedScrnBtn');
 	var _page = _this.data('page');//TODO page_sに変更??
 	var selectedName = _page.screen.data('name');
@@ -931,7 +1018,7 @@ $(function(){
 	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace).on(MY_CLICK, '.shim', function(){
 		var _this = $(this);
 		var btnName = _this.find('>div').html();
-		el_directoryList.find('.func_scrn_change').filter(function(){
+		el_HDdirectorySpace.find('.func_layer_change').filter(function(){
 		    return this.value === btnName;
 		}).trigger(MY_CLICK);
 	    });
@@ -3617,12 +3704,15 @@ $(function(){
 	};
     }
 
-    function constructor_storage(FUNC_ID){
+    function constructor_storage(FUNC_ID, targetStorage){
 	var uncommit_pool = {};
 	var is_locked = false;
+	if(targetStorage === undefined){
+	    targetStorage = localStorage;
+	}
 	return {
 	    "raw":function(){
-		var raw = localStorage[FUNC_ID];
+		var raw = targetStorage[FUNC_ID];
 		if(typeof raw === 'undefined'){	raw = '{}';}
 		return raw;
 	    },
@@ -3632,14 +3722,14 @@ $(function(){
 				 var raw = this.raw();
 				 try{	uncommit_pool = JSON.parse(raw);
 				    }catch(e){
-					localStorage[FUNC_ID] = '{}';
+					targetStorage[FUNC_ID] = '{}';
 				    }
 				 is_locked = true;
 				 return this;
 			     }
 	    },
 	    "commit":function(){
-		localStorage[FUNC_ID] = JSON.stringify(uncommit_pool);
+		targetStorage[FUNC_ID] = JSON.stringify(uncommit_pool);
 		uncommit_pool = {};
 		is_locked = false;
 		return this;
@@ -3653,7 +3743,7 @@ $(function(){
 		var str_key = ''+key;
 		var pooled = uncommit_pool[str_key];
 		if(typeof pooled === 'undefined'){
-		    var raw = localStorage[FUNC_ID];
+		    var raw = targetStorage[FUNC_ID];
 		    if(typeof raw === 'undefined' || raw == null){return null;}
 		    raw = JSON.parse(raw);
 		    var saved = raw[key];
@@ -3693,7 +3783,7 @@ $(function(){
 		return this;
 	    },
 	    "truncate":function(){
-		delete localStorage[FUNC_ID];
+		delete targetStorage[FUNC_ID];
 		return this;
 	    },
 	    "keys":function(is_true_storage){

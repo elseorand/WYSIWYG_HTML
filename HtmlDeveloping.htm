@@ -21,23 +21,26 @@
 		<script src="/default/html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
-			.screen {
-				opacity : 1 !important;
+      #HDlayer_Root {
+        background-color:#FFFACD;
+      }
+			.HDlayerClass {
+        background-color:transparent;
+        opacity: 1 !important;
 			}
-			.screenRoot table td,.screenRoot table th{/* table の罫線を出すために必須の設定 */
+			.HDlayerClass table td,.HDlayerClass table th{/* table の罫線を出すために必須の設定 */
 				background-color:transparent;
 			}
+      body > #HtmlDeveloping > .HDbaseLayer {
+        background-color:#FFFACD;
+      }
 			.snap_border {
-				opacity : 0.9;
-        border-style:dotted;
-        border-color:grey;
-				border-collapse:collapse;
+        opacity: 0.5;
+        background-color:rgba(0, 0, 0, 0.5);
 			}
 			.snap_border ~ *, * ~ .snap_border {
-				opacity : 0.9;
-        border-style:dotted;
-        border-color:grey;
-				border-collapse:collapse;
+        background-color:rgba(0, 0, 0, 0.5);
+				opacity : 0.5;
 			}
 			.ui-resizable-e,.ui-resizable-s,.ui-resizable-se{
 				opacity: 0.2;
@@ -123,26 +126,31 @@
       }
       .menu_container > div {
 
-      }      
-      #directoryList >.selectedScrnBtn{
-        background-color:#FF6E41;
       }
-      #directorySpace input.func_dir_change{
-        border:none;
+      #HDdirectorySpace input.func_layer_change {
+        border:2px double transparent;
+        text-align:center;
+        margin-bottom: 2px;
+        margin-left:8px;
+        width:92%;        
+      }      
+      #HDdirectoryRoot > input.func_layer_change.HDbaseLayer{
         background-color:#000fff;
         color:white;
-        text-align:center; 
       }
-      #directorySpace input.func_dir_change.selectedScrnBtn{
+      #HDbaseLayerList > input.func_layer_change.HDbaseLayer{
+        background-color:#000fff;
+        color:white;
+      }
+      #HDdirectorySpace input.func_layer_change.selectedScrnBtn{
+        border:2px double grey;
         background-color:#FF6E41;
+        color:black;
       }
-      #directoryList >input{
-        margin-left:8px;
-      }
-      .freeScrnBtn{
-        border:none;
-        background-color:transparent;
-        text-align:left;        
+      #HDfilterLayerList > input.func_layer_change.freeScrnBtn{
+        border:2px double grey;
+        text-align:left;
+        margin-left:16px;
       }
       .borderRadius{
         width:3em;height:1em;position:absolute;
@@ -160,9 +168,11 @@
 			/* As you like */
       html {
         height:100%;
+        width:100%;
       }
 			body {
         height:100%;
+        width:100%;
 				margin: 0px;
 			}
 			p,dl {
@@ -201,7 +211,7 @@
       .noBgColor{
         background-color:rgba(255, 255, 255, 1);
       }
-      .directorySpace >input {
+      .HDdirectorySpace >input {
         border:none;
         background-color:transparent;
         text-align:left;
@@ -215,8 +225,8 @@
 			#screenRoot *:not(input){
 
 			}
-			.screen{
-				background-color:LemonChiffon;
+			.HDlayerClass{
+				background-color:transparent;
 			}
 			#context_menu{
 				background-color:white !important;;
@@ -271,7 +281,7 @@
 				top:0px !important;
 				left:0px !important;
 			}
-			.screen >.htmlize{
+			.HDlayerClass >.htmlize{
 				animation: anime1 5s ease -2s 1 normal;
 			}
 
@@ -291,16 +301,16 @@
 				<input id="saved_serialized" placeholder="click save =>The data comes here" style="" type="text">
 				<input value="Load" id="func_load_element" style="" type="button">
 				<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
+        <input id="angular_boot" type="button" value="Angular Boot"/>
 			</section>
 		</header>
 		<section id="HtmlDeveloping" style="width:100%;">
 			<ol id="context_menu" class="notDirectory"></ol>
 		</section>
-		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:101;width:480px;border-radius:20px;height:1000px;" >
+		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:9999999;width:480px;border-radius:20px;height:1000px;" >
 			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:470px;">
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
-        <input id="angular_boot" type="button" value="Angular Boot"/>
 			</section>
 			<div style="border:0px none transparent;white-space:nowrap;overflow-x:hidden;overflow-y:auto;height:98%;background-color: rgba(221, 221, 221, 0.5);display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;">
         <div class="menu_container" style="flex-basis:1430px;">
@@ -558,14 +568,14 @@
       <div id="oprt_model" style="position:absolute;bottom:30px;top:auto;right:auto;left:30px;width:120px;height:80px;border:1px solid black;">Sample</div>
     </section>
     
-		<footer style="position:fixed; bottom:0px;z-index:100;">
+		<footer style="position:fixed; bottom:0px;z-index:100;width:100%;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% ">
 				<input type="hidden" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
 				<label for="SelectedValPropJSON" >Detail</label><input type="text" id="SelectedValPropJSON" class="json_val" style="width:95%;" value="{&quot;style&quot;:&quot&quot;}"	 />
 			</section>
 		</footer>
     <div class="hide_mode_target" style="display:none;width:800px;height:600px;position:absolute;"  data-fire-key-code="escape" >
-      <div id="directory" class="float_menu"  style="border:1px solid black;position:absolute;top:120px;left:50px;z-index:10000;width:800px;height:600px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
+      <div id="HDdirectory" class="float_menu"  style="border:1px solid black;position:absolute;top:120px;left:50px;z-index:10000;width:800px;height:600px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
         <section style="display:flex;flex-direction:column;align-items:stretch;flex-grow:1;">
           <header class="menuHandler" style="width:100%;height:4em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;padding-left:2px;">
             <div style="border:0px none transparent;margin:3px;">
@@ -581,12 +591,13 @@
             </section>
           </header>
           <section style="display:flex;flex-direction:row;flex-grow:10;align-items:stretch;">
-            <aside id="directorySpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
-              <input id="func_newDirectory" type="button" value=" + new dir"/>
-				      <input id="func_new_page_element" type="button" value="  + new file" style="">
-				      <input value="" id="new_page_element" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
-              <div id="directoryRoot" style="font-size:1.2em;margin:4px;display:flex;flex-direction:column;flex-stretch:1;"></div>
-              <div id="directoryList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:auto;margin:4px;"></div>
+            <aside id="HDdirectorySpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
+              <input id="func_new_base_layer" type="button" value=" + new Base layer"/>
+				      <input id="func_new_filter_layer" type="button" value="  + new filter layer" style="">
+				      <input value="" id="new_layer_name" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
+              <div id="HDdirectoryRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
+              <div id="HDbaseLayerList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:auto;margin:2px 0px 0px 8px;"></div>
+              <div id="HDfilterLayerList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:auto;margin:4px;"></div>
               <input id="func_delDirObj" type="button" value=" - delete" style=""/>
             </aside>
             <article id="HDevDirectorySpace" style="flex-grow:4;background-color:white;align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;"></article>
