@@ -1004,7 +1004,6 @@ $(function(){
     // Directory
     el_HDdirectorySpace.on(MY_CLICK, '.func_layer_change', function(){
 	el_HDdirectorySpace.find('.func_layer_change').removeClass('selectedScrnBtn');
-	console.log('992');
 	var _this = $(this).addClass('selectedScrnBtn');
 	var _page = _this.data('page');//TODO page_sに変更??
 	var selectedName = _page.screen.data('name');
@@ -2923,7 +2922,6 @@ $(function(){
 	    var path_d_idx = 0;
 	    for(var idx = 0;idx < length_selector_s;++idx){
 		var node_selector = selector_s[idx].trim();
-		console.log('node_selector : ' + node_selector);
 		if(node_selector.indexOf('#') === -1 && node_selector.indexOf('.') === -1){
 		    if(node_selector.indexOf('-') > -1){
 			node_selector = '[data-my-node-id='+node_selector+']';
