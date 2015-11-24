@@ -1,5 +1,8 @@
 $(function(){
     /**
+     * Web Functional Component
+     */
+    /**
      * dirをbaseとし、pageをfilter/layerとする
      * baseのクリックで適用しているレイヤーの一覧を下層から表示する
      * 各レイヤーは所属するbase要素を定義できる
@@ -16,6 +19,7 @@ $(function(){
      */
     /** On developing
      * explorer window function
+     * displaying not functional tag preset to explorer
      * emacs keybinding
      */
     /** TODO CLIENT wizard
@@ -91,6 +95,7 @@ $(function(){
      * isolation
      */
     /** TODO CLIENT
+     * printable window
      * display : file => layer , stack or merge layers
      * psuedo link
      * customizable key binding
@@ -110,6 +115,7 @@ $(function(){
      * SVG reinforcing
      * autocomplete
      * Append Func supports String
+     * Append Func supports Function
      * save biz obj arr
      * table cell concat
      * split window
@@ -124,7 +130,7 @@ $(function(){
     /** TODO SERVER
      * Websocket sharing
      * Master Slave system
-     * Angularjs support
+     * Angularjs support => open another window ?
      */    
     /** DONE
      * grid 
@@ -159,7 +165,7 @@ $(function(){
     var fn_ctrlN = undefined;
     
     var FUNC_ID = "HtmlDeveloping";
-    var MY_STORAGE = constructor_storage(FUNC_ID, localStorage);
+    var MY_STORAGE = constructor_storage(FUNC_ID, localStorage);// TODO websocket
     var MAX_SAVE_SLOT_S = 16;
     var MY_NODE_SEP = '-';
 
@@ -182,6 +188,9 @@ $(function(){
     var CLASS_ON_EDIT = 'objOnEdit';
     var CLASS_EDIT_DATA = 'objEditData';
     var CLASS_POSITION = 'objPositioning';
+    var エクスプローラー表示対象クラス = 'now-displaying-class';
+    var CLASS_EXPLORER_CONTAINER = 'HDlayerContainer';
+    var CLASS_SCREEN_SAVE = 'HDScreenSaved';
 
     var LAYER_SEP = '>';
     var LOOP_HLD = '*';
@@ -217,7 +226,7 @@ $(function(){
     var 単一タグ = ["input","br","hr","img"];
     var 各タグ毎の初期サイズ = {"input":{"width":70,"height":30},"td":{"width":70,"height":30},"th":{"width":70,"height":30}};
     var 関数タグの対象外css_selector = ["id","class","type"];
-    var HTML出力時に削除するAttr_s = ["data-my-htmlize-target","data-my-node-id","data-my-obj-id","data-my-obj-val","data-conns"];
+    var HTML出力時に削除するAttr_s = ["data-myhd-htmlize-target","data-myhd-node-id","data-myhd-obj-id","data-myhd-obj-val","data-conns"];
     var HTML出力時に削除するclass_s = ["htmlize","snap","snap_border","data-conns","wrapped","wrapper","ui-resizable-autohide","ui-draggable","ui-draggable-handle","ui-resizable"];
     var position_relative禁止タグ = ["th","td"];//IE Chromeniにバグあり｡FirefoxはOK
     var 互いに排他の機能_s = ["copy","cut"];
@@ -301,15 +310,16 @@ $(function(){
 	el_some_name[x] = $('#'+x+'_name');
     });
     var el_sandbox_style_screen_area = $('#sandbox_style', el_basic_menu);
-    var el_saved_serialized = $('#saved_serialized', el_header_menu_bar);
     var el_sandbox_hidden = $('#sandbox_hidden', el_header_menu_bar);
     var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable({"handle":".menuHandler"});
-    var el_history = $('#history');
+    
     var el_sandbox_screen =  $('#sandbox_screen');
     var el_func_new_filter_layer = $('#func_new_filter_layer').on(MY_CLICK, function(){
 	var name = el_new_layer.val().trim();
 	var btn_page = createLayer(name, el_HDfilterLayerList);
+	if(btn_page === false){return false;}
 	setNowPage(btn_page.page);
+	btn_page.btn.trigger(MY_CLICK);
 	el_some_name.style_list.val(name);
 	if(name.endsWith('.json')){//TODO now Developing
 	    $.getJSON(name)
@@ -623,7 +633,6 @@ $(function(){
 	    .replace('gradColors', save)
 	    .commit();
     });
-    //TODO selectable
     var el_colorGrads = $('#colorGrads').on(MY_CLICK,'.gradColor',function(){
 	var _this = $(this);
 	var newBgColor = {"style":'background:'+analysisCss(_this.attr('style'))['background']+';'};
@@ -688,9 +697,6 @@ $(function(){
     function createGradObject(colorStr, target){
 	$('<div class="gradColor">').data('originalGradColor', colorStr).css({"width":"96px", "height":"2em","margin":"3px", "float":"left","border-left":"16px solid white", "background":colorStr}).appendTo(target);
     }
-    // directory
-    var el_HDevDirectorySpace = $('#HDevDirectorySpace');
-
     // context menu
     var context_menu = $('#context_menu');
 
@@ -724,11 +730,22 @@ $(function(){
     ];
 
     //init
-    // Directory Explorer
-    var el_HDdirectorySpace = $('#HDdirectorySpace');
-    var el_HDdirectoryRoot = $('#HDdirectoryRoot');
+    // Directory / Explorer
+    var el_HDexplorer = $('#HDexplorer');
+    el_HDexplorer
+	    .data('parent', el_HDexplorer.children('section'))
+	    .data('brother',el_HDexplorer.find('.menuHandler'))
+	    .resizable({"autoHide":true,"minWidth":80, 
+			resize:function(ev, ui){
+			    el_HDexplorerSpace
+				.height(el_HDexplorer.data('parent').innerHeight() - el_HDexplorer.data('brother').outerHeight());
+			}
+		       })
+	    .draggable({"handle":".menuHandler"});
+    var el_HDexplorerSpace = $('#HDexplorerSpace');
+    var el_HDlayerSpace = $('#HDlayerSpace');
+    var el_HDlayerRoot = $('#HDlayerRoot');
     var el_HDbaseLayerList = $('#HDbaseLayerList');
-    var el_HDdirectory = $('#HDdirectory');
     var el_HDfilterLayerList = $('#HDfilterLayerList');
     // page
     var el_HtmlDeveloping = $('#HtmlDeveloping');
@@ -739,7 +756,7 @@ $(function(){
     (function(){
 	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
-	var btn_page = createLayer('Root', el_HDdirectoryRoot, 'dir');
+	var btn_page = createLayer('Root', el_HDlayerRoot, 'dir');
 	setNowPage(btn_page.page);
 	ROOT_PAGE = nowPage;
 	var child;
@@ -959,21 +976,12 @@ $(function(){
 	    cssFunc(el_oprt_model, op_val, el_now_selected[key]);
 	}
     });
-    
-    function createLayer(name, appendTarget, type, width, height){
-	if(arguments.length < 5){ height = '100%';}
-	if($.isNumeric(width)){ width +='px';}
-	if(arguments.length < 4){ width = '100%';}
-	var layerName = 'HDlayer_'+name;
-	if(page_s.hasOwnProperty(layerName)){
-	    console.log('There are the same name:' + name + ' .');
-	    return page_s[layerName];
-	}
-	var _page = {};
-	page_s[layerName] = _page;
+
+    function createLayerDOM(name, adderClass, width, height){
+	var layerName = convLayerName(name);
 	var now_id = STATUS.getNewMyObjId();
-	var adderClass = type === 'dir' ? 'HDbaseLayer' : '';
-	_page.screen = $('<section id="'+layerName+'" class="HDlayerClass '+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-my-node-id="'+now_id+'" data-my-obj-id="'+now_id+'">')
+	var _page = {};
+	_page.screen = $('<section id="'+layerName+'" class="'+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-myhd-node-id="'+now_id+'" data-myhd-obj-id="'+now_id+'">')
 	    .on('contextmenu', display_contextmenu)
 	    .on(MY_CLICK,function(ev){
 		if(context_menu.is_close_menu){
@@ -982,61 +990,103 @@ $(function(){
 		el_func_s.cxlselected.trigger(MY_CLICK);
 		setNowPage(_page);
 	    }).data('name', name);
-	_page.prop_history = [];
+	_page.prop_history = [];//TODO undo css
+	page_s[layerName] = _page;
+	return _page;
+    }
+    function convLayerName(name){
+	return 'HDlayer_'+name;
+    }
+    function createLayer(name, appendTarget, type, width, height){
+	if(arguments.length < 5){ height = '100%';}
+	if($.isNumeric(width)){ width +='px';}
+	if(arguments.length < 4){ width = '100%';}
+	var layerName = convLayerName(name);
+	if(page_s.hasOwnProperty(layerName)){
+	    console.log('There are the same name:' + name + ' .');
+	    return false;
+	}
+	var adderClass = type === 'dir' ? 'HDbaseLayer' : '';
+	adderClass = 'HDlayerClass ' + adderClass;
+	var pageObj = createLayerDOM(name, adderClass, width, height);
 	context_menu.is_close_menu = true;
 	var _btn_name = name;
 	$('.func_layer_change').removeClass("selectedScrnBtn");
-	var pageBtn = $('<input class="func_layer_change freeScrnBtn selectedScrnBtn '+adderClass+'" type="button" value="'+_btn_name+'" />').data('page', _page).appendTo(appendTarget);
-	el_HtmlDeveloping.append(_page.screen);
-	el_ObjectName.html(_page.screen.data('name'));
-	return {"btn":pageBtn, "page":_page};
+	var pageBtn = $('<input class="func_layer_change freeScrnBtn selectedScrnBtn '+adderClass+'" type="button" value="'+_btn_name+'" />').data('page', pageObj).appendTo(appendTarget);
+	el_HtmlDeveloping.append(pageObj.screen);
+	el_ObjectName.html(pageObj.screen.data('name'));
+	return {"btn":pageBtn, "page":pageObj};
     }
-
     function createBaseLayer(name){
 	return createLayer(name, el_HDbaseLayerList, 'dir');
     }
-
     function display_contextmenu(ev){
 	ev.preventDefault();
 	ev.stopPropagation();
 	context_menu.css({"left":ev.pageX - 50,"top":ev.pageY - 30,"display":""});
     };
     // Directory
-    el_HDdirectorySpace.on(MY_CLICK, '.func_layer_change', function(){
-	el_HDdirectorySpace.find('.func_layer_change').removeClass('selectedScrnBtn');
-	var _this = $(this).addClass('selectedScrnBtn');
-	var _page = _this.data('page');//TODO page_sに変更??
-	var selectedName = _page.screen.data('name');
-	ROOT_PAGE.screen.siblings().each(function(idx){
-	    var minimizedScrn = $(this);
-	    var pageName = minimizedScrn.data('name');
-	    if(isEmpty(pageName) || isEmpty(selectedName) || pageName === selectedName){
-		return true;
-	    }
-	    minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach();
-	    var newFile = $('<div class="directoryContainer">').css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"}).append(minimizedScrn).append('<div class="shim" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>').appendTo(el_HDevDirectorySpace).on(MY_CLICK, '.shim', function(){
-		var _this = $(this);
-		var btnName = _this.find('>div').html();
-		el_HDdirectorySpace.find('.func_layer_change').filter(function(){
-		    return this.value === btnName;
-		}).trigger(MY_CLICK);
-	    });
-	});
-	if(ROOT_PAGE !== _page && nowPage !== _page){
-	    setNowPage(_page);
-	    var parent =_page.screen.parent();
-	    var selectedScreen = _page.screen
-		    .css({"transform":"scale(1)", "margin":"0px"});
-	    if(parent.hasClass('directoryContainer')){
-		selectedScreen.detach().appendTo(el_HtmlDeveloping);
-		parent.remove();
-	    }
-	}else if(ROOT_PAGE === _page){
-	    setNowPage(_page);
-	}
-	el_ObjectName.html(nowPage.screen.data('name'));
+    function refreshExplorerSpace(clazz){
+	el_HDexplorerSpace.children('.'+clazz).css({"display":""}).end().children(':not(.'+clazz+')').css({"display":"none"}).find('.explorerSelected').removeClass('explorerSelected');
+    }
+    var el_HDdirSave = $('#HDdirSave').data(エクスプローラー表示対象クラス, CLASS_SCREEN_SAVE).on(MY_CLICK,function(){
+	var _this = $(this);
+	refreshExplorerSpace(_this.data(エクスプローラー表示対象クラス));
+	
     });
+    function putInExplorer(clazz, minimizedScrn, selectedName){
+	var pageName = minimizedScrn.data('name');
+	if(isEmpty(pageName) || isEmpty(selectedName) || pageName === selectedName){
+	    return true;
+	}
+	minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach();
+	var newFile = $('<div class="'+clazz+' explorerContainer">')
+		.css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"})
+		.append(minimizedScrn)
+		.append('<div class="explorerShim '+clazz+'" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>')
+	        .data('explorerShim', pageName)
+		.appendTo(el_HDexplorerSpace)
+		.on(MY_CLICK, '.explorerShim.HDlayerContainer', function(){
+		    var _this = $(this);
+		    var btnName = _this.children('div').html();
+		    //explorer 左のボタン押下. TODO layer mergeまでの暫定挙動
+		    el_HDlayerSpace.find('.func_layer_change').filter(function(){
+			return this.value === btnName;
+		    }).trigger(MY_CLICK);
+		})
+		.on(MY_CLICK, '.explorerShim.HDScreenSaved', function(){
+		    var _this = $(this).toggleClass('explorerSelected');
+		});
+	return true;
+    }
 
+    var el_HDopenDirs = $('#HDopenDirs');
+    el_HDlayerSpace
+	.data(エクスプローラー表示対象クラス, CLASS_EXPLORER_CONTAINER)
+	.on(MY_CLICK, '.func_layer_change', function(){
+	    el_HDlayerSpace.find('.func_layer_change').removeClass('selectedScrnBtn');
+	    var _this = $(this).addClass('selectedScrnBtn');
+	    var _page = _this.data('page');
+	    var selectedName = _page.screen.data('name');
+	    ROOT_PAGE.screen.siblings('.HDlayerClass').each(function(idx){
+		return putInExplorer(CLASS_EXPLORER_CONTAINER, $(this), selectedName);
+	    });
+	    if(ROOT_PAGE !== _page && nowPage !== _page){
+		setNowPage(_page);
+		var parent =_page.screen.parent();
+		var selectedScreen = _page.screen
+			.css({"transform":"scale(1)", "margin":"0px"});
+		if(parent.hasClass(CLASS_EXPLORER_CONTAINER)){
+		    selectedScreen.detach().appendTo(el_HtmlDeveloping);
+		    parent.remove();
+		}
+	    }else if(ROOT_PAGE === _page){
+		setNowPage(_page);
+	    }
+	    el_ObjectName.html(nowPage.screen.data('name'));
+	    refreshExplorerSpace(el_HDlayerSpace.data(エクスプローラー表示対象クラス));
+	});
+    
     // screen util setting
     var default_width_setting_s = {};
     var el_auto_extend = $('.autoExtend');
@@ -1044,7 +1094,7 @@ $(function(){
 	var _this = $(obj);
 	default_width_setting_s[_this.attr('id')] = _this.width();
     });
-
+    
     $('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
 	var _this = myWrapElement(this);
 	var length_val = 0;
@@ -1166,12 +1216,6 @@ $(function(){
 	$.each(target_s, function(idx, _target){
 	    //	    var prop_history_id = STATUS.getNewProp();
 	    update_prop($(_target), prop_s);
-	    //TODO del slot
-	    //	    prop_history[prop_history_id] = kept_prop_s;
-	    //	    nowPage.screen.prop_history.push(node_id_s);
-	    //	    nowPage.prop_history.push({"id"});//TODO
-	    //	    target.data('prop-history', prop_history);
-
 	});
 	draw_arrow_s();
     });
@@ -1190,7 +1234,6 @@ $(function(){
 	el_func_s[name].on(MY_CLICK, function(){
 	    try{
 		var new_targeted = $('.'+CLASS_SELECTED + 互いに排他機能のCLASSを含まないセレクタ);
-		//TODO if hasClass('wrapped'), then cancel and select menu
 		//新規選択分があれば､それのみを処理し､既存分は触らない
 		if(new_targeted.length > 0){
 		    removeSelected(new_targeted.addClass(now_class));
@@ -1320,7 +1363,7 @@ $(function(){
 	    display_onscreen('appendTo', el_sandbox_hidden, parsed[i]);
 	}
 
-	var target_s = $('[data-my-htmlize-target=true]',el_sandbox_hidden);
+	var target_s = $('[data-myhd-htmlize-target=true]',el_sandbox_hidden);
 	target_s.each(function(idx, _target){
 	    var target = $(_target);
 	    try{target.draggable('destroy');}catch(e){/*kill error*/};
@@ -1463,7 +1506,7 @@ $(function(){
 
     el_func_s.delete.on(MY_CLICK, function(){
 	$('.'+CLASS_SELECTED, nowPage.screen).each(function(){
-	    var my_node_id = myWrapElement(this).attr('data-my-node-id');
+	    var my_node_id = myWrapElement(this).attr('data-myhd-node-id');
 	    commands.delete(my_node_id).execute();
 	});
     });
@@ -1498,28 +1541,52 @@ $(function(){
 	}
     });
 
+    var history_counter = 0;
+    function refresh_save_history(){
+	var appender = '';
+	var save_s = orDefault(MY_STORAGE.select('save_s'), []);
+	var already = {};
+	var alreadyList = el_HDexplorerSpace.children('.HDScreenSaved.explorerContainer');
+	if(alreadyList !== undefined){
+	    alreadyList.map(function(idx, obj){
+		already[$(obj).data('explorerShim')] = obj;
+	    });	    
+	}
+	history_counter = 0;
+	var alreadyLength = Object.keys(already).length;
+	for(var key in save_s) if(save_s.hasOwnProperty(key) && key.startsWith('save')){
+	    if(already[key] === undefined){
+		var pageObj = createLayerDOM(key, CLASS_SCREEN_SAVE, '100%', '100%');
+		putInExplorer(CLASS_SCREEN_SAVE, pageObj.screen, 'save');
+		loadSavedData(save_s[key], pageObj.screen);
+		var tmp = parseInt(key.split(MY_NODE_SEP)[1],10);
+		history_counter = history_counter < tmp ? tmp : history_counter;
+	    }else if(alreadyLength > 0){
+		delete already[key];
+	    }
+	}
+	Object.keys(already).forEach(function(x,i,a){
+	    $(already[x]).remove();
+	});
+    }
+    refresh_save_history();
+    
     /**
-     * saveされる対象はdata-my-node-idが付与されているもの
+     * saveされる対象はdata-myhd-node-idが付与されているもの
      */
     el_func_s.save.on(MY_CLICK, function(){
 	/* get selected or root */
 	var save = getSelectedOrRoot();
-	el_saved_serialized.val(JSON.stringify(save));
-
 	/* delete old */
 	var save_s = orDefault(MY_STORAGE.select('save_s'), {});
 	++history_counter;
 	var tmp_counter = 0;
-	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S){
+	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S 
+	      && tmp_counter++ < 10000){
 	    if(save_s.hasOwnProperty('save'+MY_NODE_SEP+tmp_counter)){
 		delete save_s['save'+MY_NODE_SEP+tmp_counter];
 	    }
-	    if(tmp_counter++ > 10000){
-		console.log('break');
-		break;
-	    }
 	}
-
 	/* save this */
 	save_s['save'+MY_NODE_SEP+history_counter] = save;
 	MY_STORAGE
@@ -1527,9 +1594,39 @@ $(function(){
 	    .replace('save_s', save_s)
 	    .commit();
 
-	/* refresh screen */
-	init_save_history();
+	/* refresh */
+	refresh_save_history();
     });
+    function loadSavedData(raw_child, tgtScreen){
+	var parsed = [];
+	try{
+	    parsed = raw_child;
+	}catch(e){
+	    console.log(e.message);
+	   // alert('Error : check console log');
+	    return;
+	}
+	if( ! $.isArray(parsed)){
+	    parsed = [parsed];
+	}
+	var len_parsed = parsed.length;
+	for(var i=0;i < len_parsed;++i){
+	    display_onscreen('appendTo', tgtScreen, parsed[i]);
+	}
+	draw_arrow_s();
+    }
+    el_func_s.load.on(MY_CLICK, function(){
+	// 選択したものから抽出
+	var selectedList = el_HDexplorerSpace.find('.explorerShim.HDScreenSaved.explorerSelected');
+	if(selectedList !== undefined){
+	    selectedList.each(function(i, obj){
+		var mother_id = $(this).siblings('.HDScreenSaved').attr('data-myhd-node-id');
+		var child_tree = get_child_tree_select_dom(mother_id);
+		var saved = child_tree.child_s();
+		loadSavedData(saved, nowPage.screen);
+	    });
+	}
+    });    
 
     el_func_s.register_part.on(MY_CLICK, function(){
 	/* get selected or root */
@@ -1590,26 +1687,6 @@ $(function(){
 	});
     });
 
-    el_func_s.load.on(MY_CLICK, function(){
-	var raw_child = el_saved_serialized.val();
-	var parsed = [];
-	try{
-	    parsed = JSON.parse(raw_child);
-	}catch(e){
-	    console.log(e.message);
-	    alert('Error : check console log');
-	    return;
-	}
-	if( ! $.isArray(parsed)){
-	    parsed = [parsed];
-	}
-	var len_parsed = parsed.length;
-	for(var i=0;i < len_parsed;++i){
-	    display_onscreen('appendTo', nowPage.screen, parsed[i]);
-	}
-	draw_arrow_s();
-    });
-
     el_func_s.undo.on(MY_CLICK, function(){
 	var cmd = command_undo_history.pop();
 	if(cmd !== undefined){
@@ -1625,15 +1702,6 @@ $(function(){
 	    command_undo_history.push(cmd);
 	}
     });
-
-    el_history.on(MY_CHANGE+' '+MY_CLICK,function(){
-	var _this = myWrapElement(this);
-	var saved = MY_STORAGE.select('save_s');
-	if(!isEmpty(saved)){
-	    var selected = _this.val();
-	    el_saved_serialized.val(JSON.stringify(saved[selected]));
-	}
-    }).trigger(MY_CHANGE);
 
     el_func_json_val.on(MY_CHANGE, function(){
 	var _this = myWrapElement(this);
@@ -1653,6 +1721,7 @@ $(function(){
 	switch(ev.keyCode){
 	case 27 ://ESC
 	    $('[class*="hide_mode_target"][data-fire-key-code="escape"]').toggle('clip',null,500);
+	    el_HDexplorerSpace.height(el_HDexplorer.children('section').innerHeight() - el_HDexplorer.find('.menuHandler').outerHeight());
 	    break;
 	case 66:
 	    if(ev.ctrlKey){ fn_ctrlB();} 
@@ -1826,12 +1895,12 @@ $(function(){
 	}else if(type_raw_selector !== 'string'){
 	    _these = raw_selector;
 	}else{
-	    if(raw_selector.startsWith(nowPage.screen.attr('data-my-node-id')+'-')){//case my_id
+	    if(raw_selector.startsWith(nowPage.screen.attr('data-myhd-node-id')+'-')){//case my_id
 		var idx_aster = raw_selector.lastIndexOf(MY_NODE_SEP+'*');
 		if(idx_aster > 0 && raw_selector.length - 2 === idx_aster){
-		    selector = '*[data-my-node-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
+		    selector = '*[data-myhd-node-id^="'+raw_selector.substring(0,raw_selector.length - 1)+'"]';
 		}else{
-		    selector = '*[data-my-node-id='+raw_selector+']';
+		    selector = '*[data-myhd-node-id='+raw_selector+']';
 		}
 	    }else{//case css
 		selector = raw_selector;
@@ -1859,7 +1928,7 @@ $(function(){
 	_these.each(function(idx, in_this){
 	    var _this = myWrapElement(in_this);
 	    if(_this.hasClass(CLASS_COPY) || _this.hasClass(CLASS_CUT)){return ;}//TODO List
-	    var my_obj_id = _this.attr('data-my-node-id');
+	    var my_obj_id = _this.attr('data-myhd-node-id');
 	    var is_my_selected = _this.data('my-selected');
 	    if(typeof is_my_selected === 'undefined' || is_my_selected === false){
 		addSelected(_this);
@@ -1875,7 +1944,7 @@ $(function(){
 	var my_obj_id = jq_tgt
 		.data('my-selected', false)
 		.removeClass(CLASS_SELECTED)
-		.data('my-obj-id');
+		.data('myhd-obj-id');
 	delete el_now_selected[my_obj_id];
 	return jq_tgt;
     }
@@ -1883,7 +1952,7 @@ $(function(){
 	var my_obj_id = jq_tgt
 		.data('my-selected', true)
 		.addClass(CLASS_SELECTED)
-		.data('my-obj-id');
+		.data('myhd-obj-id');
 	el_now_selected[my_obj_id] = jq_tgt;
 	return jq_tgt;
     }
@@ -2475,7 +2544,7 @@ $(function(){
 				rtn += node.textContent + ' ';//TODO test note => node
 			    }
 			});
-			return rtn;//TODO test no return => return rtn
+			return rtn;
 		    }else{
 			var txt_node = document.createTextNode(txt);
 			raw.appendChild(txt_node);
@@ -2660,8 +2729,8 @@ $(function(){
 	    if( work_jq === target){
 		continue;
 	    }
-	    var my_obj_id = orDefault(prop_s['data-my-obj-id'], STATUS.getNewMyObjId());
-	    var parent_id = target.attr('data-my-node-id');
+	    var my_obj_id = orDefault(prop_s['data-myhd-obj-id'], STATUS.getNewMyObjId());
+	    var parent_id = target.attr('data-myhd-node-id');
 	    var my_node_id = parent_id+MY_NODE_SEP+ my_obj_id;
 	    var user_input_id = work_jq.attr('id');
 	    if( typeof user_input_id === 'undefined' || user_input_id.length === 0 ){
@@ -2671,8 +2740,10 @@ $(function(){
 	    }
 	    work_jq
 		.addClass(CLASS_HTMLIZE)
-	        .attr('data-my-obj-id', my_obj_id)
-		.attr('data-my-node-id', my_node_id)
+	    	.data('myhd-obj-id', my_obj_id)
+		.data('myhd-node-id', my_node_id)
+	        .attr('data-myhd-obj-id', my_obj_id)
+		.attr('data-myhd-node-id', my_node_id)
 		.on(MY_CLICK,select_handler_factory(true))
 	    	.on('contextmenu',select_handler_factory(false, display_contextmenu))
 		.on(MY_CHANGE,function(ev){
@@ -2706,20 +2777,20 @@ $(function(){
 		"start":function(ev, ui){
 		    not_click = true;
 		    var _this = $(this);
-		    var my_id = _this.attr('data-my-node-id');
+		    var my_id = _this.attr('data-myhd-node-id');
 		    cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 		    var tag = _this[0].localName;
 		    x_sibl = null;y_sibl = null;
 		    if(tag === 'td' || tag === 'th'){
 			var parent = _this.parent();
-			var parent_id = parent.attr('data-my-node-id');
+			var parent_id = parent.attr('data-myhd-node-id');
 			is_table_cell = true;
 			original_coord = {"x": _this.width() - ev.pageX  ,"y":_this.height() - ev.pageY};
 			$(' > td, > th',parent).each(function(idx,obj){
-			    var _id = $(this).attr('data-my-node-id');
+			    var _id = $(this).attr('data-myhd-node-id');
 			    if(my_id === _id){
 				++idx;
-				x_sibl = $(' tr[data-my-node-id!="'+parent_id+'"] > *:nth-child('+idx+')', parent.parent().parent());
+				x_sibl = $(' tr[data-myhd-node-id!="'+parent_id+'"] > *:nth-child('+idx+')', parent.parent().parent());
 				return false;
 			    }
 			});
@@ -2755,14 +2826,14 @@ $(function(){
 				      _this.addClass('snap_border')
 					  .parent(':not(.screen)').addClass('snap_border')
 					  .children('.snap').addClass('snap_border');
-				      var my_id = _this.attr('data-my-node-id');
+				      var my_id = _this.attr('data-myhd-node-id');
 				      cached_arrow_factory = draw_arrow_s_factory(null, my_id);
 				  }
 				 };
 	    var wrapped_is_true = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapped') !== -1;
 	    var i_am_wrapper = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapper') !== -1;
 	    if( i_am_wrapper ){
-		resizableOption["alsoResize"] = '[data-my-node-id^="'+my_node_id+MY_NODE_SEP+'"]';
+		resizableOption["alsoResize"] = '[data-myhd-node-id^="'+my_node_id+MY_NODE_SEP+'"]';
 		resizableOption["stop"] = function(ev, ui){
 		    var tmp = $('*',work_jq);
 		    work_jq.height(tmp.height() + 32).width(tmp.width() + 32);
@@ -2772,7 +2843,7 @@ $(function(){
 	    removeSelected(work_jq)
 	    [add_method]( target )
 		.data('my-htmlize-target',true)
-		.attr('data-my-htmlize-target',true);
+		.attr('data-myhd-htmlize-target',true);
 	    if( wrapped_is_true ){
 		//nothing
 	    }else if(必ず子要素のタグ.indexOf(tag) > -1 ){
@@ -2846,7 +2917,7 @@ $(function(){
 	var now_coord = null;
 	if(typeof operated !== 'undefined' && operated !=  null){
 	    if(operated.attr !== undefined){
-		my_id = operated.attr('data-my-node-id');
+		my_id = operated.attr('data-myhd-node-id');
 	    }
 	}
 	if(typeof cache === 'undefined' || cache == null){
@@ -2924,9 +2995,9 @@ $(function(){
 		var node_selector = selector_s[idx].trim();
 		if(node_selector.indexOf('#') === -1 && node_selector.indexOf('.') === -1){
 		    if(node_selector.indexOf('-') > -1){
-			node_selector = '[data-my-node-id='+node_selector+']';
+			node_selector = '[data-myhd-node-id='+node_selector+']';
 		    }else{
-			node_selector = '[data-my-obj-id='+node_selector+']';
+			node_selector = '[data-myhd-obj-id='+node_selector+']';
 		    }
 		}
 		var node_s = $(node_selector,nowPage.screen);
@@ -2935,7 +3006,7 @@ $(function(){
 		}
 		for(var node_idx = 0;node_idx < node_s.length;++node_idx){
 		    var node = $(node_s[node_idx]);
-		    var ch_my_id = node.attr('data-my-node-id');
+		    var ch_my_id = node.attr('data-myhd-node-id');
 		    path_d.push(node);
 		};
 	    }
@@ -2964,7 +3035,7 @@ $(function(){
 	    ev.preventDefault();
 	    ev.stopPropagation();
 	    var _this = myWrapElement(this);
-	    var my_node_id = _this.attr('data-my-node-id');
+	    var my_node_id = _this.attr('data-myhd-node-id');
 	    if( not_click ){
 		//TODO dragとclickが被るための対処策｡jquery内で解決策あれば･･･ => dragの閾値を設定
 		not_click = false;
@@ -3006,7 +3077,7 @@ $(function(){
 	    var appendHtml = '';
 	    $.each(parent_id_list,function(idx,my_id){
 		concat_id += my_id;
-		var tmp = $('*[data-my-node-id='+concat_id+']', nowPage.screen).get(0);
+		var tmp = $('*[data-myhd-node-id='+concat_id+']', nowPage.screen).get(0);
 		if(typeof tmp !== 'undefined'){
 		    appendHtml += '<option value="'+concat_id+'">'+tmp.localName+'</option>';
 		}
@@ -3085,7 +3156,7 @@ $(function(){
      */
     commands.delete = function(my_node_id){
 	function func_delete(my_node_id){
-	    var kept = $('[data-my-node-id='+my_node_id+']');
+	    var kept = $('[data-myhd-node-id='+my_node_id+']');
 	    var kept_my_node_id = my_node_id;
 	    var rtn = {
 		"execute":function(){
@@ -3093,7 +3164,7 @@ $(function(){
 		}, 
 		"undo":function(){
 		    var parent_node_id = parentNodeId(my_node_id).parent_node_id;
-		    $('[data-my-node-id='+parent_node_id+']').append(kept);
+		    $('[data-myhd-node-id='+parent_node_id+']').append(kept);
 		}, 
 		"getMyNodeId":function(){
 		    return kept_my_node_id;
@@ -3118,7 +3189,7 @@ $(function(){
 	    
 	    src_s.each(function(){//copy,move,etc 元は全ページ対象
 		var _src = myWrapElement(this);
-		var src_node_id = _src.attr('data-my-node-id');
+		var src_node_id = _src.attr('data-myhd-node-id');
 		if(typeof src_node_id !== 'undefined'){
 		    kepts.push(_src);
 		    kept_src_node_id_s.push(src_node_id);
@@ -3129,7 +3200,7 @@ $(function(){
 		var rtn = true;
 		try{
 		    var _target = $(this);
-		    var target_node_id = _target.attr('data-my-node-id');
+		    var target_node_id = _target.attr('data-myhd-node-id');
 		    if(typeof target_node_id !== 'undefined'){
 			kept_src_node_id_s.forEach(function(src_node_id,i,a){
 			    rtn &= ! (target_node_id+'-').startsWith(src_node_id+'-');
@@ -3149,7 +3220,7 @@ $(function(){
 		    if(target_s.length !== 0){
 			kept_new_copy = [];
 			kepts.forEach(function(src,i,a){
-			    var src_node_id = src.attr('data-my-node-id');
+			    var src_node_id = src.attr('data-myhd-node-id');
 			    var source = get_child_tree_select_dom(src_node_id).raw()[src_node_id];
 			    src.detach();
 			    kept_new_copy.push(display_onscreen(add_method, target_s, source));
@@ -3166,7 +3237,7 @@ $(function(){
 			kepts.forEach(function(src,i,a){
 			    var src_node_id = kept_src_node_id_s[i];
 			    var parent_node_id = kept_src_parend_id_s[i].parent_node_id;
-			    $('[data-my-node-id='+parent_node_id+']').append(src);
+			    $('[data-myhd-node-id='+parent_node_id+']').append(src);
 			});
 		    }
 		}, 
@@ -3193,7 +3264,7 @@ $(function(){
 	    
 	    src_s.each(function(){//copy,move,etc 元は全ページ対象
 		var _src = myWrapElement(this);
-		var src_node_id = _src.attr('data-my-node-id');
+		var src_node_id = _src.attr('data-myhd-node-id');
 		if(typeof src_node_id !== 'undefined'){
 		    kepts.push(_src);
 		    kept_src_node_id_s.push(src_node_id);
@@ -3204,7 +3275,7 @@ $(function(){
 		var rtn = true;
 		try{
 		    var _target = $(this);
-		    var target_node_id = _target.attr('data-my-node-id');
+		    var target_node_id = _target.attr('data-myhd-node-id');
 		    if(typeof target_node_id !== 'undefined'){
 			kept_src_node_id_s.forEach(function(src_node_id,i,a){
 			    rtn &= ! (target_node_id+'-').startsWith(src_node_id+'-');
@@ -3224,7 +3295,7 @@ $(function(){
 		    if(target_s.length !== 0){
 			kept_new_copy = [];
 			kepts.forEach(function(src,i,a){
-			    var src_node_id = src.attr('data-my-node-id');
+			    var src_node_id = src.attr('data-myhd-node-id');
 			    var source = get_child_tree_select_dom(src_node_id).raw()[src_node_id];
 		//	    src.detach();
 			    kept_new_copy.push(display_onscreen(add_method, target_s, source));
@@ -3264,7 +3335,7 @@ $(function(){
 	    
 	    src_s.each(function(){//copy,move,etc 元は全ページ対象
 		var _src = myWrapElement(this);
-		var src_node_id = _src.attr('data-my-node-id');
+		var src_node_id = _src.attr('data-myhd-node-id');
 		if(typeof src_node_id !== 'undefined'){
 		    kepts.push(_src);
 		    kept_src_node_id_s.push(src_node_id);
@@ -3275,7 +3346,7 @@ $(function(){
 		var rtn = true;
 		try{
 		    var _target = $(this);
-		    var target_node_id = _target.attr('data-my-node-id');
+		    var target_node_id = _target.attr('data-myhd-node-id');
 		    if(typeof target_node_id !== 'undefined'){
 			kept_src_node_id_s.forEach(function(src_node_id,i,a){
 			    rtn &= ! (target_node_id+'-').startsWith(src_node_id+'-');
@@ -3304,7 +3375,7 @@ $(function(){
 			}else{
 			    kept_new_copy = [];
 			    kepts.forEach(function(src,i,a){
-				var src_node_id = src.attr('data-my-node-id');
+				var src_node_id = src.attr('data-myhd-node-id');
 				var source = get_child_tree_select_dom(src_node_id).raw()[src_node_id];
 				kept_new_copy.push(display_onscreen(add_method, target_s, source));
 			    });
@@ -3358,23 +3429,9 @@ $(function(){
 	    }, 
 	    "getNewGrowth":function(){
 		return tree_growth_id++;
-	    }, 
+	    } 
 	};
     }
-
-    var history_counter = 0;
-    function init_save_history(){
-	var appender = '';
-	var save_s = orDefault(MY_STORAGE.select('save_s'), []);
-	history_counter = 0;
-	for(var key in save_s) if(save_s.hasOwnProperty(key) && key.startsWith('save')){
-	    appender = '<option value="'+key+'">'+key+'</option>' + appender;
-	    var tmp = parseInt(key.split(MY_NODE_SEP)[1],10);
-	    history_counter = history_counter < tmp ? tmp : history_counter;
-	}
-	el_history.empty().html(appender);
-    }
-    init_save_history();
 
     function preserve_destroied(obj){
 	var resizableOption = obj.data('resizableOption');
@@ -3413,14 +3470,14 @@ $(function(){
 	var save = null;
 	/* create new */
 	if(NOW_SELECTED.length === 0){
-	    var mother_id = nowPage.screen.attr('data-my-node-id');//attrだと文字, dataだとobj
+	    var mother_id = nowPage.screen.attr('data-myhd-node-id');//attrだと文字, dataだとobj
 	    var child_tree = get_child_tree_select_dom(mother_id);
 	    save = child_tree.child_s();
 	}else{
 	    save = [];
 	    NOW_SELECTED.each(function(){
 		var _this = $(this);
-		var mother_id = _this.attr('data-my-node-id');
+		var mother_id = _this.attr('data-myhd-node-id');
 		var child_tree = get_child_tree_select_dom(mother_id);
 		save.push(child_tree.self());
 	    });
@@ -3525,7 +3582,7 @@ $(function(){
 	});
 	function readyForAngular(self){
 	    //save
-	    var mother_id = nowPage.screen.attr('data-my-node-id');
+	    var mother_id = nowPage.screen.attr('data-myhd-node-id');
 	    console.log('mother_id : ' + mother_id);
 	    var child_tree = get_child_tree_select_dom(mother_id);
 	    var save = child_tree.child_s();
@@ -3827,11 +3884,11 @@ $(function(){
 	$.each(user_add_content_s, function(i, content){
 	    var target = my_apply();
 	    var _content = $(content);
-	    var my_obj_id = _content.attr('data-my-node-id');
+	    var my_obj_id = _content.attr('data-myhd-node-id');
 	    for(var key in content) if(typeof _content.attr(key) !== 'undefined'){
 		target.prop_s[key] = _content.attr(key);
 	    }
-	    //TODO XXX	    target.prop_s['data-my-node-id'] = my_obj_id;
+	    //TODO XXX	    target.prop_s['data-myhd-node-id'] = my_obj_id;
 	    target.tag = content.localName;
 
 	    var raw_my_obj_val = _content.data('my-obj-val');
@@ -3861,8 +3918,8 @@ $(function(){
     }
 
     function get_child_tree_select_dom(mother_id){
-	var user_add_content_s = $(' *[data-my-node-id^='+mother_id+MY_NODE_SEP+']');
-	var root_dom = $('*[data-my-node-id='+mother_id+']')[0];
+	var user_add_content_s = $(' *[data-myhd-node-id^='+mother_id+MY_NODE_SEP+']');
+	var root_dom = $('*[data-myhd-node-id='+mother_id+']')[0];
 	var tree = extract_from_dom(_tree(mother_id), [root_dom]);
 	return extract_from_dom(tree, user_add_content_s);
     };

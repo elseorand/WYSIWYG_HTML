@@ -5,17 +5,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
-     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" >
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" >
-     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
-     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">-->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" > -->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>-->
+    <!--     <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> -->
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
+		<link rel="stylesheet" href="./jquery-ui-1.11.4/jquery-ui.min.css" />
+    <link rel="stylesheet" href="./bootstrap355/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./bootstrap355/css/bootstrap-theme.min.css" />
+		<script src="./jquery-2.1.4.min.js" ></script>
+ 		<script src="./jquery-ui-1.11.4/jquery-ui.min.js"></script>
+    <script src="./d3.min.js"></script>
+    <script src="./angular.min.js"></script>
 		<script src="./html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
-      #HDlayer_Root {
+      body > #HtmlDeveloping > #HDlayer_Root {
         background-color:#FFFACD;
       }
 			.HDlayerClass {
@@ -25,8 +33,8 @@
 			.HDlayerClass table td,.HDlayerClass table th{/* table の罫線を出すために必須の設定 */
 				background-color:transparent;
 			}
-      body > #HtmlDeveloping > .HDbaseLayer {
-        background-color:#FFFACD;
+      .HDbaseLayer {
+        background-color: transparent;
       }
 			.snap_border {
         opacity: 0.5;
@@ -89,6 +97,9 @@
 				background-color: #ffccdd !important;
 				opacity: 0.8;
 			}
+      .explorerSelected {
+        background-color:rgba(255, 0, 0, 0.2);
+      }
 			.objSelected:not(.grid), objSelected.objDraggableResizable:not(.grid) {
         box-shadow:0px 0px 8px red;
         background-color:rgba(255, 255, 255, 0.4);
@@ -121,14 +132,14 @@
       .menu_container > div {
 
       }
-      #HDdirectorySpace input.func_layer_change {
+      #HDlayerSpace input.func_layer_change {
         border:2px double transparent;
         text-align:center;
         margin-bottom: 2px;
         margin-left:8px;
         width:92%;        
       }      
-      #HDdirectoryRoot > input.func_layer_change.HDbaseLayer{
+      #HDlayerRoot > input.func_layer_change.HDbaseLayer{
         background-color:#000fff;
         color:white;
       }
@@ -136,7 +147,7 @@
         background-color:#000fff;
         color:white;
       }
-      #HDdirectorySpace input.func_layer_change.selectedScrnBtn{
+      #HDlayerSpace input.func_layer_change.selectedScrnBtn{
         border:2px double grey;
         background-color:#FF6E41;
         color:black;
@@ -205,7 +216,7 @@
       .noBgColor{
         background-color:rgba(255, 255, 255, 1);
       }
-      .HDdirectorySpace >input {
+      .HDlayerSpace >input {
         border:none;
         background-color:transparent;
         text-align:left;
@@ -276,7 +287,7 @@
 				left:0px !important;
 			}
 			.HDlayerClass >.htmlize{
-				animation: anime1 5s ease -2s 1 normal;
+				animation: anime1 3s ease -1s 1 normal;
 			}
 
 			@keyframes anime1 {
@@ -291,10 +302,8 @@
 				<input value="Html" id="func_html_element" style="" type="button">
 				<span id="sandbox_screen" style="width:40px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
 				<input value="Save" id="func_save_element" style="" type="button">
-				<select id="history" style=""></select>
-				<input id="saved_serialized" placeholder="click save =>The data comes here" style="" type="text">
 				<input value="Load" id="func_load_element" style="" type="button">
-				<div id="sandbox_hidden" style="display:none;" data-my-obj-id="-1"></div>
+				<div id="sandbox_hidden" style="display:none;" data-myhd-obj-id="-1"></div>
         <input id="angular_boot" type="button" value="Angular Boot"/>
 			</section>
 		</header>
@@ -318,7 +327,8 @@
             <div class="openCloseTrigger" style="margin-top:3px;border:0px none transparent;">** Tag Preset</div>
             <div style="border:0px none transparent;" class="openCloseTarget">
               <section><input id="part_list_reg" type="button" value="Reg"/><input id="part_list_name" type="text" value=""/>
-				        <select id="part_list_select"></select><input id="part_list_del" type="button" value="Del" style="float:right;" />
+				        <select id="part_list_select"></select>
+                <input id="part_list_del" type="button" value="Del" style="float:right;" />
 				        <input id="part_list_new" type="button" value="New" style="" />
 			        </section>
               <section style="margin-top:10px;margin-bottom:10px;">
@@ -367,7 +377,7 @@
                   <input id="z-index" class="xyz" type="number" value="100" min="1" style="width:4em;margin-left:-7px;"/>
                 </section>
                 <section class="positionRelative" style="margin-bottom:6px;margin-left:4px;float:left;">
-                  <div>Pos Base</div>
+                  <div>Position Base</div>
                   <div style="border:0px none transparent;float:left;">
                     <select id="positionRelativeTopBottom">
                       <option value="top">top</option>
@@ -569,32 +579,40 @@
 			</section>
 		</footer>
     <div class="hide_mode_target" style="display:none;width:800px;height:600px;position:absolute;"  data-fire-key-code="escape" >
-      <div id="HDdirectory" class="float_menu"  style="border:1px solid black;position:absolute;top:120px;left:50px;z-index:10000;width:800px;height:600px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
+      <div id="HDexplorer" class=""  style="border:1px solid black;position:absolute;top:120px;left:50px;z-index:10000;width:840px;height:600px;display:flex;box-shadow:0px 0px 16px;border-radius:4px;">
         <section style="display:flex;flex-direction:column;align-items:stretch;flex-grow:1;">
-          <header class="menuHandler" style="width:100%;height:4em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;padding-left:2px;">
+          <header class="menuHandler" style="width:100%;height:4.5em;background:linear-gradient(0deg, #464646, #232323, #464646);color:white;padding-top:5px;padding-bottom:5px;padding-left:2px;">
             <div style="border:0px none transparent;margin:3px;">
               <button style="border-radius:50%;background-color:#ff6e41;border:none;">x</button>
               <button style="border-radius:50%;background-color:#999999;border:none;">_</button>
               <button style="border-radius:50%;background-color:#999999;border:none;">□</button>
               <span id="ObjectName" type="text" value="" readonly style="border:none;" ></span>
-              <span>not automatic saving. this is experimental.</span>
+              <span>Sorry!! Now developing : saving Root and layers</span>
+              <span style="float:right;color:black;">
+                <input id="HDfilteringKeyword" type="text" value="" placeholder="now on developing" style="height:2em;"/>
+              </span>
             </div>
-            <section style="height:3.5em;">
+            <section id="HDheaderBar" style="height:2.5em;display:flex;flex-direction:row;">
               <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&lt;</button>
               <button style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">&gt;</button>
+              <section id="HDopenDirs" style="margin-left:1.5em;">
+                <button id="HDdirSave" class="HDdir" style="height:1.5em;font-size:1.5em;background-color:#444;border:none;color:white;">Save</button>
+              </section>
             </section>
           </header>
           <section style="display:flex;flex-direction:row;flex-grow:10;align-items:stretch;">
-            <aside id="HDdirectorySpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
-              <input id="func_new_base_layer" type="button" value=" + new Base layer"/>
-				      <input id="func_new_filter_layer" type="button" value="  + new filter layer" style="">
+            <aside id="HDlayerSpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
 				      <input value="" id="new_layer_name" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
-              <div id="HDdirectoryRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
-              <div id="HDbaseLayerList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:auto;margin:2px 0px 0px 8px;"></div>
-              <div id="HDfilterLayerList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:auto;margin:4px;"></div>
+              <!-- Root managerは有料版??               <input id="func_new_root_layer" type="button" value=" + new Root layer"/>-->
+              <!-- layer mergeは有料版??               <input id="func_new_base_layer" type="button" value=" + new Base layer"/>-->
+				      <input id="func_new_filter_layer" type="button" value="  + new filter layer" style="">
+              <div id="HDlayerRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
+              <div id="HDbaseLayerList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:hidden;margin:2px 0px 0px 8px;"></div>
+              <div id="HDfilterLayerList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:hidden;margin:4px;"></div>
               <input id="func_delDirObj" type="button" value=" - delete" style=""/>
             </aside>
-            <article id="HDevDirectorySpace" style="flex-grow:4;background-color:white;align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;"></article>
+            <article id="HDexplorerSpace" style="flex-grow:4;background-color:rgba(255,255,255,0.8);align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;overflow-y:auto;">
+            </article>
           </section>
         </section>
       </div>
