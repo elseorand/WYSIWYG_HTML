@@ -10,14 +10,20 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script> 
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script> 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> 
-		<script src="./html_developing.js"></script> 
 		<style type="text/css" >
 			/* For this app */
       body > #HtmlDeveloping > #HDlayer_Root {
         background-color:#FFFACD;
+      }
+      /* explorer space on off */
+      #HDexplorerSpace.HDScreenSaved > :not(.HDScreenSaved){
+        display:none;
+      }
+      #HDexplorerSpace.HDlayerContainer > :not(.HDlayerContainer){
+        display:none;
       }
 			.HDlayerClass {
         background-color:transparent;
@@ -173,6 +179,9 @@
         width:100%;
 				margin: 0px;
 			}
+      body *{
+        font-family: Ricty Diminished, Ricty, 'A-TTC 新ゴ R', 'ヒラギノ角ゴ Pro W3','Hiragino Kaku Gothic Pro W3', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif,'ＭＳ ゴシック', monospace;
+      }      
 			p,dl {
 				padding: 5px;
 			}
@@ -279,7 +288,17 @@
 				top:0px !important;
 				left:0px !important;
 			}
-			.HDlayerClass >.htmlize{
+      .flexGrid {
+        display:flex;
+        flex-wrap:wrap;
+        align-content:flex-start;        
+      }
+      .flexGrid > .htmlize{
+				position:relative !important;
+        top:0px !important;
+				left:0px !important;
+      }
+			.HDlayerClass > .htmlize{
 				animation: anime1 3s ease -1s 1 normal;
 			}
 
@@ -297,13 +316,17 @@
 				<input value="Save" id="func_save_element" style="" type="button">
 				<input value="Load" id="func_load_element" style="" type="button">
 				<div id="sandbox_hidden" style="display:none;" data-myhd-obj-id="-1"></div>
-        <input id="angular_boot" type="button" value="Angular Boot"/>
+        <input id="HDslide_show" type="button" value="Slide"/>
+        <input id="HDprint_window" type="button" value="Print"/>        
+        <input id="HDangular_boot" type="button" value="Angular Boot"/>
+        <input id="HDload_presetBtn" type="button" value="Preset"/>
+        <input id="HDload_presetFile" type="text" value=""/>
 			</section>
 		</header>
 		<section id="HtmlDeveloping" style="width:100%;">
 			<ol id="context_menu" class="notDirectory"></ol>
 		</section>
-		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0px;z-index:9999999;width:480px;border-radius:20px;height:1000px;" >
+		<section id="basic_menu" class="menu_bar float_menu header_menu" style="position:absolute; top:50px;right:0.5em;z-index:9999999;width:480px;border-radius:20px;height:1000px;" >
 			<section id="basic_menu_operator" class="menuHandler" style="position:relative;left:0px;width:470px;">
 				<input id="basic_menu_forward" type="button" value="<"/>
 				<input id="basic_menu_backward" type="button" value=">"/>
@@ -610,35 +633,14 @@
         </section>
       </div>
     </div>
+    <script src="./html_developing.js"></script> 
     <script>
-      $(function(){
+      (function(){
         if(angular){
-          var MyAppName = '';
+          var MyAppName = 'app';
           var appNameSequence = 0;
           var backups = {};
           var isFirst = true;
-          var el_angular_boot = $('#angular_boot').on('refresh.edit',function(){
-            console.log('refresh');
-            var els_nowPage = $('.nowPage');
-            if(els_nowPage.length > 1){
-              console.log('Error now page : ' + els_nowPage.length );
-              return false;
-            }
-            var el_nowPage = els_nowPage.eq(0);
-            var nowPageId = el_nowPage.attr('id');
-            MyAppName = nowPageId;
-            console.log('MyAppName : ' + MyAppName);
-            var angularApp = angular.module(MyAppName, []);
-            ddoSuppliers.forEach(function(func,i,a){
-              var ddo = func();
-              if(ddo.restrict.indexOf('E') > -1){
-                if($(ddo.controllerAs).length > 0){
-                  console.log('Directive : ' + ddo.controllerAs);
-                  angularApp.directive(ddo.controllerAs, func);
-                  backups[ddo.controllerAs] = true;
-                }}});
-            bootstrap(document.getElementById(MyAppName));
-          });
           //pg tgt
           var ddoSuppliers = [
             function() {
@@ -654,11 +656,24 @@
                 template: '<input type="button" value="Ang Click" data-ng-click="main.action()"/>'
               };
             }];
-          function bootstrap(element){
-            angular.bootstrap(element, [MyAppName]);
+          var els_nowPage = $('.nowPage');
+          if(els_nowPage.length > 1){
+            console.log('Error now page : ' + els_nowPage.length );
+            return false;
           }
+          var el_nowPage = els_nowPage.eq(0);
+          var nowPageId = el_nowPage.attr('id');
+          var angularApp = angular.module(MyAppName, []);
+          ddoSuppliers.forEach(function(func,i,a){
+            var ddo = func();
+            if(ddo.restrict.indexOf('E') > -1){
+              if($(ddo.controllerAs).length > 0){
+                console.log('Directive : ' + ddo.controllerAs);
+                angularApp.directive(ddo.controllerAs, func);
+                backups[ddo.controllerAs] = true;
+              }}});
         }
-      });
+      })();
     </script>
     <div id="MyEditableScript" class="htmlize">
       <script></script>

@@ -196,8 +196,8 @@ $(function(){
     var LOOP_HLD = '*';
     var SBL_HLD = '+';
     var DEFAULT_WIDTH = 100;
-    var DEFAULT_HEIGHT = 30;
-    var DISTANT_HEIGHT = 45;
+    var DEFAULT_HEIGHT = 100;
+    var DISTANT_HEIGHT = 10;
     var NEW_WIDTH = 480;
     var MIN_HEIGHT = 15;
 
@@ -318,9 +318,13 @@ $(function(){
 	var name = el_new_layer.val().trim();
 	var btn_page = createLayer(name, el_HDfilterLayerList);
 	if(btn_page === false){return false;}
-	setNowPage(btn_page.page);
+	setNowPage(btn_page.btn, btn_page.page);
 	btn_page.btn.trigger(MY_CLICK);
-	el_some_name.style_list.val(name);
+    });
+
+    var el_HDload_presetFile = $('#HDload_presetFile');
+    var el_HDload_presetBtn = $('#HDload_presetBtn').on(MY_CLICK,function(){
+	var name = el_HDload_presetFile.val();
 	if(name.endsWith('.json')){//TODO now Developing
 	    $.getJSON(name)
 		.done(function(res){
@@ -346,6 +350,7 @@ $(function(){
 		});
 	}
     });
+
     var el_func_new_base_layer = $('#func_new_base_layer').on(MY_CLICK, function(){
 	var name = el_new_layer.val().trim();
 	var btn_dir = createBaseLayer(name);
@@ -751,14 +756,16 @@ $(function(){
     var el_HtmlDeveloping = $('#HtmlDeveloping');
     var nowPage;
     var el_func_s = {};
-    var ROOT_PAGE ;
     var el_ObjectName = isEmpty(el_ObjectName) ? $('#ObjectName') : el_ObjectName;
+    var ROOT_BTN_PAGE = createLayer('Root', el_HDlayerRoot, 'dir');
+
     (function(){
 	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
-	var btn_page = createLayer('Root', el_HDlayerRoot, 'dir');
-	setNowPage(btn_page.page);
-	ROOT_PAGE = nowPage;
+	setNowPage(ROOT_BTN_PAGE.btn, ROOT_BTN_PAGE.page);
+	var savedLayers = createLayer('hoge', el_HDfilterLayerList);
+	display_onscreen('appendTo', savedLayers.page.screen, {"tag":"div", "prop_s":{"style":"font-size:320px;font-weight:900;", "html":"fuga"}, "child_s":[]});
+	
 	var child;
 	var isNewChild = true;
 	var li_s;
@@ -988,7 +995,6 @@ $(function(){
 		    context_menu.css({"display":"none"});
 		}
 		el_func_s.cxlselected.trigger(MY_CLICK);
-		setNowPage(_page);
 	    }).data('name', name);
 	_page.prop_history = [];//TODO undo css
 	page_s[layerName] = _page;
@@ -1006,14 +1012,11 @@ $(function(){
 	    console.log('There are the same name:' + name + ' .');
 	    return false;
 	}
-	var adderClass = type === 'dir' ? 'HDbaseLayer' : '';
-	adderClass = 'HDlayerClass ' + adderClass;
+	var adderClass = type === 'dir' ? 'HDlayerClass HDbaseLayer ' : 'HDlayerClass ';
 	var pageObj = createLayerDOM(name, adderClass, width, height);
 	context_menu.is_close_menu = true;
-	var _btn_name = name;
-	$('.func_layer_change').removeClass("selectedScrnBtn");
-	var pageBtn = $('<input class="func_layer_change freeScrnBtn selectedScrnBtn '+adderClass+'" type="button" value="'+_btn_name+'" />').data('page', pageObj).appendTo(appendTarget);
-	el_HtmlDeveloping.append(pageObj.screen);
+	var pageBtn = $('<input class="func_layer_change freeScrnBtn '+adderClass+'" type="button" value="'+name+'" />').data('page', pageObj).appendTo(appendTarget);
+	el_HtmlDeveloping.append(pageObj.screen);//TODO folder
 	el_ObjectName.html(pageObj.screen.data('name'));
 	return {"btn":pageBtn, "page":pageObj};
     }
@@ -1027,19 +1030,28 @@ $(function(){
     };
     // Directory
     function refreshExplorerSpace(clazz){
-	el_HDexplorerSpace.children('.'+clazz).css({"display":""}).end().children(':not(.'+clazz+')').css({"display":"none"}).find('.explorerSelected').removeClass('explorerSelected');
+	var preClass = el_HDexplorerSpace.data('myhdDisplayClass');
+	if(preClass !== undefined){
+	    el_HDexplorerSpace.removeClass(preClass);
+	}
+	el_HDexplorerSpace.data('myhdDisplayClass', clazz);
+	el_HDexplorerSpace.addClass(clazz).find('.explorerSelected').removeClass('explorerSelected');
     }
     var el_HDdirSave = $('#HDdirSave').data(エクスプローラー表示対象クラス, CLASS_SCREEN_SAVE).on(MY_CLICK,function(){
 	var _this = $(this);
 	refreshExplorerSpace(_this.data(エクスプローラー表示対象クラス));
 	
     });
+    /**
+     * change screen.
+     */
     function putInExplorer(clazz, minimizedScrn, selectedName){
 	var pageName = minimizedScrn.data('name');
 	if(isEmpty(pageName) || isEmpty(selectedName) || pageName === selectedName){
 	    return true;
 	}
-	minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach();
+	minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach()
+	    .find('.'+CLASS_SELECTED).removeClass(CLASS_SELECTED);
 	var newFile = $('<div class="'+clazz+' explorerContainer">')
 		.css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"})
 		.append(minimizedScrn)
@@ -1064,15 +1076,14 @@ $(function(){
     el_HDlayerSpace
 	.data(エクスプローラー表示対象クラス, CLASS_EXPLORER_CONTAINER)
 	.on(MY_CLICK, '.func_layer_change', function(){
-	    el_HDlayerSpace.find('.func_layer_change').removeClass('selectedScrnBtn');
 	    var _this = $(this).addClass('selectedScrnBtn');
 	    var _page = _this.data('page');
 	    var selectedName = _page.screen.data('name');
-	    ROOT_PAGE.screen.siblings('.HDlayerClass').each(function(idx){
+	    ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').each(function(idx){
 		return putInExplorer(CLASS_EXPLORER_CONTAINER, $(this), selectedName);
 	    });
-	    if(ROOT_PAGE !== _page && nowPage !== _page){
-		setNowPage(_page);
+	    if(ROOT_BTN_PAGE.page !== _page && nowPage !== _page){
+		setNowPage(_this, _page);
 		var parent =_page.screen.parent();
 		var selectedScreen = _page.screen
 			.css({"transform":"scale(1)", "margin":"0px"});
@@ -1080,12 +1091,14 @@ $(function(){
 		    selectedScreen.detach().appendTo(el_HtmlDeveloping);
 		    parent.remove();
 		}
-	    }else if(ROOT_PAGE === _page){
-		setNowPage(_page);
+	    }else if(ROOT_BTN_PAGE.page === _page){
+		setNowPage(_this, _page);
 	    }
 	    el_ObjectName.html(nowPage.screen.data('name'));
 	    refreshExplorerSpace(el_HDlayerSpace.data(エクスプローラー表示対象クラス));
-	});
+	}).on(MY_INIT,function(){
+	    ROOT_BTN_PAGE.btn.trigger(MY_CLICK);//TODO lazy loadxc
+	}).trigger(MY_INIT);
     
     // screen util setting
     var default_width_setting_s = {};
@@ -1272,7 +1285,7 @@ $(function(){
 	    }else{
 		set_val = new_prop_s.html;
 		if( typeof set_val === 'undefined'){
-		    set_val = target.data('my-obj-val');
+		    set_val = target.data('myhd-obj-val');
 		}
 		el_selected_val_tag.val(target.get(0).localName);
 	    }
@@ -1310,9 +1323,7 @@ $(function(){
 	}catch(e){
 	    console.log(e);
 	}
-    }
-
-    
+    } 
 
     function Coord(){
 	if(arguments.length === 1){
@@ -1352,17 +1363,30 @@ $(function(){
 	}
     }
 
-    el_func_s.html.on(MY_CLICK,function(){
-	var parsed = getSelectedOrRoot();
+    function htmlize(parsed){
 	if( ! $.isArray(parsed)){
 	    parsed = [parsed];
 	}
-	var len_parsed = parsed.length;
 	el_sandbox_hidden.empty();
-	for(var i=0;i < len_parsed;++i){
-	    display_onscreen('appendTo', el_sandbox_hidden, parsed[i]);
-	}
-
+	parsed.forEach(function(parse,i,a){
+	    display_onscreen('appendTo', el_sandbox_hidden, parse);
+	});
+	//XXX Important この処理でwrapper divを外すため厳密にはWysiwygではなくなる
+	var wrappers_s = $('.wrapper',el_sandbox_hidden).each(function(i, obj){
+	    var wrapper = $(this);
+	    try{wrapper.draggable('destroy');}catch(e){/*kill error*/};
+	    try{wrapper.resizable('destroy');}catch(e){/*kill error*/};	    
+	    var position = wrapper.css('position');
+	    var top = wrapper.css('top');
+	    var right = wrapper.css('right');
+	    var bottom = wrapper.css('bottom');
+	    var left = wrapper.css('left');
+	    wrapper.children().each(function(i, obj){
+		var _this = $(this);
+		_this.css({"position":position, "top":top, "right":right, "bottom":bottom, "left":left});
+	    });
+	    wrapper.replaceWith(wrapper.html());
+	});
 	var target_s = $('[data-myhd-htmlize-target=true]',el_sandbox_hidden);
 	target_s.each(function(idx, _target){
 	    var target = $(_target);
@@ -1372,20 +1396,24 @@ $(function(){
 		//NS objectの処理もあるため、jQueryは使用しない
 		_target.removeAttribute(attr);
 	    });
+	    console.log('Wrapper : ' + target.attr('style'));
 	    HTML出力時に削除するclass_s.forEach(function(cl,i,a){
 		_target.classList.remove(cl);
 	    });
+	    //TODO wrapper
 	});
 
 	var head_src = '';
 	try{
 	    head_src = $('head').html();
 	    var output_html = el_sandbox_hidden.html();
-	    output_html = '<!doctype html><html><head>' + head_src + '</head><body>' + output_html + '\n<div id="MyEditableScript" class="htmlize">\n' + el_script.html()+'\n</div>\n</body></html>';
-	    output_html = output_html.replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-	    el_sandbox_screen.empty();
-	    $('<textarea rows="1" style="height:1.5em;width:8em;">').html(output_html).appendTo(el_sandbox_screen);
+	    return '<!doctype html><html><head>' + head_src + '</head><body data-ng-app="app">' + output_html + '\n<div id="MyEditableScript" class="htmlize">\n' + el_script.html()+'\n</div>\n</body></html>';	    
 	}catch(e){console.log('e '+e);};
+    }
+
+    el_func_s.html.on(MY_CLICK,function(){
+	$('<textarea rows="1" style="height:1.5em;width:8em;">').html(htmlTag2escape(htmlize(getSelectedOrRoot())))
+	    .appendTo(el_sandbox_screen.empty());
     });
 
     el_func_s.style
@@ -1526,7 +1554,7 @@ $(function(){
 		    .each(function(idx,obj){
 			var _this = $(this);
 			var parent = _this.parent();
-			$('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(10000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.data('my-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
+			$('<textarea class="'+CLASS_EDIT_DATA+'" style="z-index:'+(100000+parseInt(_this.css('z-index'), 10))+';width:100%;position:absolute;top:0px;left:0px;height:'+_this.height()+'px" >').append(_this.data('myhd-obj-val').replace(/</g,'&lt;').replace(/>/g,'&gt;')).appendTo(_this);
 		    });
 	    el_func_s.cxlselected.trigger(MY_CLICK);
 	}else{
@@ -1558,7 +1586,7 @@ $(function(){
 	    if(already[key] === undefined){
 		var pageObj = createLayerDOM(key, CLASS_SCREEN_SAVE, '100%', '100%');
 		putInExplorer(CLASS_SCREEN_SAVE, pageObj.screen, 'save');
-		loadSavedData(save_s[key], pageObj.screen);
+		loadRawData2Screen(save_s[key], pageObj.screen);
 		var tmp = parseInt(key.split(MY_NODE_SEP)[1],10);
 		history_counter = history_counter < tmp ? tmp : history_counter;
 	    }else if(alreadyLength > 0){
@@ -1597,22 +1625,18 @@ $(function(){
 	/* refresh */
 	refresh_save_history();
     });
-    function loadSavedData(raw_child, tgtScreen){
-	var parsed = [];
-	try{
-	    parsed = raw_child;
-	}catch(e){
-	    console.log(e.message);
-	   // alert('Error : check console log');
-	    return;
-	}
+    /**
+     * load rawdata to screen
+     * @param rawData
+     * @param target screen
+     */
+    function loadRawData2Screen(parsed, tgtScreen){
 	if( ! $.isArray(parsed)){
 	    parsed = [parsed];
 	}
-	var len_parsed = parsed.length;
-	for(var i=0;i < len_parsed;++i){
-	    display_onscreen('appendTo', tgtScreen, parsed[i]);
-	}
+	parsed.forEach(function(x,i,a){
+	    display_onscreen('appendTo', tgtScreen, x);
+	});
 	draw_arrow_s();
     }
     el_func_s.load.on(MY_CLICK, function(){
@@ -1623,7 +1647,7 @@ $(function(){
 		var mother_id = $(this).siblings('.HDScreenSaved').attr('data-myhd-node-id');
 		var child_tree = get_child_tree_select_dom(mother_id);
 		var saved = child_tree.child_s();
-		loadSavedData(saved, nowPage.screen);
+		loadRawData2Screen(saved, nowPage.screen);
 	    });
 	}
     });    
@@ -1963,7 +1987,7 @@ $(function(){
      */
     function format_raw_val_s(raw_val_s){
 	var formatted_val_s = [];
-	if(typeof raw_val_s !== undefined && raw_val_s != null && raw_val_s !== ''){
+	if(!isEmpty(raw_val_s)){
 	    raw_val_s = raw_val_s.trim();
 	    var first_char = raw_val_s[0];
 	    var last_char = raw_val_s[raw_val_s.length - 1];
@@ -2039,10 +2063,10 @@ $(function(){
 	}
 	raw_tag_s = raw_tag_s.trim().replace(/\s+/g,' ').replace(/\s*,\s*/g,',');//複数連続スペースやカンマを一つに変換
 	var tag_s2 = [];
-	$.each(raw_tag_s.split(LAYER_SEP), function(idx, tag){
+	raw_tag_s.split(LAYER_SEP).forEach(function(tag, idx){
 	    var trimed_tag = tag.trim();
 	    var pooled_tag_s = [];
-	    $.each(split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]), function(cIdx, sbl){//sibling
+	    split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]).forEach(function(sbl, cIdx){//sibling
 		var tag_num = split_ignore_nest(sbl.trim(), LOOP_HLD,[["(",")"]]);//h1タグがあり､tr3でtrを3回とはしづらいため､*を区切りとする仕様
 		var loop_num = 1;
 		if(tag_num.length > 1){
@@ -2060,9 +2084,7 @@ $(function(){
 		    }else{
 			loop_num = parseInt(raw_num, 10);
 		    }
-		    if( loop_num < 0 ){
-			throw new Error('loop num : '+loop_num +' should be >= 0 ');
-		    }
+		    if( loop_num < 0 ){throw new Error('loop num : '+loop_num +' should be >= 0 ');}
 		}
 		var tag = tag_num[0];
 		//[] と {}の処理
@@ -2072,7 +2094,6 @@ $(function(){
 	    });
 	    tag_s2.push({"tag_s":pooled_tag_s});
 	});
-
 	return tag_s2;
     }
 
@@ -2099,49 +2120,43 @@ $(function(){
 	    if( ! $.isPlainObject(prop_s) ){throw new TypeError('Error : props should be JSON Object!! ');}
 	    if(prop_s.hasOwnProperty('style') || prop_s.hasOwnProperty('class') || prop_s.hasOwnProperty('id')){
 		rtn['*'] = prop_s;
-	    }else{
-		for(var key in prop_s) if(prop_s.hasOwnProperty(key)){
-		    var tmp_prop_s = prop_s[key];
-		    if($.isPlainObject(tmp_prop_s)){
-			var tag = key.trim();
-			var selector_s;
-			if(tag.indexOf(',') > -1){
-			    selector_s = tag.split(',');
-			}else{
-			    selector_s = [tag];
-			}
-			for(var t=0;t < selector_s.length;++t){
-			    var tmp_key = selector_s[t].trim();
-			    var kept = {};
-			    var tmp_kept_key = '';
-			    kept['style'] = {};//TODO Classにまとめよう･･･
-			    kept['class'] = '';
-			    if(rtn.hasOwnProperty(tmp_key)){
-				for(var k=0;k < kept_element_s.length;++k){
-				    tmp_kept_key = kept_element_s[k];
-				    if(rtn[tmp_key].hasOwnProperty(tmp_kept_key)){
-					if(tmp_kept_key === 'style'){
-					    rtn[tmp_key][tmp_kept_key] = merge_css(rtn[tmp_key][tmp_kept_key], tmp_prop_s[tmp_kept_key]);
-					}else if(tmp_kept_key === 'class'){
-					    rtn[tmp_key][tmp_kept_key] += ' ' + tmp_prop_s[tmp_kept_key];
-					}
-				    }
-				}
-			    }else{
-				rtn[tmp_key] = {};
-				$.extend(rtn[tmp_key],tmp_prop_s);
+		return rtn;
+	    }
+	    Object.keys(prop_s).forEach(function(key){
+		var tmp_prop_s = prop_s[key];
+		if(!$.isPlainObject(tmp_prop_s)){
+		    console.log('error prop : ' + JSON.stringify(tmp_prop_s));
+		    throw new TypeError('Error : props should be JSON Object!! ');
+		}
+		var tag = key.trim();
+		var selector_s = tag.indexOf(',') > -1 ? tag.split(',') : [tag];
+		selector_s.forEach(function(tmp_key,i,a){
+		    tmp_key = tmp_key.trim();
+		    var kept = {};
+		    var tmp_kept_key = '';
+		    kept['style'] = {};//TODO Classにまとめよう･･･
+		    kept['class'] = '';
+		    if(!rtn.hasOwnProperty(tmp_key)){
+			rtn[tmp_key] = {};
+			$.extend(rtn[tmp_key],tmp_prop_s);
+			return true;
+		    }
+		    kept_element_s.forEach(function(tmp_kept_key,i,a){
+			if(rtn[tmp_key].hasOwnProperty(tmp_kept_key)){
+			    if(tmp_kept_key === 'style'){
+				rtn[tmp_key][tmp_kept_key] = merge_css(rtn[tmp_key][tmp_kept_key], tmp_prop_s[tmp_kept_key]);
+			    }else if(tmp_kept_key === 'class'){
+				rtn[tmp_key][tmp_kept_key] += ' ' + tmp_prop_s[tmp_kept_key];
 			    }
 			}
-		    }else{
-			throw new TypeError('Error : props should be JSON Object!! ');
-		    }
-		}
-	    }
-	    // Important position : absoluteが必須だが､ここで設定してもdraggableで上書きされるため無駄
+		    });
+		});
+	    }); // Important position : absoluteが必須だが､ここで設定してもdraggableで上書きされるため無駄
+	    return rtn;
 	}catch(e){
 	    console.log(e);
+	    return null;
 	}
-	return rtn;
     }
 
     /**
@@ -2338,7 +2353,7 @@ $(function(){
 		    var tag = tag_prop_s[0];
 		    var prop_s = tag_prop_s[1];
 		    //サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
-		    set_default_size(tag, prop_s, tag_size_s, layer_idx, i);
+		    var zIndex = set_default_size(tag, prop_s, tag_size_s, layer_idx, i);
 		    if(part_map.hasOwnProperty(tag)){//part nest route
 			isResolevdByPartMap = true;
 			//error check
@@ -2371,7 +2386,7 @@ $(function(){
 			if($.inArray(tag, draggableとresizableが同時には正常に動かないためwrapするタグ) > -1){
 			    if(! child.prop_s.hasOwnProperty('class')){	child.prop_s['class'] = '';}
 			    child.prop_s['class'] += ' wrapped';
-			    child = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding-bottom:12px;padding-right:12px;"},[child] );//wrapper
+			    child = my_apply('div',{"class":"wrapper","style":"background-color:transparent;padding-top:0px !important;padding-left:0px !important;padding-bottom:12px;padding-right:12px;z-index:"+zIndex+';'}, [child] );//wrapper
 			}
 			parent.child_s.push(child);
 		    }
@@ -2387,17 +2402,19 @@ $(function(){
      * 1pxサイズの操作不能オブジェクトを産まないために､
      * Defaultサイズを設定する
      * TODO ユーザー指定CSSの設定も調査対象にする
+     * @return z-index
      */
     function set_default_size(tag, temp_prop_s, tag_size_s, my_layer_idx, my_idx){
+	var zIndex = get_z_index(my_layer_idx);
 	if($.inArray(tag, サイズを持たせないタグ) > -1){
 	    if( typeof temp_prop_s.style === 'undefined'){
-		temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';';
+		temp_prop_s.style = 'z-index:'+zIndex+';';
 	    }else if( temp_prop_s.style.indexOf('z-index') === -1){
-		temp_prop_s.style +='z-index:'+get_z_index(my_layer_idx)+';';
+		temp_prop_s.style +='z-index:'+zIndex+';';
 	    }
-	    return;
+	    return zIndex;
 	}
-	var my_height = DEFAULT_HEIGHT + DISTANT_HEIGHT * (tag_size_s.length - my_layer_idx );
+	var my_height = DEFAULT_HEIGHT  ;
 	var my_width = DEFAULT_WIDTH + 10 * (tag_size_s.length - my_layer_idx + tag_size_s[my_layer_idx]);
 	// default size
 	if( 各タグ毎の初期サイズ[tag] !== undefined ){
@@ -2407,10 +2424,10 @@ $(function(){
 	}
 
 	if( typeof temp_prop_s.style === 'undefined'){
-	    temp_prop_s.style = 'z-index: '+get_z_index(my_layer_idx)+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+	    temp_prop_s.style = 'z-index: '+zIndex+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
 	}else {
 	    if( temp_prop_s.style.indexOf('z-index') === -1){
-		temp_prop_s.style +='z-index:'+get_z_index(my_layer_idx)+';';
+		temp_prop_s.style +='z-index:'+zIndex+';';
 	    }
 	    if( temp_prop_s.style.indexOf('width') === -1){
 		temp_prop_s.style +='width:'+my_width+'px;';
@@ -2435,6 +2452,7 @@ $(function(){
 		}		    
 	    }
 	}
+	return zIndex ;
     };
 
     /**
@@ -2483,30 +2501,35 @@ $(function(){
     }
 
     function adjustSize(myApply){
-	return innerObserveNumChilds(myApply,0, 0);
+	return innerObserveNumChilds(myApply);
     }
 
-    function innerObserveNumChilds(app_s, poolW, poolH){
+    function innerObserveNumChilds(app_s){
+	var newPoolW = 0;
+	var newPoolH = 0;
+	var layer = 1;
 	app_s.forEach(function(app,i,a){
 	    if(app.child_s.length === 0){
 		var style = analysisCss(app.prop_s.style, {});
-		poolW += parseInt(style.width,10);
-		poolH += parseInt(style.height,10);
+		newPoolW += parseInt(style.width,10);
+		newPoolH += parseInt(style.height,10) + DISTANT_HEIGHT;
 	    }else{
-		var pools = innerObserveNumChilds(app.child_s, poolW, poolH);
+		var pools = innerObserveNumChilds(app.child_s);
+		layer = pools[2];
 		var app_style = analysisCss(app.prop_s.style, {});
 		//if(parseInt(app_style.width,10) < pools[0]){
 		//	poolW = pools[0] + 4;
 		//	app_style.width = pools[0]+'px';
 		//}
 		if(parseInt(app_style.height,10) < pools[1]){ 
-		    poolH = pools[1] + 4;
-		    app_style.height = pools[1]+'px';
+		    newPoolH += pools[1] + DISTANT_HEIGHT * 2;
+		    app_style.top = DISTANT_HEIGHT * i * 2 * layer + parseInt(app_style.top, 10) + 'px';
+		    app_style.height = pools[1] + DISTANT_HEIGHT +'px';
 		}
 		app.prop_s.style = cssStringify(app_style);
 	    }
 	});
-	return [poolW, poolH];
+	return [newPoolW, newPoolH, layer * 2];
     }
 
     function myCreateElement(tag, is_svg){
@@ -2687,7 +2710,7 @@ $(function(){
 		if(parent_tag !== 'tr') throw new Error(' td,th should be under tr.');
 		is_draggable = false;
 	    }else if( tag === 'li'){
-		if(parent_tag !== 'ol' || parent_tag !== 'ul') throw new Error('li should be under ul or ol.');
+		if(parent_tag !== 'ol' && parent_tag !== 'ul') throw new Error('li should be under ul or ol.');
 		is_draggable = false;
 	    }else if( tag === 'tr' || tag === 'tbody' || tag === 'thead'){
 		is_draggable = false;
@@ -2711,19 +2734,19 @@ $(function(){
 		    }else{
 			work_jq.html(prop_s[prop]);
 		    }
-		    work_jq.data('my-obj-val', prop_s[prop]);
+		    work_jq.data('myhd-obj-val', prop_s[prop]);
 		}else if( prop === 'value' ){
 		    if( tag === 'textarea' ){
 			work_jq.html(prop_s[prop]);
 		    }else{
 			work_jq.val(prop_s[prop]);
 		    }
-		    work_jq.data('my-obj-val', prop_s[prop]);
+		    work_jq.data('myhd-obj-val', prop_s[prop]);
 		}else{
 		    work_jq.attr(prop,prop_s[prop]);
 		}
 	    }
-	    if(typeof work_jq.data('my-obj-val') === 'undefined'){work_jq.data('my-obj-val','');}
+	    if(typeof work_jq.data('myhd-obj-val') === 'undefined'){work_jq.data('myhd-obj-val','');}
 
 	    work_jq.data({"my-org-prop_s": prop_s, "prop-history": {}});//TODO saveから復元
 	    if( work_jq === target){
@@ -2748,7 +2771,7 @@ $(function(){
 	    	.on('contextmenu',select_handler_factory(false, display_contextmenu))
 		.on(MY_CHANGE,function(ev){
 		    var _this = myWrapElement(this);
-		    _this.data('my-obj-val', _this.val());
+		    _this.data('myhd-obj-val', _this.val());
 		});
 	    var length_child_s = child_s.length;
 	    for(var idx_child=0;idx_child < length_child_s;++idx_child){
@@ -2835,14 +2858,14 @@ $(function(){
 	    if( i_am_wrapper ){
 		resizableOption["alsoResize"] = '[data-myhd-node-id^="'+my_node_id+MY_NODE_SEP+'"]';
 		resizableOption["stop"] = function(ev, ui){
-		    var tmp = $('*',work_jq);
+		    var tmp = $('> *',work_jq);
 		    work_jq.height(tmp.height() + 32).width(tmp.width() + 32);
 		};
 	    }
 
 	    removeSelected(work_jq)
 	    [add_method]( target )
-		.data('my-htmlize-target',true)
+		.data('myhd-htmlize-target',true)
 		.attr('data-myhd-htmlize-target',true);
 	    if( wrapped_is_true ){
 		//nothing
@@ -2915,15 +2938,10 @@ $(function(){
     function draw_arrow_s(cache, operated){
 	var my_id = null;
 	var now_coord = null;
-	if(typeof operated !== 'undefined' && operated !=  null){
-	    if(operated.attr !== undefined){
-		my_id = operated.attr('data-myhd-node-id');
-	    }
+	if(!isEmpty(operated) && operated.attr !== undefined){
+	    my_id = operated.attr('data-myhd-node-id');
 	}
-	if(typeof cache === 'undefined' || cache == null){
-	    cache = draw_arrow_s_factory(null, my_id);
-	}
-
+	cache = orDefault(cache,  draw_arrow_s_factory(null, my_id));
 	var arrow_s = cache['arrows'];
 	arrow_s.forEach(function(arrow,i,a){
 	    var svg_cmd = LinePathCmdFactory();//BezierPathCmdFactory();//
@@ -3050,11 +3068,7 @@ $(function(){
 	    var pool = analysisCss(_this.attr('style'));
 	    var position = {};
 	    posi_name_s.forEach(function(name,i,a){
-		if(typeof pool[name] === 'undefined'){
-		    position[name] = 'auto';
-		}else{
-		    position[name] = pool[name];
-		}
+		position[name] = pool[name] === undefined  ? 'auto' : pool[name];
 	    });
 	    if(position['top'] !== 'auto'){
 		relativeTopBottom.val('top');
@@ -3075,7 +3089,7 @@ $(function(){
 	    var parent_id_list = my_node_id.split(MY_NODE_SEP);
 	    var concat_id = '';
 	    var appendHtml = '';
-	    $.each(parent_id_list,function(idx,my_id){
+	    parent_id_list.forEach(function(my_id, idx){
 		concat_id += my_id;
 		var tmp = $('*[data-myhd-node-id='+concat_id+']', nowPage.screen).get(0);
 		if(typeof tmp !== 'undefined'){
@@ -3085,9 +3099,7 @@ $(function(){
 	    });
 	    concat_id = concat_id.substring(0, concat_id.length - MY_NODE_SEP.length);
 	    context_menu.parent_list.empty().append(appendHtml).val(concat_id);
-	    if(typeof callbacks !== 'undefined' && callbacks !== null) {
-		callbacks(ev);
-	    }
+	    if(!isEmpty(callbacks)){callbacks(ev);}
 	};
     }
 
@@ -3095,13 +3107,8 @@ $(function(){
     commands.append = function(){
 	function func_append(){
 	    var kept_new = [];
-	    var kept_target_s = null;
 	    var el_selected_s = $('.'+CLASS_SELECTED, nowPage.screen);
-	    if( el_selected_s.length > 0){
-		kept_target_s = el_selected_s;
-	    }else{
-		kept_target_s = [nowPage.screen];//追加先のデフォルトはscreen
-	    }
+	    var kept_target_s =  el_selected_s.length > 0 ? el_selected_s : [nowPage.screen];//追加先のデフォルトはscreen
 	    var rtn = {
 		"execute":function(){
 		    try{
@@ -3566,7 +3573,9 @@ $(function(){
 	new_li.appendTo(parent);
     }
 
-    function setNowPage(tgtPage){
+    function setNowPage(btn, tgtPage){
+	$('.func_layer_change', el_HDlayerSpace).removeClass("selectedScrnBtn");
+	btn.addClass('selectedScrnBtn');
 	if(!isEmpty(nowPage)){
 	    nowPage.screen.removeClass('nowPage');
 	}
@@ -3576,46 +3585,50 @@ $(function(){
 
     // angular
     if(angular){
-	var el_angular_boot = $('#angular_boot').on(MY_CLICK,function(){
-	    var _this = $(this);
-	    readyForAngular(_this).trigger('refresh.edit');
+	var el_angular_boot = $('#HDangular_boot').on(MY_CLICK,function(){
+	    openWindowForAngular($(this));
 	});
-	function readyForAngular(self){
+	function openWindowForAngular(self){
 	    //save
-	    var mother_id = nowPage.screen.attr('data-myhd-node-id');
-	    console.log('mother_id : ' + mother_id);
-	    var child_tree = get_child_tree_select_dom(mother_id);
-	    var save = child_tree.child_s();
-	    // delete
-	    $('> *:not(#context_menu)', nowPage.screen).remove();
-	    // recover
-	    if( ! $.isArray(save)){
-		save = [save];
-	    }
-	    save.forEach(function(x,i,a){
-		display_onscreen('appendTo', nowPage.screen, x);
+	    el_sandbox_screen.empty();
+	    var flattern = [];
+	    var mother_ids = ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').map(function(idx, obj){
+		return $(obj).attr('data-myhd-node-id');
+	    }).get();
+	    mother_ids.unshift(ROOT_BTN_PAGE.page.screen.attr('data-myhd-node-id'));
+	    mother_ids.forEach(function(mother_id,i,a){
+		flattern = flattern.concat(get_child_tree_select_dom(mother_id).child_s());
 	    });
-	    return self;
+	    var newWindow = window.open('./HtmlDeveloping.htm', 'Angular');
+	    newWindow.document.open();
+	    newWindow.document.write(htmlize(flattern));
+	    newWindow.document.close();
 	}
     }
 
     //Util
+    function htmlTag2escape(htmlStr){
+	return htmlStr.replace(/></g,'>\n<').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function escape2htmlTag(htmlStr){
+	return htmlStr.replace(/></g,'>\n<').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    }
     function call_val(obj, set_val){
-	obj.data('my-obj-val', set_val);
+	obj.data('myhd-obj-val', set_val);
 	obj.val(set_val);
     }
     /**
      * 上書き方式　子要素以下は削除される
      */
     function call_html(obj, set_val){
-	obj.data('my-obj-val', set_val);
+	obj.data('myhd-obj-val', set_val);
 	obj.html(set_val);
     }
     /**
      * 孫要素を退避して追記する方式
      */
     function call_safe_text(obj, set_val){
-	obj.data('my-obj-val', set_val);
+	obj.data('myhd-obj-val', set_val);
 	var kept = $(' *',obj).detach();
 	obj.text(set_val);
 	kept.appendTo(obj);
@@ -3624,7 +3637,7 @@ $(function(){
      * 孫要素を退避して追記する方式
      */
     function call_safe_html(obj, set_val){
-	obj.data('my-obj-val', set_val);
+	obj.data('myhd-obj-val', set_val);
 	var kept = $(' .htmlize',obj).detach();
 	obj.empty().html(set_val);
 	kept.appendTo(obj);
@@ -3891,7 +3904,7 @@ $(function(){
 	    //TODO XXX	    target.prop_s['data-myhd-node-id'] = my_obj_id;
 	    target.tag = content.localName;
 
-	    var raw_my_obj_val = _content.data('my-obj-val');
+	    var raw_my_obj_val = _content.data('myhd-obj-val');
 	    var my_obj_val ;
 	    if(typeof raw_my_obj_val === 'undefined' || raw_my_obj_val === ''){
 		if ( content.localName === 'input'){
@@ -3954,19 +3967,11 @@ $(function(){
 	,function(a0, a1){is_calcable(a0,a1);return a1 % a0;}
     ];
     function is_calcable(a0, a1){
-	if($.isNumeric(a0) && $.isNumeric(a1)){
-	    return ;
-	}else{
-	    throw new TypeError(a0 + ' : ' + a1 + ' are not resolved ');
-	}
+	if($.isNumeric(a0) && $.isNumeric(a1)){return ;}
+	throw new TypeError(a0 + ' : ' + a1 + ' are not resolved ');
     }
     function reverse_porlish_notation(formula, _param_s){
-	var param_s;
-	if(arguments.length < 2){
-	    param_s = {};
-	}else{
-	    param_s = orDefault(_param_s, {});
-	}
+	var param_s = arguments.length < 2 ? {} : orDefault(_param_s, {});
 	return reverse_porlish_notation_logic(formula, param_s, {})[0];
     }
     function reverse_porlish_notation_logic(_formula, _param_s, _resolved_param_s){
@@ -3974,12 +3979,8 @@ $(function(){
 	var resolved_param_s = {};$.extend(true,resolved_param_s, _resolved_param_s);
 	var formula = _formula;
 	var _parent_counter = 0;
-	if($.isArray(formula)){
-	    formula = formula.join(' ');
-	}
-	if(typeof formula === 'string'){
-	    formula = formula.replace(/\s+/g,' ').trim();
-	}
+	if($.isArray(formula)){ formula = formula.join(' ');}
+	if(typeof formula === 'string'){ formula = formula.replace(/\s+/g,' ').trim();}
 	if(typeof formula !== 'undefined' && formula != null){
 	    var stack = [];
 	    var pool = '';
