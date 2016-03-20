@@ -1097,7 +1097,7 @@ $(function(){
 	    el_ObjectName.html(nowPage.screen.data('name'));
 	    refreshExplorerSpace(el_HDlayerSpace.data(エクスプローラー表示対象クラス));
 	}).on(MY_INIT,function(){
-	    ROOT_BTN_PAGE.btn.trigger(MY_CLICK);//TODO lazy loadxc
+	    ROOT_BTN_PAGE.btn.trigger(MY_CLICK);//TODO lazy load
 	}).trigger(MY_INIT);
     
     // screen util setting
@@ -1396,7 +1396,6 @@ $(function(){
 		//NS objectの処理もあるため、jQueryは使用しない
 		_target.removeAttribute(attr);
 	    });
-	    console.log('Wrapper : ' + target.attr('style'));
 	    HTML出力時に削除するclass_s.forEach(function(cl,i,a){
 		_target.classList.remove(cl);
 	    });
@@ -3906,11 +3905,14 @@ $(function(){
 
 	    var raw_my_obj_val = _content.data('myhd-obj-val');
 	    var my_obj_val ;
+	    var tagName = content.localName;
 	    if(typeof raw_my_obj_val === 'undefined' || raw_my_obj_val === ''){
-		if ( content.localName === 'input'){
+		if ( tagName === 'input'){
 		    my_obj_val = _content.val();
-		}else if(content.localName === 'textarea'){
+		}else if(tagName === 'textarea'){
 		    my_obj_val = _content.text();
+		}else if(tagName === 'path'){
+		    my_obj_val = content.getAttribute('d');
 		}else{
 		    my_obj_val = "";
 		}
@@ -3920,8 +3922,10 @@ $(function(){
 	    var new_prop_s = {};
 	    $.extend(true, new_prop_s, _content.data('my-org-prop_s'), target.prop_s);
 	    target.prop_s = new_prop_s;
-	    if( content.localName === 'input'){//TODO 関数化
+	    if( tagName === 'input'){//TODO 関数化
 		target.prop_s['value'] = my_obj_val;
+	    }else if( tagName === 'path'){
+		target.prop_s['d'] = my_obj_val;
 	    }else{
 		target.prop_s['html'] = my_obj_val;
 	    }
@@ -3934,7 +3938,9 @@ $(function(){
 	var user_add_content_s = $(' *[data-myhd-node-id^='+mother_id+MY_NODE_SEP+']');
 	var root_dom = $('*[data-myhd-node-id='+mother_id+']')[0];
 	var tree = extract_from_dom(_tree(mother_id), [root_dom]);
-	return extract_from_dom(tree, user_add_content_s);
+	var rtn = extract_from_dom(tree, user_add_content_s);
+	console.log('rtn : ' + JSON.stringify(rtn));
+	return rtn;
     };
 
     function get_z_index(parent_layer_idx){
