@@ -763,8 +763,15 @@ $(function(){
 	context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white"})
 	    .addClass('shadow');
 	setNowPage(ROOT_BTN_PAGE.btn, ROOT_BTN_PAGE.page);
-	var savedLayers = createLayer('hoge', el_HDfilterLayerList);
-	display_onscreen('appendTo', savedLayers.page.screen, {"tag":"div", "prop_s":{"style":"font-size:320px;font-weight:900;", "html":"fuga"}, "child_s":[]});
+	/*
+	 var savedLayers = createLayer('hoge', el_HDfilterLayerList);
+	 display_onscreen('appendTo', savedLayers.page.screen, {"tag":"div", "prop_s":{"style":"font-size:320px;font-weight:900;", "html":"fuga"}, "child_s":[]});
+
+	 console.log('minimizedScrn.attr(data-myhd-node-id) : ' + JSON.stringify(minimizedScrn.attr('data-myhd-node-id')));
+	 console.log('child_tree.child_s() : ' + JSON.stringify(get_child_tree_select_dom(minimizedScrn.attr('data-myhd-node-id')).child_s()));
+	 ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').each(function(idx){
+	 });
+	 */
 	
 	var child;
 	var isNewChild = true;
@@ -1641,7 +1648,7 @@ $(function(){
     el_func_s.load.on(MY_CLICK, function(){
 	// 選択したものから抽出
 	var selectedList = el_HDexplorerSpace.find('.explorerShim.HDScreenSaved.explorerSelected');
-	if(selectedList !== undefined){
+	if(selectedList != null){
 	    selectedList.each(function(i, obj){
 		var mother_id = $(this).siblings('.HDScreenSaved').attr('data-myhd-node-id');
 		var child_tree = get_child_tree_select_dom(mother_id);
@@ -3758,6 +3765,9 @@ $(function(){
 		return rtn;
 	    },
 	    "child_s":function(){
+		if(pool[mother_id] == null){
+		    return [];
+		}
 		return pool[mother_id].child_s;
 	    },
 	    "self":function(){
@@ -3891,8 +3901,12 @@ $(function(){
 	};
     };
 
-    function extract_from_dom(tree, user_add_content_s){
-	if(typeof user_add_content_s === 'undefined'){ return tree;}
+    function extract_from_dom(tree, raw_user_add_content_s){
+	if(raw_user_add_content_s == null || raw_user_add_content_s.length === 0){ return tree;}
+	var user_add_content_s = raw_user_add_content_s.filter(function(obj){
+	    return obj != null;
+	});
+	if(user_add_content_s == null || user_add_content_s.length === 0){ return tree;}
 	$.each(user_add_content_s, function(i, content){
 	    var target = my_apply();
 	    var _content = $(content);
@@ -3901,11 +3915,12 @@ $(function(){
 		target.prop_s[key] = _content.attr(key);
 	    }
 	    //TODO XXX	    target.prop_s['data-myhd-node-id'] = my_obj_id;
-	    target.tag = content.localName;
+	    console.log('user_add_content_s : ' + JSON.stringify(user_add_content_s));
+	    var tagName = content.localName;
+	    target.tag = tagName;
 
 	    var raw_my_obj_val = _content.data('myhd-obj-val');
 	    var my_obj_val ;
-	    var tagName = content.localName;
 	    if(typeof raw_my_obj_val === 'undefined' || raw_my_obj_val === ''){
 		if ( tagName === 'input'){
 		    my_obj_val = _content.val();
@@ -3939,7 +3954,6 @@ $(function(){
 	var root_dom = $('*[data-myhd-node-id='+mother_id+']')[0];
 	var tree = extract_from_dom(_tree(mother_id), [root_dom]);
 	var rtn = extract_from_dom(tree, user_add_content_s);
-	console.log('rtn : ' + JSON.stringify(rtn));
 	return rtn;
     };
 
