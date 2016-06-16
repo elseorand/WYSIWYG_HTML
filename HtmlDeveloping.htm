@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>HTML Developing</title>
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" > 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" >
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script> 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script> 
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> 
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 		<style type="text/css" >
 			/* For this app */
       body > #HtmlDeveloping > #HDlayer_Root {
@@ -136,8 +136,8 @@
         text-align:center;
         margin-bottom: 2px;
         margin-left:8px;
-        width:92%;        
-      }      
+        width:92%;
+      }
       #HDlayerRoot > input.func_layer_change.HDbaseLayer{
         background-color:#000fff;
         color:white;
@@ -168,7 +168,7 @@
       #basic_menu input[type=text]{
         padding:0px 5px 0px;
       }
-      
+
 			/* As you like */
       html {
         height:100%;
@@ -181,7 +181,7 @@
 			}
       body *{
         font-family: Ricty Diminished, Ricty, 'A-TTC 新ゴ R', 'ヒラギノ角ゴ Pro W3','Hiragino Kaku Gothic Pro W3', 'メイリオ', Meiryo, 'ＭＳ Ｐゴシック', sans-serif,'ＭＳ ゴシック', monospace;
-      }      
+      }
 			p,dl {
 				padding: 5px;
 			}
@@ -291,7 +291,7 @@
       .flexGrid {
         display:flex;
         flex-wrap:wrap;
-        align-content:flex-start;        
+        align-content:flex-start;
       }
       .flexGrid > .htmlize{
 				position:relative !important;
@@ -317,7 +317,7 @@
 				<input value="Load" id="func_load_element" style="" type="button">
 				<div id="sandbox_hidden" style="display:none;" data-myhd-obj-id="-1"></div>
         <input id="HDslide_show" type="button" value="Slide"/>
-        <input id="HDprint_window" type="button" value="Print"/>        
+        <input id="HDprint_window" type="button" value="Print"/>
         <input id="HDangular_boot" type="button" value="Angular Boot"/>
         <input id="HDload_presetBtn" type="button" value="Preset"/>
         <input id="HDload_presetFile" type="text" value=""/>
@@ -395,7 +395,7 @@
                 <section class="positionRelative" style="margin-bottom:6px;margin-left:4px;float:left;">
                   <div>Position Base</div>
                   <div style="border:0px none transparent;float:left;">
-                    <select id="positionRelativeTopBottom">
+                    <select id="positionRelativeTopBottom" style="width:7rem;">
                       <option value="top">top</option>
                       <option value="center">center</option>
                       <option value="bottom">bottom</option>
@@ -403,7 +403,7 @@
                     <input type="text" id="positionRelativeTopBottomValue" style="width:50px;height:32px;" /><br>
                   </div>
                   <div style="border:0px none transparent;float:left;">
-                    <select id="positionRelativeLeftRight">
+                    <select id="positionRelativeLeftRight" style="width:7rem;">
                       <option value="left">left</option>
                       <option value="center">center</option>
                       <option value="right">right&nbsp;</option>
@@ -445,7 +445,7 @@
                     <option value="px">px</option>
                     <option value="%">%</option>
                   </select>
-                  
+
                   <input class="boxDesign border" id="border-top-width" type="number" value="0" min="0" style="position:absolute;top:-23px;bottom:auto;left:0px;right:0px;margin:auto;z-index:110;"/>
                   <input class="boxDesign border" id="border-right-width" type="number" value="0" min="0" style="height:1em;position:absolute;top:0px;bottom:0px;left:auto;right:-5px;margin:auto;"/>
                   <input class="boxDesign border" id="border-bottom-width" type="number" value="0" min="0" style="position:absolute;top:auto;bottom:-5px;left:0px;right:0px;margin:0px auto 0px;"/>
@@ -488,8 +488,8 @@
               <section style="float:left;margin-left:4px;">
                 <select id="operate_color_option" style="width:8.5em;margin-bottom:0.3em;">
                   <option value="background-color">Background</option>
-                  <option value="border-color">Border</option>                
-                  <option value="color">Font</option>                
+                  <option value="border-color">Border</option>
+                  <option value="color">Font</option>
                   <option value="box-shadow">Box Shadow</option>
                   <option value="text-shadow">Text Shadow</option>
                 </select><br>
@@ -571,7 +571,7 @@
             </div>
             <div style="width:100%;border-bottom:1px solid grey;margin:4px 0px 4px;"></div>
           </div>
-        </div>        
+        </div>
         <div class="menu_container" >
           <div style="border:0px none transparent" class="openCloseTrigger">* Default Prop Attr</div>
           <div style="border:0px none transparent" class="openCloseTarget">
@@ -587,7 +587,7 @@
       <div class="menuHandler" style="position:absolute;top:4px;left:4px;width:100%;">Box Model Sample</div>
       <div id="oprt_model" style="position:absolute;bottom:30px;top:auto;right:auto;left:30px;width:120px;height:80px;border:1px solid black;">Sample</div>
     </section>
-    
+
 		<footer style="position:fixed; bottom:0px;z-index:100;width:100%;">
 			<section id="footer_menu_bar" class="menu_bar" style="position:fixed;bottom:0px ;left: 0px ;z-index:101; width:100% ">
 				<input type="hidden" id="SelectedValTag" readonly="readonly" class="autoExtend" style="width:3em; ime-mode:disabled;"/>
@@ -625,7 +625,7 @@
               <div id="HDlayerRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
               <div id="HDbaseLayerList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:hidden;margin:2px 0px 0px 8px;"></div>
               <div id="HDfilterLayerList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:hidden;margin:4px;"></div>
-              <input id="func_delDirObj" type="button" value=" - delete" style=""/>
+              <input id="func_selected_del_layer" type="button" value=" - delete" style=""/>
             </aside>
             <article id="HDexplorerSpace" style="flex-grow:4;background-color:rgba(255,255,255,0.8);align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;overflow-y:auto;">
             </article>
@@ -633,7 +633,7 @@
         </section>
       </div>
     </div>
-    <script src="./html_developing.js"></script> 
+    <script src="./html_developing.js"></script>
     <script>
       (function(){
         if(angular){
