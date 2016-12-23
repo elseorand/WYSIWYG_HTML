@@ -131,11 +131,11 @@ $(function(){
      * Websocket sharing
      * Master Slave system
      * Angularjs support => open another window ?
-     */    
+     */
     /** DONE
-     * grid 
+     * grid
      * style editor
-     * css selector 
+     * css selector
      * style manager
      * screen tab
      * include resource json
@@ -163,7 +163,7 @@ $(function(){
     var fn_ctrlP = undefined;
     var fn_ctrlF = undefined;
     var fn_ctrlN = undefined;
-    
+
     var FUNC_ID = "HtmlDeveloping";
     var MY_STORAGE = constructor_storage(FUNC_ID, localStorage);// TODO websocket
     var MAX_SAVE_SLOT_S = 16;
@@ -235,7 +235,7 @@ $(function(){
 
     // util
     var el_func_json_val = $('.json_val');
-    
+
     // main menu singleton
     var el_basic_menu = $('body > #basic_menu');
     var el_basic_menu_operator = $('#basic_menu_operator', el_basic_menu);
@@ -312,7 +312,7 @@ $(function(){
     var el_sandbox_style_screen_area = $('#sandbox_style', el_basic_menu);
     var el_sandbox_hidden = $('#sandbox_hidden', el_header_menu_bar);
     var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable({"handle":".menuHandler"});
-    
+
     var el_sandbox_screen =  $('#sandbox_screen');
     var el_func_new_filter_layer = $('#func_new_filter_layer').on(MY_CLICK, function(){
 	var name = el_new_layer.val().trim();
@@ -342,7 +342,7 @@ $(function(){
 			});
 			el_sandbox_style_screen_area.val(pool);
 		    }
-		    if(res.hasOwnProperty('child_s')){  
+		    if(res.hasOwnProperty('child_s')){
 			res.child_s.forEach(function(data,i,a){
 			    display_onscreen('appendTo', nowPage.screen, data);
 			});
@@ -368,10 +368,10 @@ $(function(){
     var el_operate_option = $('#operate_option');
     var el_oprt_value = $('#oprt_value');
     var oprt_type = {
-	"size":{"l":sizeFuncSupplier("width", "-="), "u":sizeFuncSupplier("height", "+="), "r":sizeFuncSupplier("width", "+="), "d":sizeFuncSupplier("height", "-=")}, 
+	"size":{"l":sizeFuncSupplier("width", "-="), "u":sizeFuncSupplier("height", "+="), "r":sizeFuncSupplier("width", "+="), "d":sizeFuncSupplier("height", "-=")},
 	"position":{"l":positionFuncSupplier('left', '-='), "u":positionFuncSupplier('top', '-='), "r":positionFuncSupplier('left', '+='), "d":positionFuncSupplier('top', '+=')},
-	"rotateXY":{"l":transformFuncSupplier('rotateY', '-'), "u":transformFuncSupplier('rotateX', '+'), "r":transformFuncSupplier('rotateY', '+'), "d":transformFuncSupplier('rotateX', '-')}, 
-	"rotateZ":{"l":transformFuncSupplier('rotate', '-'), "u":transformFuncSupplier('rotateZ', '-'), "r":transformFuncSupplier('rotate', '+'), "d":transformFuncSupplier('rotateZ', '+')}	
+	"rotateXY":{"l":transformFuncSupplier('rotateY', '-'), "u":transformFuncSupplier('rotateX', '+'), "r":transformFuncSupplier('rotateY', '+'), "d":transformFuncSupplier('rotateX', '-')},
+	"rotateZ":{"l":transformFuncSupplier('rotate', '-'), "u":transformFuncSupplier('rotateZ', '-'), "r":transformFuncSupplier('rotate', '+'), "d":transformFuncSupplier('rotateZ', '+')}
     };
     var els_openCloseTrigger = $('.openCloseTrigger').on(MY_CLICK,function(){
 	$(this)
@@ -601,7 +601,7 @@ $(function(){
 	    var newBgColor = el_transparent.prop('checked') ? 'transparent' : 'rgba('+el_oprt_model.data('bgc-red')+','+ el_oprt_model.data('bgc-green')+','+ el_oprt_model.data('bgc-blue')+','+ el_oprt_model.data('bgc-alpha')+')';
 	    var css = el_operate_color_option.val();
 	    if(css.startsWith('background')){
-		newBgColor = {"style":css + ':'+ newBgColor+';background:;'};	
+		newBgColor = {"style":css + ':'+ newBgColor+';background:;'};
 	    }else if(css === 'box-shadow' || css === 'text-shadow'){
 		var coord = [];
 		els_shadows[css].each(function(){
@@ -610,13 +610,13 @@ $(function(){
 		});
 		newBgColor = {"style":css + ':'+ coord.join('')+newBgColor+';'};
 	    }else{
-		newBgColor = {"style":css + ':'+ newBgColor+';'};	
+		newBgColor = {"style":css + ':'+ newBgColor+';'};
 	    }
 	    update_prop(el_oprt_model, newBgColor);
 	    for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
 		update_prop(el_now_selected[key], newBgColor);
 	    }
-	    
+
 	    var c16 = parseInt(el_colors['blue'].val(), 10).toString(16);
 	    c16 = c16.length === 1 ? '0'+c16:c16;
 	    c16 = parseInt(el_colors['green'].val(), 10).toString(16)+c16;
@@ -710,7 +710,7 @@ $(function(){
     var func_name_s = [
 	{"name":"html", "label":"", "input":'', "style":""},
 	{"name":"style", "label":"", "input":'', "style":""},
-	{"name":"script", "label":"", "input":'', "style":""},	
+	{"name":"script", "label":"", "input":'', "style":""},
 	{"name":"modelCssApply", "label":"", "input":'', "style":""},
 	{"name":"modelCssReset", "label":"", "input":'', "style":""},
 	{"name":"append", "label":"Append", "input":'', "style":"", "col2":false},
@@ -740,7 +740,7 @@ $(function(){
     el_HDexplorer
 	    .data('parent', el_HDexplorer.children('section'))
 	    .data('brother',el_HDexplorer.find('.menuHandler'))
-	    .resizable({"autoHide":true,"minWidth":80, 
+	    .resizable({"autoHide":true,"minWidth":80,
 			resize:function(ev, ui){
 			    el_HDexplorerSpace
 				.height(el_HDexplorer.data('parent').innerHeight() - el_HDexplorer.data('brother').outerHeight());
@@ -772,7 +772,7 @@ $(function(){
 	 ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').each(function(idx){
 	 });
 	 */
-	
+
 	var child;
 	var isNewChild = true;
 	var li_s;
@@ -867,7 +867,7 @@ $(function(){
 	    }else{
 		target = model;
 	    }
-	    
+
 	    var css_parts = target.data('my-org-prop_s').style.trim().split(';');
 	    var part;
 	    css_parts.forEach(function(x,i,a){
@@ -920,7 +920,7 @@ $(function(){
 		cssObj[css] = reverse_porlish_notation( parseInt(cssObj[css], 10) +' '+ parseInt(op_val, 10)+' '+func);
 	    }
 	    target.data('transform', cssObj);
-	    
+
 	    var newCss = '';
 	    for(var key in cssObj) if(cssObj.hasOwnProperty(key)){
 		if(key.startsWith('rotate')){
@@ -931,7 +931,7 @@ $(function(){
 	    }
 	    target.css('transform', newCss);
 	};
-    }    
+    }
 
     el_operate_option.on(MY_CHANGE,function(){
 	el_operate_option.data("now_type", oprt_type[el_operate_option.val()]);
@@ -1047,7 +1047,7 @@ $(function(){
     var el_HDdirSave = $('#HDdirSave').data(エクスプローラー表示対象クラス, CLASS_SCREEN_SAVE).on(MY_CLICK,function(){
 	var _this = $(this);
 	refreshExplorerSpace(_this.data(エクスプローラー表示対象クラス));
-	
+
     });
     /**
      * change screen.
@@ -1106,7 +1106,7 @@ $(function(){
 	}).on(MY_INIT,function(){
 	    ROOT_BTN_PAGE.btn.trigger(MY_CLICK);//TODO lazy load
 	}).trigger(MY_INIT);
-    
+
     // screen util setting
     var default_width_setting_s = {};
     var el_auto_extend = $('.autoExtend');
@@ -1114,7 +1114,7 @@ $(function(){
 	var _this = $(obj);
 	default_width_setting_s[_this.attr('id')] = _this.width();
     });
-    
+
     $('.menu_bar').on(MY_KEYUP +' '+ MY_CHANGE +' '+ MY_MOUSEOUT,'.autoExtend',function(){//xxx
 	var _this = myWrapElement(this);
 	var length_val = 0;
@@ -1245,7 +1245,7 @@ $(function(){
 	var length_these_minus_1 = sel_s.length - 1;
 	setProps(sel_s[length_these_minus_1], length_these_minus_1 > 0);
     });
-    
+
     /**
      * ready for copy : no recursive , mono layer
      */
@@ -1330,7 +1330,7 @@ $(function(){
 	}catch(e){
 	    console.log(e);
 	}
-    } 
+    }
 
     function Coord(){
 	if(arguments.length === 1){
@@ -1346,7 +1346,7 @@ $(function(){
 	    return {
 		"left":parseInt(arguments[0], 12),
 		"top":parseInt(arguments[1], 10),
-		"right":'auto', 
+		"right":'auto',
 		"bottom":'auto'
 	    };
 	}else if(arguments.length === 4){
@@ -1359,9 +1359,9 @@ $(function(){
 		return arguments.callee(x, y);
 	    }else{
 		return {
-		    "left":x, 
-		    "top":y, 
-		    "right":cx, 
+		    "left":x,
+		    "top":y,
+		    "right":cx,
 		    "bottom":cy
 		};
 	    }
@@ -1382,7 +1382,7 @@ $(function(){
 	var wrappers_s = $('.wrapper',el_sandbox_hidden).each(function(i, obj){
 	    var wrapper = $(this);
 	    try{wrapper.draggable('destroy');}catch(e){/*kill error*/};
-	    try{wrapper.resizable('destroy');}catch(e){/*kill error*/};	    
+	    try{wrapper.resizable('destroy');}catch(e){/*kill error*/};
 	    var position = wrapper.css('position');
 	    var top = wrapper.css('top');
 	    var right = wrapper.css('right');
@@ -1413,7 +1413,7 @@ $(function(){
 	try{
 	    head_src = $('head').html();
 	    var output_html = el_sandbox_hidden.html();
-	    return '<!doctype html><html><head>' + head_src + '</head><body data-ng-app="app">' + output_html + '\n<div id="MyEditableScript" class="htmlize">\n' + el_script.html()+'\n</div>\n</body></html>';	    
+	    return '<!doctype html><html><head>' + head_src + '</head><body data-ng-app="app">' + output_html + '\n<div id="MyEditableScript" class="htmlize">\n' + el_script.html()+'\n</div>\n</body></html>';
 	}catch(e){console.log('e '+e);};
     }
 
@@ -1430,23 +1430,28 @@ $(function(){
 		el_style.html(style_html);
 	    }
 	    style_html = style_html.replace(/\n/g, '');
-	    var css_keyval = style_html.split('}');
+	    var css_keyval = split_ignore_nest(style_html, '}', [["{","}"]]);
 	    var pool = [];
 	    css_keyval.forEach(function(x,i,a){
-		var k_v = x.trim().split('{');
-		if(k_v.length === 2){
-		    var attr_val_s = k_v[1].trim().split(';');
-		    var pool_v = {};
-		    attr_val_s.forEach(function(acv,i,a){
-			var a_v = acv.split(':');
-			if(a_v !== null && a_v.length === 2){
-			    pool_v[a_v[0].trim()] = a_v[1].trim();//後勝ち
-			}
-		    });
-		    var tmp = {};
-		    tmp[k_v[0]] = pool_v;
-		    pool.push(tmp);
-		    new_empty_line(el_some_list.style_list, k_v[0].trim(), k_v[1].trim(), false);
+		if (x.indexOf('@keyframes') > -1){
+		    //  css animation
+		    // TODO impl parsing css animation
+		} else {
+		    var k_v = x.trim().split('{');
+		    if(k_v.length === 2){
+			var attr_val_s = k_v[1].trim().split(';');
+			var pool_v = {};
+			attr_val_s.forEach(function(acv,i,a){
+			    var a_v = acv.split(':');
+			    if(a_v !== null && a_v.length === 2){
+				pool_v[a_v[0].trim()] = a_v[1].trim();//後勝ち
+			    }
+			});
+			var tmp = {};
+			tmp[k_v[0]] = pool_v;
+			pool.push(tmp);
+			new_empty_line(el_some_list.style_list, k_v[0].trim(), k_v[1].trim(), false);
+		}
 		}
 	    });
 	})
@@ -1459,8 +1464,8 @@ $(function(){
 	.on(MY_CLICK, function(){
 	    $('<script>').html(el_some_list['script_list'].val()).appendTo(el_script.empty());
 	}).on(MY_INIT, function(){
-	    $('<script>').html(el_some_list['script_list'].val()).appendTo(el_script.empty());	    
-	}).trigger(MY_INIT);    
+	    $('<script>').html(el_some_list['script_list'].val()).appendTo(el_script.empty());
+	}).trigger(MY_INIT);
 
     el_func_s.modelCssApply.on(MY_CLICK, function(){
 	var apply_css = ["font-size", "width", "height", "color", "border", "border-width", "border-left-width", "border-top-width", "border-right-width", "border-bottom-width", "padding", "background-color", "padding", "padding-width", "padding-left-width", "padding-top-width", "padding-right-width", "margin-width", "margin-left-width", "margin-top-width", "margin-right-width", "transform", "border-radius", "text-shadow", "box-shadow"];//XXX
@@ -1498,7 +1503,7 @@ $(function(){
 	    case 37:
 		_this.val(parseInt(_this.val(), 10) - setting.step5);break;
 	    case 66:
-		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step5);} 
+		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step5);}
 		ev.stopPropagation();ev.preventDefault();
 		break;
 	    case 38:
@@ -1514,14 +1519,14 @@ $(function(){
 	    case 70:
 		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) + setting.step5);}
 		ev.stopPropagation();ev.preventDefault();
-		break;	
+		break;
 	    case 40:
 		_this.val(parseInt(_this.val(), 10) - setting.step);
 		break;
 	    case 78:
 		if(ev.ctrlKey){ _this.val(parseInt(_this.val(), 10) - setting.step);}
 		ev.stopPropagation();ev.preventDefault();
-		break;			
+		break;
 	    }
 	    var nowVal = _this.val();
 	    if(!isEmpty(setting.min) && nowVal < setting.min){
@@ -1584,7 +1589,7 @@ $(function(){
 	if(alreadyList !== undefined){
 	    alreadyList.map(function(idx, obj){
 		already[$(obj).data('explorerShim')] = obj;
-	    });	    
+	    });
 	}
 	history_counter = 0;
 	var alreadyLength = Object.keys(already).length;
@@ -1604,7 +1609,7 @@ $(function(){
 	});
     }
     refresh_save_history();
-    
+
     /**
      * saveされる対象はdata-myhd-node-idが付与されているもの
      */
@@ -1615,7 +1620,7 @@ $(function(){
 	var save_s = orDefault(MY_STORAGE.select('save_s'), {});
 	++history_counter;
 	var tmp_counter = 0;
-	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S 
+	while(history_counter - tmp_counter > MAX_SAVE_SLOT_S
 	      && tmp_counter++ < 10000){
 	    if(save_s.hasOwnProperty('save'+MY_NODE_SEP+tmp_counter)){
 		delete save_s['save'+MY_NODE_SEP+tmp_counter];
@@ -1656,7 +1661,7 @@ $(function(){
 		loadRawData2Screen(saved, nowPage.screen);
 	    });
 	}
-    });    
+    });
 
     el_func_s.register_part.on(MY_CLICK, function(){
 	/* get selected or root */
@@ -1680,7 +1685,7 @@ $(function(){
 		    preserve_destroied(_this);
 		});
     });
-    
+
     var relativeTopBottom = $('#positionRelativeTopBottom');//敢えてstopPropagationしない
     var relativeTopBottomValue = $('#positionRelativeTopBottomValue');
     var relativeLeftRight = $('#positionRelativeLeftRight');
@@ -1710,7 +1715,7 @@ $(function(){
 	    }else{
 		var rl = lr === 'left' ? 'right' : 'left';
 		position[lr] = relativeLeftRightValue.val();
-		position[rl] = 'auto';			
+		position[rl] = 'auto';
 	    }
 
 	    _this.css(position);
@@ -1724,7 +1729,7 @@ $(function(){
 	    command_redo_history.push(cmd);
 	}
     });
-    
+
     el_func_s.redo.on(MY_CLICK, function(){
 	var cmd = command_redo_history.pop();
 	if(cmd !== undefined){
@@ -1754,19 +1759,19 @@ $(function(){
 	    el_HDexplorerSpace.height(el_HDexplorer.children('section').innerHeight() - el_HDexplorer.find('.menuHandler').outerHeight());
 	    break;
 	case 66:
-	    if(ev.ctrlKey){ fn_ctrlB();} 
+	    if(ev.ctrlKey){ fn_ctrlB();}
 	    ev.stopPropagation();
 	    break;
 	case 80:
-	    if(ev.ctrlKey){ fn_ctrlP();} 
+	    if(ev.ctrlKey){ fn_ctrlP();}
 	    ev.stopPropagation();
 	    break;
 	case 70:
-	    if(ev.ctrlKey){ fn_ctrlF();} 
+	    if(ev.ctrlKey){ fn_ctrlF();}
 	    ev.stopPropagation();
 	    break;
 	case 78:
-	    if(ev.ctrlKey){ fn_ctrlN();} 
+	    if(ev.ctrlKey){ fn_ctrlN();}
 	    ev.stopPropagation();
 	    break;
 	default :
@@ -1859,7 +1864,7 @@ $(function(){
 		    el_sandbox_style_screen_area.val(style_html);
 		}
 	    }).trigger(MY_CHANGE);//end el_some.select
-	}else if(tagName === 'textarea' || tagName === 'intput'){ 
+	}else if(tagName === 'textarea' || tagName === 'intput'){
 	    el_some.select.on(MY_CHANGE+' '+MY_CLICK,function(){
 		var some_name = this.value;
 		if(isEmpty(some_name)){return false;}
@@ -2015,12 +2020,20 @@ $(function(){
      * @return B
      */
     function split_ignore_nest(str,splitter, ignore_nest_parenthesis_s){
-	var ign_pair_map = {};
-	$.each(ignore_nest_parenthesis_s,function(idx, pair){
-	    ign_pair_map[pair[0]] = pair[1];
-	});
-	if(ignore_nest_parenthesis_s.indexOf(splitter) > -1) throw new Error('splitter '+splitter+' is in ignores');
+	// guard
 	if(str == null || typeof str !== 'string')	throw new TypeError(str + ' is not valid.');
+
+	var ign_pair_map = {};
+	ignore_nest_parenthesis_s.forEach(function(pair,idx,a){
+	    if($.isArray(pair) && pair.length === 2) {
+		ign_pair_map[pair[0]] = pair[1];
+	    } else {
+		console.log('error pair :' + JSON.stringify(pair));
+	    }
+	});
+	var splitByIgnore = ignore_nest_parenthesis_s.some(function(pair,i,a){
+	    return pair.indexOf(splitter) > -1;
+	});
 	var length_str = str.length;
 	var result = [];
 	var tmp_str = '';
@@ -2033,7 +2046,12 @@ $(function(){
 	    if(char === now_close_char){
 		tmp_str += char;
 		now_close_char = nested_char_stack.pop();
-		continue;
+		if (splitByIgnore && nested_char_stack.length === 0){
+		    // nothing
+                    console.log('nothing');// TODO rm test log
+		}else{
+		    continue;
+		}
 	    }else if(ign_pair_map.hasOwnProperty(char)){
 		tmp_str += char;
 		nested_char_stack.push(now_close_char);
@@ -2201,7 +2219,7 @@ $(function(){
 		if(parenthesis_counter === 0){parenthesis_last = idx;}
 	    }
 	}
-	if( parenthesis_last < parenthesis_first 
+	if( parenthesis_last < parenthesis_first
 	    || parenthesis_first * parenthesis_first < 0 ){
 		throw new TypeError(_input_tag);
 	    }
@@ -2447,7 +2465,7 @@ $(function(){
 		    temp_prop_s.style +='bottom:auto;';
 		}else{
 		    temp_prop_s.style +='top:auto;';
-		}		    
+		}
 	    }
 	    if( temp_prop_s.style.indexOf('left') === -1){
 		if( temp_prop_s.style.indexOf('right') === -1){
@@ -2455,7 +2473,7 @@ $(function(){
 		    temp_prop_s.style +='right:auto;';
 		}else{
 		    temp_prop_s.style +='left:auto;';
-		}		    
+		}
 	    }
 	}
 	return zIndex ;
@@ -2527,7 +2545,7 @@ $(function(){
 		//	poolW = pools[0] + 4;
 		//	app_style.width = pools[0]+'px';
 		//}
-		if(parseInt(app_style.height,10) < pools[1]){ 
+		if(parseInt(app_style.height,10) < pools[1]){
 		    newPoolH += pools[1] + DISTANT_HEIGHT * 2;
 		    app_style.top = DISTANT_HEIGHT * i * 2 * layer + parseInt(app_style.top, 10) + 'px';
 		    app_style.height = pools[1] + DISTANT_HEIGHT +'px';
@@ -2669,7 +2687,7 @@ $(function(){
      * @param add_method ex appendTo
      * @param target_s ex page.screen
      * @param _this self ex {tag:, prop_s:, child_s:}
-     * @param _is_draggable 
+     * @param _is_draggable
      * @param is_svg
      * @return new roots
      */
@@ -2836,7 +2854,7 @@ $(function(){
 		"autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
 		//TODO , "containment":page.screen bugるため範囲内に収める独自処理を
 	    };
-	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":nowPage.screen, "delay":150, 
+	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":nowPage.screen, "delay":150,
 				  "stop":function(ev, ui){
 				      var _this = $(this);
 				      _this.removeClass('snap_border')
@@ -3068,7 +3086,7 @@ $(function(){
 	    context_menu.el_selector.val(my_node_id);
 	    if(isAddSelected){select_element(_this);}
 	    setProps(_this, true);
-	    
+
 	    // position relative
 	    var posi_name_s = ["top", "left", "bottom", "right"];
 	    var pool = analysisCss(_this.attr('style'));
@@ -3138,7 +3156,7 @@ $(function(){
 		    }catch(e){
 			console.log(e);
 		    }
-		}, 
+		},
 		"undo":function(){
 		    var tmp_new = [];
 		    kept_new.forEach(function(objs,i,a){
@@ -3149,7 +3167,7 @@ $(function(){
 			tmp_new.push(tmp_child);
 		    });
 		    kept_new = tmp_new;
-		}, 
+		},
 		"getMyNodeId":function(){
 		    return kept_new;
 		},
@@ -3163,7 +3181,7 @@ $(function(){
 	}
 	return new func_append();
     };
-    
+
     /**
      * 削除する。但し現スクリーンのみ
      */
@@ -3174,11 +3192,11 @@ $(function(){
 	    var rtn = {
 		"execute":function(){
 		    kept.detach();
-		}, 
+		},
 		"undo":function(){
 		    var parent_node_id = parentNodeId(my_node_id).parent_node_id;
 		    $('[data-myhd-node-id='+parent_node_id+']').append(kept);
-		}, 
+		},
 		"getMyNodeId":function(){
 		    return kept_my_node_id;
 		},
@@ -3199,7 +3217,7 @@ $(function(){
 	    var kept_src_node_id_s = [];
 	    var kept_src_parend_id_s = [];
 	    var kept_target_node_id_s = [];
-	    
+
 	    src_s.each(function(){//copy,move,etc 元は全ページ対象
 		var _src = myWrapElement(this);
 		var src_node_id = _src.attr('data-myhd-node-id');
@@ -3239,7 +3257,7 @@ $(function(){
 			    kept_new_copy.push(display_onscreen(add_method, target_s, source));
 			});
 		    }
-		}, 
+		},
 		"undo":function(){
 		    if(target_s.length !== 0){
 			kept_new_copy.forEach(function(new_copy,i,a){
@@ -3253,7 +3271,7 @@ $(function(){
 			    $('[data-myhd-node-id='+parent_node_id+']').append(src);
 			});
 		    }
-		}, 
+		},
 		"getMyNodeId":function(){
 		    return kept_src_node_id_s;
 		},
@@ -3274,7 +3292,7 @@ $(function(){
 	    var kept_src_node_id_s = [];
 	    var kept_src_parend_id_s = [];
 	    var kept_target_node_id_s = [];
-	    
+
 	    src_s.each(function(){//copy,move,etc 元は全ページ対象
 		var _src = myWrapElement(this);
 		var src_node_id = _src.attr('data-myhd-node-id');
@@ -3314,7 +3332,7 @@ $(function(){
 			    kept_new_copy.push(display_onscreen(add_method, target_s, source));
 			});
 		    }
-		}, 
+		},
 		"undo":function(){
 		    if(target_s.length !== 0){
 			kept_new_copy.forEach(function(new_copy,i,a){
@@ -3323,7 +3341,7 @@ $(function(){
 			    });
 			});
 		    }
-		}, 
+		},
 		"getMyNodeId":function(){
 		    return kept_src_node_id_s;
 		},
@@ -3345,7 +3363,7 @@ $(function(){
 	    var kept_src_node_id_s = [];
 	    var kept_src_parend_id_s = [];
 	    var kept_target_node_id_s = [];
-	    
+
 	    src_s.each(function(){//copy,move,etc 元は全ページ対象
 		var _src = myWrapElement(this);
 		var src_node_id = _src.attr('data-myhd-node-id');
@@ -3394,7 +3412,7 @@ $(function(){
 			    });
 			}
 		    }
-		}, 
+		},
 		"undo":function(){
 		    if(target_s.length !== 0){
 			var tmp_new = [];
@@ -3407,7 +3425,7 @@ $(function(){
 			});
 			kept_new_copy = tmp_new;
 		    }
-		}, 
+		},
 		"getMyNodeId":function(){
 		    return kept_src_node_id_s;
 		},
@@ -3421,7 +3439,7 @@ $(function(){
 	};
 	return new func_copy_paste(add_method, src_s, added_candidate_s);
     };
-    
+
     function parentNodeId(my_node_id){
 	var split = my_node_id.split(MY_NODE_SEP);
 	var my_obj_id = split.pop();
@@ -3436,13 +3454,13 @@ $(function(){
 	return {
 	    "getNewMyObjId":function(){
 		return obj_id++;
-	    }, 
+	    },
 	    "getNewProp":function(){
 		return prop_id++;
-	    }, 
+	    },
 	    "getNewGrowth":function(){
 		return tree_growth_id++;
-	    } 
+	    }
 	};
     }
 
