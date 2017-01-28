@@ -1027,10 +1027,11 @@ $(function(){
   });
 
   function createPageDOM(name, adderClass, container, width, height){
-	  var pageName = convPageName(name);
+	  var pageName = name.trim();
+    var pageId = convPageId(pageName);
 	  var now_id = STATUS.getNewMyObjId();
 	  var _page = {};
-	  _page.screen = $('<section id="'+pageName+'" class="'+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-myhd-node-id="'+now_id+'" data-myhd-obj-id="'+now_id+'">')
+	  _page.screen = $('<section id="'+pageId+'" class="'+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-myhd-node-id="'+now_id+'" data-myhd-obj-id="'+now_id+'">')
 	    .on('contextmenu', display_contextmenu)// on screen
 	    .on(MY_CLICK,function(ev){
 		    if(context_menu.is_close_menu){
@@ -1042,8 +1043,8 @@ $(function(){
 	  container[pageName] = _page;
 	  return _page;
   }
-  function convPageName(name){
-	  return name ? name.trim() : 'temp';
+  function convPageId(name){
+	  return name ? 'HDpage' + name.trim() : 'temp';
   }
 
   /**
@@ -1053,7 +1054,7 @@ $(function(){
 	  if(!height){ height = '100%';}
 	  if($.isNumeric(width)){ width +='px';}
 	  if(!width){ width = '100%';}
-	  var pageName = convPageName(name);
+	  var pageName = convPageId(name);
     var pageObj = null;
 	  if(page_s.hasOwnProperty(pageName)){
 	    console.log('There are the same name:' + name + ' .');
