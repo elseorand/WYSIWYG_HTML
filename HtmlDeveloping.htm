@@ -15,24 +15,24 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 		<style type="text/css" >
 			/* For this app */
-      body > #HtmlDeveloping > #HDlayer_Root {
-        background-color:#FFFACD;
+      body > #HtmlDeveloping > #Root {
+        background-color: #FFFACD;
       }
       /* explorer space on off */
       #HDexplorerSpace.HDScreenSaved > :not(.HDScreenSaved){
         display:none;
       }
-      #HDexplorerSpace.HDlayerContainer > :not(.HDlayerContainer){
+      #HDexplorerSpace.HDpageContainer > :not(.HDpageContainer){
         display:none;
       }
-			.HDlayerClass {
+			.HDpageClass {
         background-color:transparent;
         opacity: 1 !important;
 			}
-			.HDlayerClass table td,.HDlayerClass table th{/* table の罫線を出すために必須の設定 */
+			.HDpageClass table td,.HDpageClass table th{/* table の罫線を出すために必須の設定 */
 				background-color:transparent;
 			}
-      .HDbaseLayer {
+      .HDbasePage {
         background-color: transparent;
       }
 			.snap_border {
@@ -131,27 +131,27 @@
       .menu_container > div {
 
       }
-      #HDlayerSpace input.func_layer_change {
+      #HDpageSpace input.func_page_change {
         border:2px double transparent;
         text-align:center;
         margin-bottom: 2px;
         margin-left:8px;
         width:92%;
       }
-      #HDlayerRoot > input.func_layer_change.HDbaseLayer{
+      #HDpageRoot > input.func_page_change.HDbasePage{
         background-color:#000fff;
         color:white;
       }
-      #HDbaseLayerList > input.func_layer_change.HDbaseLayer{
+      #HDbasePageList > input.func_page_change.HDbasePage{
         background-color:#000fff;
         color:white;
       }
-      #HDlayerSpace input.func_layer_change.selectedScrnBtn{
+      #HDpageSpace input.func_page_change.selectedScrnBtn{
         border:2px double grey;
         background-color:#FF6E41;
         color:black;
       }
-      #HDfilterLayerList > input.func_layer_change.freeScrnBtn{
+      #HDfilterPageList > input.func_page_change.freeScrnBtn{
         border:2px double grey;
         text-align:left;
         margin-left:16px;
@@ -218,7 +218,7 @@
       .noBgColor{
         background-color:rgba(255, 255, 255, 1);
       }
-      .HDlayerSpace >input {
+      .HDpageSpace >input {
         border:none;
         background-color:transparent;
         text-align:left;
@@ -232,7 +232,7 @@
 			#screenRoot *:not(input){
 
 			}
-			.HDlayerClass{
+			.HDpageClass{
 				background-color:transparent;
 			}
 			#context_menu{
@@ -298,7 +298,7 @@
         top:0px !important;
 				left:0px !important;
       }
-			.HDlayerClass > .htmlize{
+			.HDpageClass > .htmlize{
 				animation: anime1 3s ease -1s 1 normal;
 			}
 
@@ -603,9 +603,8 @@
               <button style="border-radius:50%;background-color:#999999;border:none;">_</button>
               <button style="border-radius:50%;background-color:#999999;border:none;">□</button>
               <span id="ObjectName" type="text" value="" readonly style="border:none;" ></span>
-              <span>Sorry!! Now developing : saving Root and layers</span>
               <span style="float:right;color:black;">
-                <input id="HDfilteringKeyword" type="text" value="" placeholder="now on developing" style="height:2em;"/>
+                <input id="HDfilteringKeyword" type="text" value="" placeholder="incremental search box : now on developing" style="height:2em;"/>
               </span>
             </div>
             <section id="HDheaderBar" style="height:2.5em;display:flex;flex-direction:row;">
@@ -617,15 +616,15 @@
             </section>
           </header>
           <section style="display:flex;flex-direction:row;flex-grow:10;align-items:stretch;">
-            <aside id="HDlayerSpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
-				      <input value="" id="new_layer_name" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
-              <!-- Root managerは有料版??               <input id="func_new_root_layer" type="button" value=" + new Root layer"/>-->
-              <!-- layer mergeは有料版??               <input id="func_new_base_layer" type="button" value=" + new Base layer"/>-->
-				      <input id="func_new_filter_layer" type="button" value="  + new filter layer" style="">
-              <div id="HDlayerRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
-              <div id="HDbaseLayerList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:hidden;margin:2px 0px 0px 8px;"></div>
-              <div id="HDfilterLayerList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:hidden;margin:4px;"></div>
-              <input id="func_selected_del_layer" type="button" value=" - delete" style=""/>
+            <aside id="HDpageSpace" style="background-color:#dddddd;color:#444444;width:12em;align-items:stretch;display:flex;flex-direction:column;">
+				      <input value="" id="new_page_name" type="text" placeholder="new file name" style="background-color:white;border:1px solid black;">
+              <!-- Root managerは有料版??               <input id="func_new_root_page" type="button" value=" + new Root page"/>-->
+              <!-- page mergeは有料版??               <input id="func_new_base_page" type="button" value=" + new Base page"/>-->
+				      <input id="func_new_filter_page" type="button" value="  + new page" style="">
+              <div id="HDpageRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
+              <div id="HDbasePageList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:hidden;margin:2px 0px 0px 8px;"></div>
+              <div id="HDfilterPageList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:hidden;margin:4px;"></div>
+              <input id="func_selected_del_page" type="button" value=" - delete" style=""/>
             </aside>
             <article id="HDexplorerSpace" style="flex-grow:4;background-color:rgba(255,255,255,0.8);align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;overflow-y:auto;">
             </article>

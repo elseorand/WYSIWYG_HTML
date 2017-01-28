@@ -1,21 +1,35 @@
 $(function(){
   /**
+   * saved data structure
+   ** part_list
+   ** part_list_selected
+   ** prop_list
+   ** prop_list_selected
+   ** style_list
+   ** style_list_selected
+   ** monoColors
+   ** gradColors
+   ** save_s: name // quick save
+   ** save_page_s: page, info
+   ** save_dirs: positive name map
+   ** TODO yet sent data to Server
+   */
+  /**
    * Web Functional Component
    */
   /**
-   * dirをbaseとし、pageをfilter/layerとする
-   * baseのクリックで適用しているレイヤーの一覧を下層から表示する
-   * 各レイヤーは所属するbase要素を定義できる
-   * 定義しない場合は、画面に対して0,0の絶対表示となる
-   * html化ないしは焼き込み命令でbaseにマージされる
-   * レイヤーはグローバルで各ベースで共有可能
-   * ベースがどのレイヤーを使用しているか記憶する
-   * 使用しているレイヤーに対しmerge時にinjection可能
-   * レイヤーはネストやコピー可能
-   * ベースはレイヤーというtraitを集めるディレクトリーの感覚
-   * レイヤーやベースはタグorラベルによるグルーピングが可能
-   * 焼き込みはwebworker
-   * レイヤー
+   * project
+   *   directory : has pointers of page
+   *     pages : has parts
+   *       part : html generator function
+   *
+   */
+  /**
+   * * B > A := B extends A i.e. BはAのホモローグにchild_sのaddであること。superはextendsの逆で
+   * ** A part + convFuncs = B part i.e. B - A := convFuncs (isomorphic)
+   * * _treeの構造
+   * ** === 仕様
+   * ** == 仕様
    */
   /** On developing
    * explorer window function
@@ -96,7 +110,7 @@ $(function(){
    */
   /** TODO CLIENT
    * printable window
-   * display : file => layer , stack or merge layers
+   * display : file => page , stack or merge pages
    * psuedo link
    * customizable key binding
    * transform perspective
@@ -126,6 +140,8 @@ $(function(){
    * Web Component
    * Component mixin
    * scalatest seleniumのコードの生成
+   * dictionary
+   * serializing html function
    */
   /** TODO SERVER
    * Websocket sharing
@@ -151,6 +167,7 @@ $(function(){
    * scripting mode
    * bootstrap css support
    */
+  // mod prototype
   // startsWith
   if (!String.prototype.startsWith) {
 	  String.prototype.startsWith = function(searchString, position) {
@@ -158,6 +175,17 @@ $(function(){
 	    return this.lastIndexOf(searchString, position) === position;
 	  };
   }
+  // flatMap
+  Object.defineProperty(Array.prototype, 'flatMap', {
+    value: function(f, self){
+      self = self || this;
+      return this.reduce(function(ys, x){
+        return ys.concat(f.call(self, x));
+      }, []);
+    },
+    enumerable: false
+  });
+
   // Global key bind
   var fn_ctrlB = undefined;
   var fn_ctrlP = undefined;
@@ -173,7 +201,8 @@ $(function(){
   var STATUS = getStatus();//get_child_tree_select_domがmy-obj-idがユニークであることに依存している
   var not_click = false;
   var is_suspend = false;
-  var page_s = {};
+  var page_s = {};//
+  var page_save_s = {};
   var command_undo_history = [];
   var command_redo_history = [];
 
@@ -189,10 +218,10 @@ $(function(){
   var CLASS_EDIT_DATA = 'objEditData';
   var CLASS_POSITION = 'objPositioning';
   var エクスプローラー表示対象クラス = 'now-displaying-class';
-  var CLASS_EXPLORER_CONTAINER = 'HDlayerContainer';
+  var CLASS_EXPLORER_CONTAINER = 'HDpageContainer';
   var CLASS_SCREEN_SAVE = 'HDScreenSaved';
 
-  var LAYER_SEP = '>';
+  var TAG_LAYER_SEP = '>';
   var LOOP_HLD = '*';
   var SBL_HLD = '+';
   var DEFAULT_WIDTH = 100;
@@ -203,6 +232,8 @@ $(function(){
 
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var XLink_NS = 'http://www.w3.org/1999/xlink';
+
+  var NOP = function(){return null;};
 
   // mode
   var NMS_EDIT = '.edit';
@@ -314,13 +345,20 @@ $(function(){
   var el_float_menu = $('.float_menu').resizable({"autoHide":true,"minWidth":80}).draggable({"handle":".menuHandler"});
 
   var el_sandbox_screen =  $('#sandbox_screen');
-  var el_func_new_filter_layer = $('#func_new_filter_layer').on(MY_CLICK, function(){
-	  var name = el_new_layer.val().trim();
-	  var btn_page = createLayer(name, el_HDfilterLayerList);
-	  if(btn_page === false){return false;}
-	  setNowPage(btn_page.btn, btn_page.page);
-	  btn_page.btn.trigger(MY_CLICK);
-  });
+  var el_func_new_filter_page = $('#func_new_filter_page')
+    .on(MY_CLICK, function(){
+	    var name = el_new_page.val().trim();
+      if (!name){
+        // TODO alert required
+        return ;
+      }
+      // check dupe
+
+	    var btn_page = createPage(name, el_HDfilterPageList);
+	    if(!btn_page){return false;}
+	    setNowPage(btn_page.btn, btn_page.page);
+	    btn_page.btn.trigger(MY_CLICK);
+    });
 
   var el_HDload_presetFile = $('#HDload_presetFile');
   var el_HDload_presetBtn = $('#HDload_presetBtn').on(MY_CLICK,function(){
@@ -351,11 +389,11 @@ $(function(){
 	  }
   });
 
-  var el_func_new_base_layer = $('#func_new_base_layer').on(MY_CLICK, function(){
-	  var name = el_new_layer.val().trim();
-	  var btn_dir = createBaseLayer(name);
+  var el_func_new_base_page = $('#func_new_base_page').on(MY_CLICK, function(){
+	  var name = el_new_page.val().trim();
+	  var btn_dir = createBasePage(name);
   });
-  var el_new_layer = $('#new_layer_name');
+  var el_new_page = $('#new_page_name');
   var el_style = $('style#MyEditableStyle');
   var el_script = $('#MyEditableScript');
   var el_now_selected = {};
@@ -748,29 +786,27 @@ $(function(){
 		           })
 	  .draggable({"handle":".menuHandler"});
   var el_HDexplorerSpace = $('#HDexplorerSpace');
-  var el_HDlayerSpace = $('#HDlayerSpace');
-  var el_HDlayerRoot = $('#HDlayerRoot');
-  var el_HDbaseLayerList = $('#HDbaseLayerList');
-  var el_HDfilterLayerList = $('#HDfilterLayerList');
+  var el_HDpageSpace = $('#HDpageSpace');
+  var el_HDpageRoot = $('#HDpageRoot');
+  var el_HDbasePageList = $('#HDbasePageList');
+  var el_HDfilterPageList = $('#HDfilterPageList');
   // page
   var el_HtmlDeveloping = $('#HtmlDeveloping');
   var nowPage;
   var el_func_s = {};
   var el_ObjectName = isEmpty(el_ObjectName) ? $('#ObjectName') : el_ObjectName;
-  var ROOT_BTN_PAGE = createLayer('Root', el_HDlayerRoot, 'dir');
+  var ROOT_BTN_PAGE = createPage('Root', el_HDpageRoot, 'dir');
 
   (function(){
 	  context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white", "box-shadow": "5px 5px 15px #000000", "border-radius":"5px"});
 	  setNowPage(ROOT_BTN_PAGE.btn, ROOT_BTN_PAGE.page);
-	  /*
-	    var savedLayers = createLayer('hoge', el_HDfilterLayerList);
-	    display_onscreen('appendTo', savedLayers.page.screen, {"tag":"div", "prop_s":{"style":"font-size:320px;font-weight:900;", "html":"fuga"}, "child_s":[]});
 
-	    console.log('minimizedScrn.attr(data-myhd-node-id) : ' + JSON.stringify(minimizedScrn.attr('data-myhd-node-id')));
-	    console.log('child_tree.child_s() : ' + JSON.stringify(get_child_tree_select_dom(minimizedScrn.attr('data-myhd-node-id')).child_s()));
-	    ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').each(function(idx){
-	    });
-	  */
+    // loading saved pages
+	  var savedPages = MY_STORAGE.select('save_page_s') || {}; //
+    Object.keys(savedPages).forEach(function(pageName,i,a){
+      var loadedPage = createPage(pageName, el_HDfilterPageList);
+	    display_onscreen('appendTo', loadedPage.page.screen, savedPages[pageName].page);
+    });
 
 	  var child;
 	  var isNewChild = true;
@@ -990,11 +1026,11 @@ $(function(){
 	  }
   });
 
-  function createLayerDOM(name, adderClass, width, height){
-	  var layerName = convLayerName(name);
+  function createPageDOM(name, adderClass, container, width, height){
+	  var pageName = convPageName(name);
 	  var now_id = STATUS.getNewMyObjId();
 	  var _page = {};
-	  _page.screen = $('<section id="'+layerName+'" class="'+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-myhd-node-id="'+now_id+'" data-myhd-obj-id="'+now_id+'">')
+	  _page.screen = $('<section id="'+pageName+'" class="'+adderClass+'" style="position:absolute;top:0px;bottom:44px;right:0px;z-index:100;width:'+width+';height:'+height+';" data-myhd-node-id="'+now_id+'" data-myhd-obj-id="'+now_id+'">')
 	    .on('contextmenu', display_contextmenu)// on screen
 	    .on(MY_CLICK,function(ev){
 		    if(context_menu.is_close_menu){
@@ -1003,31 +1039,37 @@ $(function(){
 		    el_func_s.cxlselected.trigger(MY_CLICK);
 	    }).data('name', name);
 	  _page.prop_history = [];//TODO undo css
-	  page_s[layerName] = _page;
+	  container[pageName] = _page;
 	  return _page;
   }
-  function convLayerName(name){
-	  return 'HDlayer_'+name;
+  function convPageName(name){
+	  return name ? name.trim() : 'temp';
   }
-  function createLayer(name, appendTarget, type, width, height){
-	  if(arguments.length < 5){ height = '100%';}
+
+  /**
+   * pageをつくる
+   */
+  function createPage(name, appendTarget, type, width, height){
+	  if(!height){ height = '100%';}
 	  if($.isNumeric(width)){ width +='px';}
-	  if(arguments.length < 4){ width = '100%';}
-	  var layerName = convLayerName(name);
-	  if(page_s.hasOwnProperty(layerName)){
+	  if(!width){ width = '100%';}
+	  var pageName = convPageName(name);
+    var pageObj = null;
+	  if(page_s.hasOwnProperty(pageName)){
 	    console.log('There are the same name:' + name + ' .');
-	    return false;
+      pageObj = page_s[pageName];
+	    return {"btn":$('#'+'btn_'+name).data('page', pageObj), "page":pageObj};// TODO mod mutual
 	  }
-	  var adderClass = type === 'dir' ? 'HDlayerClass HDbaseLayer ' : 'HDlayerClass ';
-	  var pageObj = createLayerDOM(name, adderClass, width, height);
+	  var adderClass = type === 'dir' ? 'HDpageClass HDbasePage ' : 'HDpageClass';
+	  pageObj = createPageDOM(name, adderClass, page_s, width, height);
 	  context_menu.is_close_menu = true;
-	  var pageBtn = $('<input class="func_layer_change freeScrnBtn '+adderClass+'" type="button" value="'+name+'" />').data('page', pageObj).appendTo(appendTarget);
+	  var pageBtn  = $('<input id="btn_'+name+'" class="func_page_change freeScrnBtn '+adderClass+'" type="button" value="'+name+'" />').data('page', pageObj).appendTo(appendTarget);
 	  el_HtmlDeveloping.append(pageObj.screen);//TODO folder
 	  el_ObjectName.html(pageObj.screen.data('name'));
 	  return {"btn":pageBtn, "page":pageObj};
   }
-  function createBaseLayer(name){
-	  return createLayer(name, el_HDbaseLayerList, 'dir');
+  function createBasePage(name){
+	  return createPage(name, el_HDbasePageList, 'dir');
   }
   function display_contextmenu(ev, _x, _y){
 	  ev.preventDefault();
@@ -1066,11 +1108,11 @@ $(function(){
 		  .append('<div class="explorerShim '+clazz+'" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>')
 	    .data('explorerShim', pageName)
 		  .appendTo(el_HDexplorerSpace)
-		  .on(MY_CLICK, '.explorerShim.HDlayerContainer', function(){
+		  .on(MY_CLICK, '.explorerShim.HDpageContainer', function(){
 		    var _this = $(this);
 		    var btnName = _this.children('div').html();
-		    //explorer 左のボタン押下. TODO layer mergeまでの暫定挙動
-		    el_HDlayerSpace.find('.func_layer_change').filter(function(){
+		    //explorer 左のボタン押下. TODO page mergeまでの暫定挙動
+		    el_HDpageSpace.find('.func_page_change').filter(function(){
 			    return this.value === btnName;
 		    }).trigger(MY_CLICK);
 		  })
@@ -1081,13 +1123,13 @@ $(function(){
   }
 
   var el_HDopenDirs = $('#HDopenDirs');
-  el_HDlayerSpace
+  el_HDpageSpace
 	  .data(エクスプローラー表示対象クラス, CLASS_EXPLORER_CONTAINER)
-	  .on(MY_CLICK, '.func_layer_change', function(){
+	  .on(MY_CLICK, '.func_page_change', function(){
 	    var _this = $(this).addClass('selectedScrnBtn');
 	    var _page = _this.data('page');
 	    var selectedName = _page.screen.data('name');
-	    ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').each(function(idx){
+	    ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').each(function(idx){
 		    return putInExplorer(CLASS_EXPLORER_CONTAINER, $(this), selectedName);
 	    });
 	    if(ROOT_BTN_PAGE.page !== _page && nowPage !== _page){
@@ -1103,7 +1145,7 @@ $(function(){
 		    setNowPage(_this, _page);
 	    }
 	    el_ObjectName.html(nowPage.screen.data('name'));
-	    refreshExplorerSpace(el_HDlayerSpace.data(エクスプローラー表示対象クラス));
+	    refreshExplorerSpace(el_HDpageSpace.data(エクスプローラー表示対象クラス));
 	  }).on(MY_INIT,function(){
 	    ROOT_BTN_PAGE.btn.trigger(MY_CLICK);//TODO lazy load
 	  }).trigger(MY_INIT);
@@ -1248,7 +1290,7 @@ $(function(){
   });
 
   /**
-   * ready for copy : no recursive , mono layer
+   * ready for copy : no recursive , mono page
    */
   $.each(互いに排他の機能_s,function(idx, name){
 	  var now_class = CLASS_S[name];
@@ -1606,9 +1648,9 @@ $(function(){
 	  }
 	  history_counter = 0;
 	  var alreadyLength = Object.keys(already).length;
-	  for(var key in save_s) if(save_s.hasOwnProperty(key) && key.startsWith('save')){
+	  for(var key in save_s) if(save_s.hasOwnProperty(key) && key.startsWith('save')){ // TODO fixed saved file name
 	    if(already[key] === undefined){
-		    var pageObj = createLayerDOM(key, CLASS_SCREEN_SAVE, '100%', '100%');
+		    var pageObj = createPageDOM(key, CLASS_SCREEN_SAVE, page_save_s, '100%', '100%');
 		    putInExplorer(CLASS_SCREEN_SAVE, pageObj.screen, 'save');
 		    loadRawData2Screen(save_s[key], pageObj.screen);
 		    var tmp = parseInt(key.split(MY_NODE_SEP)[1],10);
@@ -1639,11 +1681,24 @@ $(function(){
 		    delete save_s['save'+MY_NODE_SEP+tmp_counter];
 	    }
 	  }
+    // get all pages without quick saves
+    var save_page_s = {};
+    Object.keys(page_s).forEach(function(pageName){
+      var targetPage = page_s[pageName];
+      var mother_id = targetPage.screen.attr('data-myhd-node-id');//attrだと文字, dataだとobj
+	    var child_tree = get_child_tree_select_dom(mother_id);
+      save_page_s[pageName] = {
+        page: child_tree.child_s(),
+        detail: {} // TODO for userId, create date, mod date, history
+      };
+    });
+
 	  /* save this */
 	  save_s['save'+MY_NODE_SEP+history_counter] = save;
 	  MY_STORAGE
 	    .transaction()
 	    .replace('save_s', save_s)
+      .replace('save_page_s', save_page_s)
 	    .commit();
 
 	  /* refresh */
@@ -2100,7 +2155,7 @@ $(function(){
 	  }
 	  raw_tag_s = raw_tag_s.trim().replace(/\s+/g,' ').replace(/\s*,\s*/g,',');//複数連続スペースやカンマを一つに変換
 	  var tag_s2 = [];
-	  raw_tag_s.split(LAYER_SEP).forEach(function(tag, idx){
+	  raw_tag_s.split(TAG_LAYER_SEP).forEach(function(tag, idx){
 	    var trimed_tag = tag.trim();
 	    var pooled_tag_s = [];
 	    split_ignore_nest(trimed_tag,SBL_HLD,[["(",")"]]).forEach(function(sbl, cIdx){//sibling
@@ -2376,7 +2431,7 @@ $(function(){
 	  };
 	  tag_size_s = tag_size_s.reverse();
 
-	  $.each(tag_s2, function(layer_idx, tag_s ){
+	  $.each(tag_s2, function(page_idx, tag_s ){
 	    var new_parent_s = [];
 	    $.each(parent_s, function(pIdx, parent){
 		    for(var i=0;i < tag_s.tag_s.length;++i){
@@ -2390,7 +2445,7 @@ $(function(){
 		      var tag = tag_prop_s[0];
 		      var prop_s = tag_prop_s[1];
 		      //サイズ指定が無いと､選択不能な1pxサイズになるため､初期サイズを確保
-		      var zIndex = set_default_size(tag, prop_s, tag_size_s, layer_idx, i);
+		      var zIndex = set_default_size(tag, prop_s, tag_size_s, page_idx, i);
 		      if(part_map.hasOwnProperty(tag)){//part nest route
 			      isResolevdByPartMap = true;
 			      //error check
@@ -2441,8 +2496,8 @@ $(function(){
    * TODO ユーザー指定CSSの設定も調査対象にする
    * @return z-index
    */
-  function set_default_size(tag, temp_prop_s, tag_size_s, my_layer_idx, my_idx){
-	  var zIndex = get_z_index(my_layer_idx);
+  function set_default_size(tag, temp_prop_s, tag_size_s, my_page_idx, my_idx){
+	  var zIndex = get_z_index(my_page_idx);
 	  if($.inArray(tag, サイズを持たせないタグ) > -1){
 	    if( typeof temp_prop_s.style === 'undefined'){
 		    temp_prop_s.style = 'z-index:'+zIndex+';';
@@ -2452,7 +2507,7 @@ $(function(){
 	    return zIndex;
 	  }
 	  var my_height = DEFAULT_HEIGHT  ;
-	  var my_width = DEFAULT_WIDTH + 10 * (tag_size_s.length - my_layer_idx + tag_size_s[my_layer_idx]);
+	  var my_width = DEFAULT_WIDTH + 10 * (tag_size_s.length - my_page_idx + tag_size_s[my_page_idx]);
 	  // default size
 	  if( 各タグ毎の初期サイズ[tag] !== undefined ){
 	    var default_style = 各タグ毎の初期サイズ[tag];
@@ -2461,7 +2516,7 @@ $(function(){
 	  }
 
 	  if( typeof temp_prop_s.style === 'undefined'){
-	    temp_prop_s.style = 'z-index: '+zIndex+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+	    temp_prop_s.style = 'z-index: '+zIndex+';height:'+my_height+'px;width:'+my_width+'px;top:'+get_top(tag_size_s, my_page_idx, my_idx)+'px;left:'+get_left(tag_size_s, my_page_idx, my_idx)+'px;';
 	  }else {
 	    if( temp_prop_s.style.indexOf('z-index') === -1){
 		    temp_prop_s.style +='z-index:'+zIndex+';';
@@ -2474,7 +2529,7 @@ $(function(){
 	    }
 	    if( temp_prop_s.style.indexOf('top') === -1){
 		    if( temp_prop_s.style.indexOf('bottom') === -1){
-		      temp_prop_s.style +='top:'+get_top(tag_size_s, my_layer_idx, my_idx)+'px;';
+		      temp_prop_s.style +='top:'+get_top(tag_size_s, my_page_idx, my_idx)+'px;';
 		      temp_prop_s.style +='bottom:auto;';
 		    }else{
 		      temp_prop_s.style +='top:auto;';
@@ -2482,7 +2537,7 @@ $(function(){
 	    }
 	    if( temp_prop_s.style.indexOf('left') === -1){
 		    if( temp_prop_s.style.indexOf('right') === -1){
-		      temp_prop_s.style +='left:'+get_left(tag_size_s, my_layer_idx, my_idx)+'px;';
+		      temp_prop_s.style +='left:'+get_left(tag_size_s, my_page_idx, my_idx)+'px;';
 		      temp_prop_s.style +='right:auto;';
 		    }else{
 		      temp_prop_s.style +='left:auto;';
@@ -2544,7 +2599,7 @@ $(function(){
   function innerObserveNumChilds(app_s){
 	  var newPoolW = 0;
 	  var newPoolH = 0;
-	  var layer = 1;
+	  var page = 1;
 	  app_s.forEach(function(app,i,a){
 	    if(app.child_s.length === 0){
 		    var style = analysisCss(app.prop_s.style, {});
@@ -2552,7 +2607,7 @@ $(function(){
 		    newPoolH += parseInt(style.height,10) + DISTANT_HEIGHT;
 	    }else{
 		    var pools = innerObserveNumChilds(app.child_s);
-		    layer = pools[2];
+		    page = pools[2];
 		    var app_style = analysisCss(app.prop_s.style, {});
 		    //if(parseInt(app_style.width,10) < pools[0]){
 		    //	poolW = pools[0] + 4;
@@ -2560,13 +2615,13 @@ $(function(){
 		    //}
 		    if(parseInt(app_style.height,10) < pools[1]){
 		      newPoolH += pools[1] + DISTANT_HEIGHT * 2;
-		      app_style.top = DISTANT_HEIGHT * i * 2 * layer + parseInt(app_style.top, 10) + 'px';
+		      app_style.top = DISTANT_HEIGHT * i * 2 * page + parseInt(app_style.top, 10) + 'px';
 		      app_style.height = pools[1] + DISTANT_HEIGHT +'px';
 		    }
 		    app.prop_s.style = cssStringify(app_style);
 	    }
 	  });
-	  return [newPoolW, newPoolH, layer * 2];
+	  return [newPoolW, newPoolH, page * 2];
   }
 
   function myCreateElement(tag, is_svg){
@@ -2707,11 +2762,19 @@ $(function(){
    * @param is_svg
    * @return new roots
    */
-  function display_onscreen(add_method, target_s, _this, _is_draggable, is_svg){
+  function display_onscreen(add_method, target_s, parsedData, _is_draggable, is_svg){
+    if ($.isArray(parsedData)){
+      parsedData.forEach(function(parsed){
+        display_onscreen(add_method, target_s, parsed, _is_draggable, is_svg);
+      });
+      return ;
+    }else if (!parsedData['tag']){
+      return ;
+    }
 	  var is_default_draggable = _is_draggable || typeof _is_draggable === 'undefined' ;
-	  var tag = _this['tag'].trim().toLowerCase();
-	  var prop_s = _this['prop_s'];
-	  var child_s = _this['child_s'];
+	  var tag = parsedData['tag'].trim().toLowerCase();
+	  var prop_s = parsedData['prop_s'];
+	  var child_s = parsedData['child_s'];
 	  if( ! $.isArray(child_s)){
 	    console.log('Error this is not Array:'+JSON.stringify(child_s));
 	  }
@@ -2719,7 +2782,7 @@ $(function(){
 	    var setting = tag毎の入力規則[tag];
 	    var require_s = setting['require_s'];
 	    var default_val_s = setting['default'];
-	    $.each(require_s, function(layer_idx, require){
+	    $.each(require_s, function(page_idx, require){
 		    if( ! prop_s.hasOwnProperty(require)){
 		      if( default_val_s.hasOwnProperty(require)){
 			      prop_s[require] = default_val_s[require];
@@ -3130,7 +3193,6 @@ $(function(){
 	    }
 
       // 選択されていない場合はcontextmenuのselectorの値を、右クリック時のDOMにする
-      console.log('getSelectedDomsOn().length :' + JSON.stringify(getSelectedDomsOn().length));
       if (isAddSelected || getSelectedDomsOn().length === 0){
         context_menu.el_selector.val(my_node_id);
 	      //parent_list
@@ -3625,7 +3687,7 @@ $(function(){
   }
 
   function setNowPage(btn, tgtPage){
-	  $('.func_layer_change', el_HDlayerSpace).removeClass("selectedScrnBtn");
+	  $('.func_page_change', el_HDpageSpace).removeClass("selectedScrnBtn");
 	  btn.addClass('selectedScrnBtn');
 	  if(!isEmpty(nowPage)){
 	    nowPage.screen.removeClass('nowPage');
@@ -3648,7 +3710,7 @@ $(function(){
 	    //save
 	    el_sandbox_screen.empty();
 	    var flattern = [];
-	    var mother_ids = ROOT_BTN_PAGE.page.screen.siblings('.HDlayerClass').map(function(idx, obj){
+	    var mother_ids = ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').map(function(idx, obj){
 		    return $(obj).attr('data-myhd-node-id');
 	    }).get();
 	    mother_ids.unshift(ROOT_BTN_PAGE.page.screen.attr('data-myhd-node-id'));
@@ -3834,7 +3896,7 @@ $(function(){
   function constructor_storage(FUNC_ID, targetStorage){
 	  var uncommit_pool = {};
 	  var is_locked = false;
-	  if(targetStorage === undefined){
+	  if(!targetStorage){
 	    targetStorage = localStorage;
 	  }
 	  return {
@@ -3965,7 +4027,7 @@ $(function(){
 		    target.prop_s[key] = _content.attr(key);
 	    }
 	    //TODO XXX	    target.prop_s['data-myhd-node-id'] = my_obj_id;
-	    console.log('user_add_content_s : ' + JSON.stringify(user_add_content_s));
+	    // console.log('user_add_content_s : ' + JSON.stringify(user_add_content_s));
 	    var tagName = content.localName;
 	    target.tag = tagName;
 
@@ -4007,18 +4069,18 @@ $(function(){
 	  return rtn;
   };
 
-  function get_z_index(parent_layer_idx){
-	  return 110 + parseInt(parent_layer_idx,10);
+  function get_z_index(parent_page_idx){
+	  return 110 + parseInt(parent_page_idx,10);
   };
-  function get_top(tag_size_s, parent_layer_idx, my_idx){
-	  if( parent_layer_idx === 0){
+  function get_top(tag_size_s, parent_page_idx, my_idx){
+	  if( parent_page_idx === 0){
 	    return 100;
 	  }else{
-	    return 10 + (DEFAULT_HEIGHT + (DISTANT_HEIGHT - 10) * (tag_size_s.length - parent_layer_idx) ) * (tag_size_s[parent_layer_idx] * (my_idx));//TODO
+	    return 10 + (DEFAULT_HEIGHT + (DISTANT_HEIGHT - 10) * (tag_size_s.length - parent_page_idx) ) * (tag_size_s[parent_page_idx] * (my_idx));//TODO
 	  }
   };
-  function get_left(tag_size_s, parent_layer_idx, my_idx){
-	  if( parent_layer_idx === 0){
+  function get_left(tag_size_s, parent_page_idx, my_idx){
+	  if( parent_page_idx === 0){
 	    return 100;
 	  }else{
 	    return 10 ;
@@ -4030,16 +4092,75 @@ $(function(){
   var IDX_PAREN = OPERATOR_CHAR_S.indexOf('(');
   var IDX_EQUAL = OPERATOR_CHAR_S.indexOf('=');
   var operator_s =[ //null
-	  ,function(a0, a1){is_calcable(a0,a1);return a1 + a0;}
-	  ,function(a0, a1){is_calcable(a0,a1);return a1 - a0;}
-	  ,function(a0, a1){is_calcable(a0,a1);return a1 * a0;}
-	  ,function(a0, a1){is_calcable(a0,a1);return a1 / a0;}
-	  ,function(a0, a1){is_calcable(a0,a1);return a1 % a0;}
+	  ,genCalcFunction(1)
+	  ,genCalcFunction(2)
+	  ,genCalcFunction(3)
+	  ,genCalcFunction(4)
+	  ,genCalcFunction(5)
   ];
-  function is_calcable(a0, a1){
-	  if($.isNumeric(a0) && $.isNumeric(a1)){return ;}
-	  throw new TypeError(a0 + ' : ' + a1 + ' are not resolved ');
+  function genCalcFunction(operatorIndex){
+      switch(operatorIndex) {
+      case 0:
+	      throw new TypeError('operatorIndex shouldn\'t be 0.');
+      case 1:// +
+        return function(a0, a1){
+	        if($.isNumeric(a0) && $.isNumeric(a1)){
+            return a1 + a0;;
+          } else if(a0 && a1){
+            return a1.toString() + a0.toString() ;
+          } else {
+            return null;
+          }
+        };
+      case 2:// -
+        return function(a0, a1){
+	        if($.isNumeric(a0) && $.isNumeric(a1)){
+            return a1 - a0;;
+          } else {
+            return null;
+          }
+        };
+      case 3:// *
+        return function(a0, a1){
+          var a0IsNumeric = $.isNumeric(a0);
+          var a1IsNumeric = $.isNumeric(a1);
+	        if(a0IsNumeric && a1IsNumeric){
+            return a1 * a0;;
+          } else if(a0 && a1){
+            if(a0IsNumeric) {
+              return Array(a0).fill(a1).join('');
+            } else if(a1IsNumeric) {
+              return Array(a1).fill(a0).join('');
+            } else {
+              return null;
+            }
+          } else {
+            return null;
+          }
+        };
+      case 4:// /
+        return function(a0, a1){
+	        if($.isNumeric(a0) && $.isNumeric(a1)){
+            return a1 / a0;;
+          } else {
+            return null;;
+          }
+        };
+      case 5:// %
+        return function(a0, a1){
+	        if($.isNumeric(a0) && $.isNumeric(a1)){
+            return a1 % a0;;
+          } else {
+            return null;
+          }
+        };
+      default:
+        return NOP;
+      }
+
   }
+
+
   function reverse_porlish_notation(formula, _param_s){
 	  var param_s = arguments.length < 2 ? {} : orDefault(_param_s, {});
 	  return reverse_porlish_notation_logic(formula, param_s, {})[0];
@@ -4069,13 +4190,21 @@ $(function(){
 			        pool = '';
 			      }else{
 			        num = parseInt(pool, 10);
+              if (!$.isNumeric(num)){
+                num = pool;
+              }
 			        pool = '';
 			        stack.push(num);
 			      }
 		      }
 		    }else if(IDX_MULTI <= op_idx && op_idx < IDX_PAREN
 			           || ((i+1 === length_formula || formula.charAt(i+1) === ' ') && 0 < op_idx && op_idx < IDX_MULTI)){//(+3 -1 +)への対応
-		      stack.push(operator_s[op_idx] (stack.pop(), stack.pop()));
+          var a0 = stack.pop();
+          var a1 = stack.pop();
+          if ($.isNumeric(a0)){
+
+          }
+		      stack.push(operator_s[op_idx] (a0, a1));
 		    }else if( op_idx === IDX_PAREN){
 		      ++i;
 		      ++_parent_counter;
@@ -4119,12 +4248,11 @@ $(function(){
 	    }
 	  }
 	  if(stack.length !== 1){
+      console.log('stack : ' + JSON.stringify(stack));
 	    throw new Error("Error formula is illegal : " + formula + ' : param_s : ' + JSON.stringify(param_s));
 	  }
 	  var rtn = stack[0];
-	  if( ! $.isNumeric(rtn) ){
-	    throw new Error("Error var " + rtn + ' is not resolved ');
-	  }else{
+	  if($.isNumeric(rtn) ){
 	    rtn = parseInt(rtn,10);
 	  }
 	  return [rtn,param_s,resolved_param_s];
@@ -4174,5 +4302,9 @@ $(function(){
       return [];
     }
   }
+  /* console.log('reverse_porlish_notation: (abc hij +)' + JSON.stringify(reverse_porlish_notation('(abc hij +)')));
+   * console.log('reverse_porlish_notation: ((abc 2 =) abc * hij +)'+ JSON.stringify(reverse_porlish_notation('((abc 2 =) abc * hij +)')));
+   * console.log('reverse_porlish_notation: ((abc 2 =) abc * dfg *)' + JSON.stringify(reverse_porlish_notation('((abc 2 =) abc * dfg *)')));*/
+
   //Util end
 });
