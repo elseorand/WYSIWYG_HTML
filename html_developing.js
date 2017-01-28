@@ -359,6 +359,10 @@ $(function(){
 	    setNowPage(btn_page.btn, btn_page.page);
 	    btn_page.btn.trigger(MY_CLICK);
     });
+  var el_func_selected_del_page = $('#func_selected_del_page')
+  .on(MY_CLICK, function(){
+
+  });
 
   var el_HDload_presetFile = $('#HDload_presetFile');
   var el_HDload_presetBtn = $('#HDload_presetBtn').on(MY_CLICK,function(){
@@ -1054,17 +1058,18 @@ $(function(){
 	  if(!height){ height = '100%';}
 	  if($.isNumeric(width)){ width +='px';}
 	  if(!width){ width = '100%';}
-	  var pageName = convPageId(name);
+	  var pageName = name.trim();
+    var pageId = convPageId(name);
     var pageObj = null;
 	  if(page_s.hasOwnProperty(pageName)){
 	    console.log('There are the same name:' + name + ' .');
       pageObj = page_s[pageName];
-	    return {"btn":$('#'+'btn_'+name).data('page', pageObj), "page":pageObj};// TODO mod mutual
+	    return {"btn":$('#'+'HDbtn_'+name).data('page', pageObj), "page":pageObj};// TODO mod mutual
 	  }
 	  var adderClass = type === 'dir' ? 'HDpageClass HDbasePage ' : 'HDpageClass';
 	  pageObj = createPageDOM(name, adderClass, page_s, width, height);
 	  context_menu.is_close_menu = true;
-	  var pageBtn  = $('<input id="btn_'+name+'" class="func_page_change freeScrnBtn '+adderClass+'" type="button" value="'+name+'" />').data('page', pageObj).appendTo(appendTarget);
+	  var pageBtn  = $('<input id="HDbtn_'+name+'" class="func_page_change freeScrnBtn '+adderClass+'" type="button" value="'+name+'" />').data('page', pageObj).appendTo(appendTarget);
 	  el_HtmlDeveloping.append(pageObj.screen);//TODO folder
 	  el_ObjectName.html(pageObj.screen.data('name'));
 	  return {"btn":pageBtn, "page":pageObj};
