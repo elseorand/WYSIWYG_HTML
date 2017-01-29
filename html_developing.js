@@ -1,35 +1,6 @@
 $(function(){
   /**
-   * saved data structure
-   ** part_list
-   ** part_list_selected
-   ** prop_list
-   ** prop_list_selected
-   ** style_list
-   ** style_list_selected
-   ** monoColors
-   ** gradColors
-   ** save_s: name // quick save
-   ** save_page_s: page, info
-   ** save_dirs: positive name map
-   ** TODO yet sent data to Server
-   */
-  /**
    * Web Functional Component
-   */
-  /**
-   * project
-   *   directory : has pointers of page
-   *     pages : has parts
-   *       part : html generator function
-   *
-   */
-  /**
-   * * B > A := B extends A i.e. BはAのホモローグにchild_sのaddであること。superはextendsの逆で
-   * ** A part + convFuncs = B part i.e. B - A := convFuncs (isomorphic)
-   * * _treeの構造
-   * ** === 仕様
-   * ** == 仕様
    */
   /** On developing
    * explorer window function
@@ -167,24 +138,47 @@ $(function(){
    * scripting mode
    * bootstrap css support
    */
+  // storage structure
+  /**
+   * saved data structure
+   ** part_list
+   ** part_list_selected
+   ** prop_list
+   ** prop_list_selected
+   ** style_list
+   ** style_list_selected
+   ** monoColors
+   ** gradColors
+   ** save_s: name // quick save
+   ** save_page_s: page, info
+   ** save_dirs: positive name map
+   ** TODO yet sent data to Server
+   */
+
   // mod prototype
   // startsWith
   if (!String.prototype.startsWith) {
-	  String.prototype.startsWith = function(searchString, position) {
-	    position = position || 0;
-	    return this.lastIndexOf(searchString, position) === position;
-	  };
+    Object.defineProperty(String.prototype, 'startsWith', {
+      value: function(searchString, position) {
+	      position = position || 0;
+	      return this.lastIndexOf(searchString, position) === position;
+	    },
+      enumerable: false
+    });
   }
   // flatMap
-  Object.defineProperty(Array.prototype, 'flatMap', {
-    value: function(f, self){
-      self = self || this;
-      return this.reduce(function(ys, x){
-        return ys.concat(f.call(self, x));
-      }, []);
-    },
-    enumerable: false
-  });
+  if (!Array.prototype.flatMap){
+    Object.defineProperty(Array.prototype, 'flatMap', {
+      value: function(f, self){
+        self = self || this;
+        return this.reduce(function(ys, x){
+          return ys.concat(f.call(self, x));
+        }, []);
+      },
+      enumerable: false
+    });
+  }
+  // mod prototype
 
   // Global key bind
   var fn_ctrlB = undefined;
@@ -359,7 +353,7 @@ $(function(){
       // page_sにあり、trashでなければ、NA
       // page_sにあり、trashならば、上書き
 
-	    var btn_page = createPage(name, el_HDfilterPageList);
+	    var btn_page = createPage(name, el_filterPageList);
 	    if(!btn_page){return ;}
 	    setNowPage(btn_page.btn, btn_page.page);
 	    btn_page.btn.trigger(MY_CLICK);
@@ -367,10 +361,10 @@ $(function(){
 
   var el_func_delete_selected_page = $('#func_delete_selected_page')  // pageをゴミ箱へ移す
       .on(MY_CLICK, function(){
-        var pageBtn = el_HDfilterPageList.find('.' + CLASS_SELECTED_BTN_PAGE);
+        var pageBtn = el_filterPageList.find('.' + CLASS_SELECTED_BTN_PAGE);
         var btnName = pageBtn.val();
         if (btnName){
-          pageBtn.detach().appendTo(el_HDtrashPageList);
+          pageBtn.detach().appendTo(el_trashPageList);
           var targetPage = page_s[btnName];
           putInExplorer(CLASS_TRASH_PAGE, targetPage.screen);
           delete page_s[btnName];
@@ -382,9 +376,9 @@ $(function(){
     refreshExplorerSpace(CLASS_TRASH_PAGE);
   });
 
-  var el_HDload_presetFile = $('#HDload_presetFile');
-  var el_HDload_presetBtn = $('#HDload_presetBtn').on(MY_CLICK,function(){
-	  var name = el_HDload_presetFile.val();
+  var el_load_presetFile = $('#HDload_presetFile');
+  var el_load_presetBtn = $('#HDload_presetBtn').on(MY_CLICK,function(){
+	  var name = el_load_presetFile.val();
 	  if(name.endsWith('.json')){//TODO now Developing
 	    $.getJSON(name)
 		    .done(function(res){
@@ -796,29 +790,29 @@ $(function(){
 
   //init
   // Directory / Explorer
-  var el_HDexplorer = $('#HDexplorer');
-  el_HDexplorer
-	  .data('parent', el_HDexplorer.children('section'))
-	  .data('brother',el_HDexplorer.find('.menuHandler'))
+  var el_explorer = $('#HDexplorer');
+  el_explorer
+	  .data('parent', el_explorer.children('section'))
+	  .data('brother',el_explorer.find('.menuHandler'))
 	  .resizable({"autoHide":true,"minWidth":80,
 			          resize:function(ev, ui){
-			            el_HDexplorerSpace
-				            .height(el_HDexplorer.data('parent').innerHeight() - el_HDexplorer.data('brother').outerHeight());
+			            el_explorerSpace
+				            .height(el_explorer.data('parent').innerHeight() - el_explorer.data('brother').outerHeight());
 			          }
 		           })
 	  .draggable({"handle":".menuHandler"});
-  var el_HDexplorerSpace = $('#HDexplorerSpace');
-  var el_HDpageSpace = $('#HDpageSpace');
-  var el_HDpageRoot = $('#HDpageRoot');
-  var el_HDbasePageList = $('#HDbasePageList');
-  var el_HDfilterPageList = $('#HDfilterPageList');
-  var el_HDtrashPageList = $('#HDtrashPageList');
+  var el_explorerSpace = $('#HDexplorerSpace');
+  var el_pageSpace = $('#HDpageSpace');
+  var el_pageRoot = $('#HDpageRoot');
+  var el_basePageList = $('#HDbasePageList');
+  var el_filterPageList = $('#HDfilterPageList');
+  var el_trashPageList = $('#HDtrashPageList');
   // page
   var el_HtmlDeveloping = $('#HtmlDeveloping');
   var nowPage;
   var el_func_s = {};
   var el_ObjectName = isEmpty(el_ObjectName) ? $('#ObjectName') : el_ObjectName;
-  var ROOT_BTN_PAGE = createPage('Root', el_HDpageRoot, 'dir');
+  var ROOT_BTN_PAGE = createPage('Root', el_pageRoot, 'dir');
 
   (function(){
 	  context_menu.css({"left":0,"top":0,"position":"absolute","z-index":60000,"padding-left":"2.5em","display":"none", "background-color":"white", "box-shadow": "5px 5px 15px #000000", "border-radius":"5px"});
@@ -827,7 +821,7 @@ $(function(){
     // loading saved pages
 	  var savedPages = MY_STORAGE.select('save_page_s') || {}; //
     Object.keys(savedPages).forEach(function(pageName,i,a){
-      var loadedPage = createPage(pageName, el_HDfilterPageList);
+      var loadedPage = createPage(pageName, el_filterPageList);
 	    display_onscreen('appendTo', loadedPage.page.screen, savedPages[pageName].page);
     });
 
@@ -1094,7 +1088,7 @@ $(function(){
 	  return {"btn":pageBtn, "page":pageObj};
   }
   function createBasePage(name){
-	  return createPage(name, el_HDbasePageList, 'dir');
+	  return createPage(name, el_basePageList, 'dir');
   }
   function display_contextmenu(ev, _x, _y){
 	  ev.preventDefault();
@@ -1105,16 +1099,16 @@ $(function(){
   };
   // Directory
   function refreshExplorerSpace(clazz){
-	  var preClass = el_HDexplorerSpace.data('myhdDisplayClass');
+	  var preClass = el_explorerSpace.data('myhdDisplayClass');
 	  if(preClass){
-	    el_HDexplorerSpace.removeClass(preClass);
+	    el_explorerSpace.removeClass(preClass);
 	  }
-	  el_HDexplorerSpace.data('myhdDisplayClass', clazz);
+	  el_explorerSpace.data('myhdDisplayClass', clazz);
     /* 表示、非表示の切替 #HDexplorerSpace.clazz > :not(.HDScreenSaved) {display: none;} */
-	  el_HDexplorerSpace.addClass(clazz).find('.explorerSelected').removeClass('explorerSelected'); // save dir の場合の選択解除
+	  el_explorerSpace.addClass(clazz).find('.explorerSelected').removeClass('explorerSelected'); // save dir の場合の選択解除
   }
   //  save dir
-  var el_HDdirSave = $('#HDdirSave').data(エクスプローラー表示対象クラス, CLASS_SCREEN_SAVE).on(MY_CLICK,function(){
+  var el_dirSave = $('#HDdirSave').data(エクスプローラー表示対象クラス, CLASS_SCREEN_SAVE).on(MY_CLICK,function(){
 	  var _this = $(this);
 	  refreshExplorerSpace(_this.data(エクスプローラー表示対象クラス));
   });
@@ -1138,13 +1132,13 @@ $(function(){
 		  .append('<div class="explorerShim '+clazz+'" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>')
 // page name label
 	    .data('explorerShim', pageName)
-        .appendTo(el_HDexplorerSpace);
+        .appendTo(el_explorerSpace);
     switch(clazz){
     case CLASS_EXPLORER_CONTAINER:
       explorerPageContainer
 		    .on(MY_CLICK, '.explorerShim.' + clazz, function(){
 		      //trigger explorer 左のボタン押下 TODO page mergeまでの暫定挙動
-		      el_HDpageSpace.find('.func_page_change').filter(function(){
+		      el_pageSpace.find('.func_page_change').filter(function(){
 			      return this.value === pageName;
 		      }).trigger(MY_CLICK);
 		    });
@@ -1157,7 +1151,7 @@ $(function(){
     case CLASS_TRASH_PAGE: // TODO el_func_delete_selected_page.clickとロジック共通化
     	explorerPageContainer.on(MY_CLICK, '.explorerShim.' + clazz, function(){
         // recovery from trash
-        el_HDtrashPageList.find('#HDbtn_' + pageName).detach().appendTo(el_HDfilterPageList);
+        el_trashPageList.find('#HDbtn_' + pageName).detach().appendTo(el_filterPageList);
         var targetPage = page_trash[pageName];
         putInExplorer(CLASS_EXPLORER_CONTAINER, targetPage.screen);
         delete page_trash[pageName];
@@ -1172,8 +1166,8 @@ $(function(){
 	  return true;
   }
 
-  var el_HDopenDirs = $('#HDopenDirs');
-  el_HDpageSpace
+  var el_openDirs = $('#HDopenDirs');
+  el_pageSpace
 	  .data(エクスプローラー表示対象クラス, CLASS_EXPLORER_CONTAINER)
 	  .on(MY_CLICK, '.func_page_change', function(){
 	    var _this = $(this).addClass(CLASS_SELECTED_BTN_PAGE);
@@ -1195,7 +1189,7 @@ $(function(){
 		    setNowPage(_this, _page);
 	    }
 	    el_ObjectName.html(nowPage.screen.data('name'));
-	    refreshExplorerSpace(el_HDpageSpace.data(エクスプローラー表示対象クラス));
+	    refreshExplorerSpace(el_pageSpace.data(エクスプローラー表示対象クラス));
 	  }).on(MY_INIT,function(){
 	    ROOT_BTN_PAGE.btn.trigger(MY_CLICK);//TODO lazy load
 	  }).trigger(MY_INIT);
@@ -1690,7 +1684,7 @@ $(function(){
 	  var appender = '';
 	  var save_s = orDefault(MY_STORAGE.select('save_s'), []);
 	  var already = {};
-	  var alreadyList = el_HDexplorerSpace.children('.HDScreenSaved.explorerContainer');
+	  var alreadyList = el_explorerSpace.children('.HDScreenSaved.explorerContainer');
 	  if(alreadyList !== undefined){
 	    alreadyList.map(function(idx, obj){
 		    already[$(obj).data('explorerShim')] = obj;
@@ -1770,7 +1764,7 @@ $(function(){
   }
   el_func_s.load.on(MY_CLICK, function(){
 	  // 選択したものから抽出
-	  var selectedList = el_HDexplorerSpace.find('.explorerShim.HDScreenSaved.explorerSelected');
+	  var selectedList = el_explorerSpace.find('.explorerShim.HDScreenSaved.explorerSelected');
 	  if(selectedList != null){
 	    selectedList.each(function(i, obj){
 		    var mother_id = $(this).siblings('.HDScreenSaved').attr('data-myhd-node-id');
@@ -1874,7 +1868,7 @@ $(function(){
 	  switch(ev.keyCode){
 	  case 27 ://ESC
 	    $('[class*="hide_mode_target"][data-fire-key-code="escape"]').toggle('clip',null,500);
-	    el_HDexplorerSpace.height(el_HDexplorer.children('section').innerHeight() - el_HDexplorer.find('.menuHandler').outerHeight());
+	    el_explorerSpace.height(el_explorer.children('section').innerHeight() - el_explorer.find('.menuHandler').outerHeight());
 	    break;
 	  case 66:
 	    if(ev.ctrlKey){ fn_ctrlB();}
@@ -3737,7 +3731,7 @@ $(function(){
   }
 
   function setNowPage(btn, tgtPage){
-	  $('.func_page_change', el_HDpageSpace).removeClass(CLASS_SELECTED_BTN_PAGE);// 既存の選択のアクティブを解除
+	  $('.func_page_change', el_pageSpace).removeClass(CLASS_SELECTED_BTN_PAGE);// 既存の選択のアクティブを解除
 	  btn.addClass(CLASS_SELECTED_BTN_PAGE);
 	  if(!isEmpty(nowPage)){
 	    nowPage.screen.removeClass('nowPage');
@@ -3754,25 +3748,50 @@ $(function(){
   // angular
   if(angular){
 	  var el_angular_boot = $('#HDangular_boot').on(MY_CLICK,function(){
-	    openWindowForAngular($(this));
-	  });
-	  function openWindowForAngular(self){
 	    //save
 	    el_sandbox_screen.empty();
-	    var flattern = [];
-	    var mother_ids = ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').map(function(idx, obj){
-		    return $(obj).attr('data-myhd-node-id');
-	    }).get();
-	    mother_ids.unshift(ROOT_BTN_PAGE.page.screen.attr('data-myhd-node-id'));
-	    mother_ids.forEach(function(mother_id,i,a){
-		    flattern = flattern.concat(get_child_tree_select_dom(mother_id).child_s());
-	    });
-	    var newWindow = window.open('./HtmlDeveloping.htm', 'Angular');
-	    newWindow.document.open();
-	    newWindow.document.write(htmlize(flattern));
-	    newWindow.document.close();
-	  }
+
+      return publish('Angular');
+	  });
   }
+
+  function publish(name){
+	  var mother_ids = ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').map(function(idx, obj){
+		  return $(obj).attr('data-myhd-node-id');
+	  }).get();
+	  mother_ids.unshift(ROOT_BTN_PAGE.page.screen.attr('data-myhd-node-id'));
+	  var html = mother_ids.flatMap(function(mother_id,i,a){
+      return get_child_tree_select_dom(mother_id).child_s();
+	  });
+	  return openWindowAndWrite(name, html);
+	}
+
+	function openWindowAndWrite(uri, name, parsedForHtmlize){
+	  var newWindow = window.open('./HtmlDeveloping.htm', name);
+	  newWindow.document.open();
+	  newWindow.document.write(htmlize(parsedForHtmlize));
+	  newWindow.document.close();
+    return newWindow;
+	}
+
+  // publish
+  var el_publish = $('#HDpublish').on(MY_CLICK,function() {
+    publish('HDpublished');
+  });
+
+  // including for ver server
+  // var el_uriOtherSite = $('#HDuriOtherSite');
+  var el_scanOtherSite = $('#HDscanOtherSite');
+  // var el_openOtherSite = $('#HDopenOtherSite').on(MY_CLICK, function(){
+  //   var uri = el_uriOtherSite.val();
+  //   if (uri){
+  //     var win = window.open(uri, 'otherSite', 'menubar=yes, toolbar=yes, location=yes, directories=yes, status=yes, resizable=yes, scrollbars=yes');
+  el_scanOtherSite.off(MY_CLICK).on(MY_CLICK, function(){
+    var otherWindow = publish('sample');
+    var el_html = $('html', otherWindow.document);
+  });
+  //   }
+  // });
 
   //Util start
   function htmlTag2escape(htmlStr){
@@ -4111,8 +4130,9 @@ $(function(){
 	  return tree;
   }
 
-  function get_child_tree_select_dom(mother_id){
-	  var user_add_content_s = $(' *[data-myhd-node-id^='+mother_id+MY_NODE_SEP+']');
+  function get_child_tree_select_dom(mother_id, _targetDocument){
+    var targetDocument = _targetDocument || document;
+	  var user_add_content_s = $(' *[data-myhd-node-id^='+mother_id+MY_NODE_SEP+']', targetDocument);
 	  var root_dom = $('*[data-myhd-node-id='+mother_id+']')[0];
 	  var tree = extract_from_dom(_tree(mother_id), [root_dom]);
 	  var rtn = extract_from_dom(tree, user_add_content_s);
