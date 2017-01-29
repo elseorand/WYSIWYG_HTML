@@ -203,23 +203,26 @@ $(function(){
   var is_suspend = false;
   var page_s = {};//
   var page_save_s = {};
+  var page_trash = {};
   var command_undo_history = [];
   var command_redo_history = [];
 
   //複数形はsufixとして_sまたは､_s1. 多重配列は_s_sではなく_s2
   // Constants
   var DEFAULT_GRID_SIZE = 32;
-  var CLASS_SELECTED = 'objSelected';
-  var CLASS_COPY = 'objCopy';
-  var CLASS_CUT = 'objCut';
+  var CLASS_SELECTED = 'HDobjSelected';
+  var CLASS_COPY = 'HDobjCopy';
+  var CLASS_CUT = 'HDobjCut';
   var CLASS_HTMLIZE = 'htmlize';
   var CLASS_S = {"selected":CLASS_SELECTED, "copy":CLASS_COPY,"cut":CLASS_CUT,"htmlize":CLASS_HTMLIZE};
-  var CLASS_ON_EDIT = 'objOnEdit';
-  var CLASS_EDIT_DATA = 'objEditData';
-  var CLASS_POSITION = 'objPositioning';
-  var エクスプローラー表示対象クラス = 'now-displaying-class';
+  var CLASS_ON_EDIT = 'HDobjOnEdit';
+  var CLASS_EDIT_DATA = 'HDobjEditData';
+  var CLASS_POSITION = 'HDobjPositioning';
+  var エクスプローラー表示対象クラス = 'HDnow-displaying-class';
   var CLASS_EXPLORER_CONTAINER = 'HDpageContainer';
+  var CLASS_TRASH_PAGE = 'HDtrashPage';
   var CLASS_SCREEN_SAVE = 'HDScreenSaved';
+  var CLASS_SELECTED_BTN_PAGE = 'HDselectedScrnBtn';
 
   var TAG_LAYER_SEP = '>';
   var LOOP_HLD = '*';
@@ -352,16 +355,31 @@ $(function(){
         // TODO alert required
         return ;
       }
-      // check dupe
+      // TODO check dupe
+      // page_sにあり、trashでなければ、NA
+      // page_sにあり、trashならば、上書き
 
 	    var btn_page = createPage(name, el_HDfilterPageList);
-	    if(!btn_page){return false;}
+	    if(!btn_page){return ;}
 	    setNowPage(btn_page.btn, btn_page.page);
 	    btn_page.btn.trigger(MY_CLICK);
     });
-  var el_func_selected_del_page = $('#func_selected_del_page')
-  .on(MY_CLICK, function(){
 
+  var el_func_delete_selected_page = $('#func_delete_selected_page')  // pageをゴミ箱へ移す
+      .on(MY_CLICK, function(){
+        var pageBtn = el_HDfilterPageList.find('.' + CLASS_SELECTED_BTN_PAGE);
+        var btnName = pageBtn.val();
+        if (btnName){
+          pageBtn.detach().appendTo(el_HDtrashPageList);
+          var targetPage = page_s[btnName];
+          putInExplorer(CLASS_TRASH_PAGE, targetPage.screen);
+          delete page_s[btnName];
+          page_trash[btnName] = targetPage;
+        }// else {// Root selected
+      });
+
+  var el_func_open_trash = $('#func_open_trash').on(MY_CLICK, function(){
+    refreshExplorerSpace(CLASS_TRASH_PAGE);
   });
 
   var el_HDload_presetFile = $('#HDload_presetFile');
@@ -536,9 +554,9 @@ $(function(){
 	  }
   }}).on(MY_CLICK, 'div', extractColor);
 
-  var el_gradPalette = $('#gradPalette').sortable({"revert":true, "connectWith":"#colorPalette", "placeholder":".objCopy", "delay":700})
+  var el_gradPalette = $('#gradPalette').sortable({"revert":true, "connectWith":"#colorPalette", "placeholder":".HDobjCopy", "delay":700})
 	  .trigger('initColor');
-  var el_colorPalette = $('#colorPalette').sortable({"helper":"clone","revert":true, "connectWith":"#trashPalette",  "placeholder":".objCopy", "delay": 700, "receive":function(){
+  var el_colorPalette = $('#colorPalette').sortable({"helper":"clone","revert":true, "connectWith":"#trashPalette",  "placeholder":".HDobjCopy", "delay": 700, "receive":function(){
 	  var thisPalette = $(this);
 	  var removing = [];
 	  var hasColors = {};
@@ -794,6 +812,7 @@ $(function(){
   var el_HDpageRoot = $('#HDpageRoot');
   var el_HDbasePageList = $('#HDbasePageList');
   var el_HDfilterPageList = $('#HDfilterPageList');
+  var el_HDtrashPageList = $('#HDtrashPageList');
   // page
   var el_HtmlDeveloping = $('#HtmlDeveloping');
   var nowPage;
@@ -1087,44 +1106,69 @@ $(function(){
   // Directory
   function refreshExplorerSpace(clazz){
 	  var preClass = el_HDexplorerSpace.data('myhdDisplayClass');
-	  if(preClass !== undefined){
+	  if(preClass){
 	    el_HDexplorerSpace.removeClass(preClass);
 	  }
 	  el_HDexplorerSpace.data('myhdDisplayClass', clazz);
-	  el_HDexplorerSpace.addClass(clazz).find('.explorerSelected').removeClass('explorerSelected');
+    /* 表示、非表示の切替 #HDexplorerSpace.clazz > :not(.HDScreenSaved) {display: none;} */
+	  el_HDexplorerSpace.addClass(clazz).find('.explorerSelected').removeClass('explorerSelected'); // save dir の場合の選択解除
   }
+  //  save dir
   var el_HDdirSave = $('#HDdirSave').data(エクスプローラー表示対象クラス, CLASS_SCREEN_SAVE).on(MY_CLICK,function(){
 	  var _this = $(this);
 	  refreshExplorerSpace(_this.data(エクスプローラー表示対象クラス));
-
   });
+
   /**
    * change screen.
+   * @param clazz  explorer space on off start の表示切替クラス
+   * @param minimizedScrn explorerに放り込む page.screen
+   * @param exceptPageName 対象外ページ名 TODO 対象外ページ名から、clazzを引けるようにする
    */
-  function putInExplorer(clazz, minimizedScrn, selectedName){
+  function putInExplorer(clazz, minimizedScrn, exceptPageName){
 	  var pageName = minimizedScrn.data('name');
-	  if(isEmpty(pageName) || isEmpty(selectedName) || pageName === selectedName){
+	  if(!pageName || pageName === exceptPageName){
 	    return true;
 	  }
 	  minimizedScrn.css({"transform-origin":"0px 0px", "margin":"2px", "transform":"scale(0.125)", "height":""}).detach()
 	    .find('.'+CLASS_SELECTED).removeClass(CLASS_SELECTED);
-	  var newFile = $('<div class="'+clazz+' explorerContainer">')
+	  var explorerPageContainer = $('<div class="'+clazz+' explorerContainer">')
 		  .css({"flex-basis":"320px", "height":"180px", "position":"relative", "overflow":"hidden", "border":"1px dotted grey", "margin":"4px"})
 		  .append(minimizedScrn)
 		  .append('<div class="explorerShim '+clazz+'" style="width:100%;height:100%;color:rgba(0,0,0,0.5);text-shadow:2px 2px 6px;font-size:24pt;position:absolute;top:0px;bottom:0px;left:0px;right:0px;margin:0px;z-index:1000000;"><div style="position:absolute;top:auto;bottom:0px;left:0px;right:0px;margin:auto;height:1.5em;width:100%;text-align:center;">'+pageName+'</div></div>')
+// page name label
 	    .data('explorerShim', pageName)
-		  .appendTo(el_HDexplorerSpace)
-		  .on(MY_CLICK, '.explorerShim.HDpageContainer', function(){
-		    var _this = $(this);
-		    var btnName = _this.children('div').html();
-		    //explorer 左のボタン押下. TODO page mergeまでの暫定挙動
-		    el_HDpageSpace.find('.func_page_change').filter(function(){
-			    return this.value === btnName;
-		    }).trigger(MY_CLICK);
-		  })
-		  .on(MY_CLICK, '.explorerShim.HDScreenSaved', function(){
+        .appendTo(el_HDexplorerSpace);
+    switch(clazz){
+    case CLASS_EXPLORER_CONTAINER:
+      explorerPageContainer
+		    .on(MY_CLICK, '.explorerShim.' + clazz, function(){
+		      //trigger explorer 左のボタン押下 TODO page mergeまでの暫定挙動
+		      el_HDpageSpace.find('.func_page_change').filter(function(){
+			      return this.value === pageName;
+		      }).trigger(MY_CLICK);
+		    });
+      break;
+    case CLASS_SCREEN_SAVE:
+		  explorerPageContainer.on(MY_CLICK, '.explorerShim.' + clazz, function(){
 		    var _this = $(this).toggleClass('explorerSelected');
 		  });
+      break;
+    case CLASS_TRASH_PAGE: // TODO el_func_delete_selected_page.clickとロジック共通化
+    	explorerPageContainer.on(MY_CLICK, '.explorerShim.' + clazz, function(){
+        // recovery from trash
+        el_HDtrashPageList.find('#HDbtn_' + pageName).detach().appendTo(el_HDfilterPageList);
+        var targetPage = page_trash[pageName];
+        putInExplorer(CLASS_EXPLORER_CONTAINER, targetPage.screen);
+        delete page_trash[pageName];
+        page_s[pageName] = targetPage;
+        explorerPageContainer.remove();
+		  });
+      break;
+    default:
+      // nothing
+    }
+
 	  return true;
   }
 
@@ -1132,10 +1176,10 @@ $(function(){
   el_HDpageSpace
 	  .data(エクスプローラー表示対象クラス, CLASS_EXPLORER_CONTAINER)
 	  .on(MY_CLICK, '.func_page_change', function(){
-	    var _this = $(this).addClass('selectedScrnBtn');
+	    var _this = $(this).addClass(CLASS_SELECTED_BTN_PAGE);
 	    var _page = _this.data('page');
 	    var selectedName = _page.screen.data('name');
-	    ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').each(function(idx){
+	    ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').each(function(idx){// screenに全ページがありRoot以外を一旦explorerに収納
 		    return putInExplorer(CLASS_EXPLORER_CONTAINER, $(this), selectedName);
 	    });
 	    if(ROOT_BTN_PAGE.page !== _page && nowPage !== _page){
@@ -1144,7 +1188,7 @@ $(function(){
 		    var selectedScreen = _page.screen
 			    .css({"transform":"scale(1)", "margin":"0px"});
 		    if(parent.hasClass(CLASS_EXPLORER_CONTAINER)){
-		      selectedScreen.detach().appendTo(el_HtmlDeveloping);
+		      selectedScreen.detach().appendTo(el_HtmlDeveloping);// 選択ページをexplorerから、表示領域に移動
 		      parent.remove();
 		    }
 	    }else if(ROOT_BTN_PAGE.page === _page){
@@ -1234,7 +1278,7 @@ $(function(){
 	  for(var _p_key in prop_s){
 	    var p_key = _p_key.toLowerCase();
 	    var val = prop_s[p_key];
-	    if(isEmpty(val)){continue;}
+	    if(!val){continue;}
 	    kept_prop_s[p_key] = target.attr(p_key);
 	    if( p_key === 'html'){
 		    if(target.get(0).localName === 'input'){
@@ -1279,7 +1323,7 @@ $(function(){
 	  if( ! $.isPlainObject(prop_s)){throw new TypeError('prop is not JSON style.');}
 	  var overrideAttr = context_menu.el_updateAttr.val();
 	  var overrideAttrVal = context_menu.el_updateAttrValue.val();
-	  if(!isEmpty(overrideAttr)){
+	  if(overrideAttr){
 	    prop_s[overrideAttr] = overrideAttrVal;
 	  }
 	  $.each(target_s, function(idx, _target){
@@ -1533,7 +1577,7 @@ $(function(){
 	  var apply_style = '';
 	  apply_css.forEach(function(css,i,a){
 	    var temp = el_oprt_model.css(css);
-	    if(isEmpty(temp)){return;}
+	    if(!temp){return;}
 	    apply_style += css+':'+temp+';';
 	  });
 	  for(var key in el_now_selected) if(el_now_selected.hasOwnProperty(key)){
@@ -2639,9 +2683,9 @@ $(function(){
 	    elm.attr = function(key,val){
 		    if( arguments.length === 1 ){
 		      if( $.isPlainObject(key) ){
-			      for(var objKey in key){
+			      Object.keys(key).forEach(function(objKey){
 			        raw.setAttribute(objKey, key[objKey]);
-			      }
+			      });
 			      return this;
 		      }else{
 			      var rtn = raw.getAttribute(key);
@@ -2721,9 +2765,9 @@ $(function(){
 	    elm.attr = function(key,val){
 		    if( arguments.length === 1 ){
 		      if( $.isPlainObject(key) ){
-			      for(var objKey in key){
+            Object.keys(key).forEach(function(objKey){
 			        raw.setAttribute(objKey, key[objKey]);
-			      }
+			      });
 			      return this;
 		      }else{
 			      var rtn = raw.getAttribute(key);
@@ -3278,7 +3322,7 @@ $(function(){
   };
 
   /**
-   * 削除する。但し現スクリーンのみ
+   * DOMを削除する。但し現スクリーンのみ
    */
   commands.delete = function(my_node_id){
 	  function func_delete(my_node_id){
@@ -3693,8 +3737,8 @@ $(function(){
   }
 
   function setNowPage(btn, tgtPage){
-	  $('.func_page_change', el_HDpageSpace).removeClass("selectedScrnBtn");
-	  btn.addClass('selectedScrnBtn');
+	  $('.func_page_change', el_HDpageSpace).removeClass(CLASS_SELECTED_BTN_PAGE);// 既存の選択のアクティブを解除
+	  btn.addClass(CLASS_SELECTED_BTN_PAGE);
 	  if(!isEmpty(nowPage)){
 	    nowPage.screen.removeClass('nowPage');
 	  }

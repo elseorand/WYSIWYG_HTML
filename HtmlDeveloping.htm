@@ -18,13 +18,20 @@
       body > #HtmlDeveloping > #HDpageRoot {
         background-color: #FFFACD;
       }
-      /* explorer space on off */
+      #HDtrashPageList {
+        display:none;
+      }
+      /* explorer space on off start */
       #HDexplorerSpace.HDScreenSaved > :not(.HDScreenSaved){
         display:none;
       }
       #HDexplorerSpace.HDpageContainer > :not(.HDpageContainer){
         display:none;
       }
+      #HDexplorerSpace.HDtrashPage > :not(.HDtrashPage){
+        display:none;
+      }
+      /* explorer space on off end*/
 			.HDpageClass {
         background-color:transparent;
         opacity: 1 !important;
@@ -70,43 +77,43 @@
         text-align:center;
         height:20px !important;
       }
-			.objCut {
+			.HDobjCut {
 				border-color:blue !important;
         border-style:dotted !important;
 				opacity: 0.8;
 			}
-			.objCut *{
+			.HDobjCut *{
 				background-color: #aaccff !important;
 				opacity: 0.8;
 			}
-			.objCopy {
+			.HDobjCopy {
 				border-color:green !important;
         border-style:dotted !important;
 				opacity: 0.8;
 			}
-			.objCopy *{
+			.HDobjCopy *{
 				background-color: #aaffcc !important;
 				opacity: 0.8;
 			}
-			:hover.objPositioning{
+			:hover.HDobjPositioning{
 				border-color:#ff99aa !important;
         border-style:dotted  !important;
 			}
-			:hover.objPositioning *{
+			:hover.HDobjPositioning *{
 				background-color: #ffccdd !important;
 				opacity: 0.8;
 			}
       .explorerSelected {
         background-color:rgba(255, 0, 0, 0.2);
       }
-			.objSelected:not(.grid), objSelected.objDraggableResizable:not(.grid) {
+			.HDobjSelected:not(.grid), objSelected.HDobjDraggableResizable:not(.grid) {
         box-shadow:0px 0px 8px red;
         background-color:rgba(255, 255, 255, 0.4);
 			}
-			.objSelected.grid, objSelected.objDraggableResizable.grid {
+			.HDobjSelected.grid, .HDobjSelected.HDobjDraggableResizable.grid {
 				opacity: 0.8;
 			}
-			.objSelected * , objSelected.objDraggableResizable *  {
+			.HDobjSelected * , .HDobjSelected.HDobjDraggableResizable *  {
 				opacity: 0.8;
 			}
       .displayNone {
@@ -146,7 +153,7 @@
         background-color:#000fff;
         color:white;
       }
-      #HDpageSpace input.func_page_change.selectedScrnBtn{
+      #HDpageSpace input.func_page_change.HDselectedScrnBtn{
         border:2px double grey;
         background-color:#FF6E41;
         color:black;
@@ -624,8 +631,9 @@
               <div id="HDpageRoot" style="font-size:1.2em;margin:1px;display:flex;flex-direction:column;flex-stretch:1;"></div>
               <div id="HDbasePageList" style="font-size:1.2em;display:flex;flex-direction:column;overflow:hidden;margin:2px 0px 0px 8px;"></div>
               <div id="HDfilterPageList" style="width:96%;font-size:1.2em;display:flex;flex-direction:column;flex-grow:2;overflow:hidden;margin:4px;"></div>
-              <input id="func_selected_del_page" type="button" value=" - delete" style=""/>
-              <input id="HDTrashPageList" type="button" value="Trash" style=""/>
+              <input id="func_delete_selected_page" type="button" value=" - delete" style=""/>
+              <input id="func_open_trash" type="button" value="Trash" style=""/>
+              <div id="HDtrashPageList" type="button" value="Trash" style=""></div>
             </aside>
             <article id="HDexplorerSpace" style="flex-grow:4;background-color:rgba(255,255,255,0.8);align-items:stretch;display:flex;flex-flow:row wrap;align-content:flex-start;overflow-y:auto;">
             </article>
