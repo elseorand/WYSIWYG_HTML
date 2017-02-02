@@ -192,6 +192,7 @@ $(function(){
   var MY_NODE_SEP = '-';
 
   // Global vars : status , state
+  var windows = {};
   var STATUS = getStatus();//get_child_tree_select_domがmy-obj-idがユニークであることに依存している
   var not_click = false;
   var is_suspend = false;
@@ -2807,7 +2808,9 @@ $(function(){
    * @return new roots
    */
   function display_onscreen(add_method, target_s, parsedData, _is_draggable, is_svg){
-    if ($.isArray(parsedData)){
+    if (!parsedData){
+      return ;
+    }else if ($.isArray(parsedData)){
       parsedData.forEach(function(parsed){
         display_onscreen(add_method, target_s, parsed, _is_draggable, is_svg);
       });
@@ -2914,7 +2917,7 @@ $(function(){
 	      .attr({'data-myhd-obj-id': my_obj_id, 'data-myhd-node-id': my_node_id})
 		    .on(MY_CLICK,select_handler_factory(true))
       // if there are selected doms, contextmenu Sel has last selected dom'id.
-	    	.on('contextmenu', select_handler_factory(false, display_contextmenu))
+	    	.on('contextmenu', select_handler_factory(false, display_contextmenu))// on dom
 		    .on(MY_CHANGE,function(ev){
 		      var _this = myWrapElement(this);
 		      _this.data('myhd-obj-val', _this.val());
@@ -3746,16 +3749,15 @@ $(function(){
   }
 
   // angular
-  if(angular){
-	  var el_angular_boot = $('#HDangular_boot').on(MY_CLICK,function(){
-	    //save
-	    el_sandbox_screen.empty();
-
-      return publish('Angular');
-	  });
-  }
+  // if(angular){
+	//   var el_angular_boot = $('#HDangular_boot').on(MY_CLICK,function(){
+	//     //save
+  //     return publish('Angular');
+	//   });
+  // }
 
   function publish(name){
+    el_sandbox_screen.empty();
 	  var mother_ids = ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').map(function(idx, obj){
 		  return $(obj).attr('data-myhd-node-id');
 	  }).get();
@@ -3763,20 +3765,25 @@ $(function(){
 	  var html = mother_ids.flatMap(function(mother_id,i,a){
       return get_child_tree_select_dom(mother_id).child_s();
 	  });
-	  return openWindowAndWrite(name, html);
+	  return openWindowAndWrite('./HtmlDeveloping.htm', name, html);
 	}
 
 	function openWindowAndWrite(uri, name, parsedForHtmlize){
-	  var newWindow = window.open('./HtmlDeveloping.htm', name);
+	  var newWindow = window.open(uri, name);
 	  newWindow.document.open();
 	  newWindow.document.write(htmlize(parsedForHtmlize));
 	  newWindow.document.close();
+    windows[name] = newWindow;
     return newWindow;
 	}
 
   // publish
   var el_publish = $('#HDpublish').on(MY_CLICK,function() {
-    publish('HDpublished');
+    var otherWindowNameOrUri = el_otherSite.val();
+    if (!otherWindowNameOrUri){
+      return ;
+    }
+    publish(otherWindowNameOrUri);
   });
 
   // including for ver server
@@ -3786,12 +3793,48 @@ $(function(){
   //   var uri = el_uriOtherSite.val();
   //   if (uri){
   //     var win = window.open(uri, 'otherSite', 'menubar=yes, toolbar=yes, location=yes, directories=yes, status=yes, resizable=yes, scrollbars=yes');
+
+  var el_otherSite = $('#HDotherSite');
   el_scanOtherSite.off(MY_CLICK).on(MY_CLICK, function(){
-    var otherWindow = publish('sample');
+    var otherWindowNameOrUri = el_otherSite.val();
+    var root = [];
+    if (!otherWindowNameOrUri){
+      return ;
+    }
+    var otherWindow = windows[otherWindowNameOrUri];
     var el_html = $('html', otherWindow.document);
+    var el_head = el_html.find(' > head');
+    var el_body = el_html.find(' > body');
+
+    // @tailrec
+    function go(els, acc){
+      els.each(function(){
+        var _this = $(this);
+        var tag = this.localName;
+        var prop_s = {};
+        var child_s = [];
+
+        var attrs = attributes(_this);
+        Object.keys(attrs).forEach(function(attr){
+          prop_s[attr] = attrs[attr];
+        });
+        if (tag === 'script') {
+          prop_s.html = _this.html();
+        } else {
+          prop_s.html = call_safe_html(_this);//  孫要素退避し、直接値を取得
+        }
+        var newDom = my_apply(tag, prop_s, child_s);
+        acc.push(newDom);
+
+        go(_this.find(' > *'), child_s);
+      });
+    }
+    go(el_body, root);
+
+    console.log('root : ' + JSON.stringify(root));
+    display_onscreen('appendTo', nowPage.screen, root);
+    return ;
   });
-  //   }
-  // });
 
   //Util start
   function htmlTag2escape(htmlStr){
@@ -3815,19 +3858,33 @@ $(function(){
    * 孫要素を退避して追記する方式
    */
   function call_safe_text(obj, set_val){
-	  obj.data('myhd-obj-val', set_val);
-	  var kept = $(' *',obj).detach();
-	  obj.text(set_val);
+	  var kept = $(' > *',obj).detach();
+    var rtn = null;
+    if (set_val){
+	    obj.data('myhd-obj-val', set_val);
+	    obj.text(set_val);
+    }else{
+      rtn = obj.text();
+    }
 	  kept.appendTo(obj);
+    return rtn;
   }
   /**
    * 孫要素を退避して追記する方式
    */
   function call_safe_html(obj, set_val){
-	  obj.data('myhd-obj-val', set_val);
-	  var kept = $(' .htmlize',obj).detach();
-	  obj.empty().html(set_val);
+	  var kept = $(' > *',obj).detach();
+    var rtn = null;
+    if (set_val){
+      rtn = set_val;
+	    obj.data('myhd-obj-val', set_val);
+	    obj.empty().html(set_val);
+    }else{
+      rtn = obj.html();
+    }
 	  kept.appendTo(obj);
+    return rtn;
+
   }
   function call_text(obj, set_val){
 	  obj.text(set_val);
@@ -4371,6 +4428,25 @@ $(function(){
     }else{
       return [];
     }
+  }
+
+  function attributes(jq){
+    var rtn = {};
+    var attrs = jq.get(0).attributes;
+    for(var i = 0; i < attrs.length; ++i){
+      var name_val = attrs[i];
+      switch(name_val.name){
+      // case 'class':
+      //   rtn['class'] = name_val.value.split(' ').filter(function(obj){return !!obj;});
+      //   break;
+      // case 'style':
+      //   rtn['style'] = name_val.value.split(' ').filter(function(obj){return !!obj;});
+      //   break;
+      default:
+        rtn[name_val.name] = name_val.value;
+      }
+    }
+    return rtn;;
   }
   /* console.log('reverse_porlish_notation: (abc hij +)' + JSON.stringify(reverse_porlish_notation('(abc hij +)')));
    * console.log('reverse_porlish_notation: ((abc 2 =) abc * hij +)'+ JSON.stringify(reverse_porlish_notation('((abc 2 =) abc * hij +)')));
