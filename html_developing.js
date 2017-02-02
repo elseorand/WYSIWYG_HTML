@@ -3,7 +3,6 @@ $(function(){
    * Web Functional Component
    */
   /** On developing
-   * explorer window function
    * displaying not functional tag preset to explorer
    * emacs keybinding
    */
@@ -39,7 +38,6 @@ $(function(){
    * font-style
    * font-variant
    * font-weight
-   * font-size
    * font-family
    * font-stretch
    * font-size-adjust
@@ -94,7 +92,7 @@ $(function(){
    * undo / redo (style)
    * css tree eg text-align  => left center right
    * wizard, easy menu
-   * Sas
+   * Sass
    * parse Real HTML
    * parse thymeleaf html template
    * SVG reinforcing
@@ -112,7 +110,6 @@ $(function(){
    * Component mixin
    * scalatest seleniumのコードの生成
    * dictionary
-   * serializing html function
    */
   /** TODO SERVER
    * Websocket sharing
@@ -120,6 +117,8 @@ $(function(){
    * Angularjs support => open another window ?
    */
   /** DONE
+   * font-size
+   * explorer window function
    * grid
    * style editor
    * css selector
@@ -137,6 +136,7 @@ $(function(){
    * thumbnail (transform:scale)
    * scripting mode
    * bootstrap css support
+   * serializing html function
    */
   // storage structure
   /**
