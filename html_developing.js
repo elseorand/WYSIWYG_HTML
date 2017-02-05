@@ -3780,7 +3780,7 @@ $(function(){
 	}
 
 	function openWindow(uri, name, parsedForHtmlize){
-	  var newWindow = window.open(uri, name, 'menubar=yes, toolbar=yes, location=yes, status=yes, resizable=yes, scrollbars=yes, dependent=yes');
+	  var newWindow = window.open(uri, name, 'menubar=yes, toolbar=yes, location=yes, status=yes, resizable=yes, scrollbars=yes');
 	  newWindow.document.open();
     if (parsedForHtmlize){
 	    newWindow.document.write(htmlize(parsedForHtmlize));
@@ -3792,15 +3792,24 @@ $(function(){
 
   // publish
   var el_publish = $('#HDpublish').on(MY_CLICK,function() {
-    var otherWindowNameOrUri = el_otherSite.val();
-    if (!otherWindowNameOrUri){
-      return ;
-    }
+    var otherWindowNameOrUri = el_otherSite.val().trim();
+    if (!otherWindowNameOrUri){ return ; }
     publish(otherWindowNameOrUri);
   });
 
   // including for ver server
   var el_includeOtherSite = $('#HDincludeOtherSite');
+
+  var el_openOtherSite = $('#HDopenOtherSite').on(MY_CLICK, function(){
+    var otherWindowNameOrUri = el_otherSite.val().trim();
+    if (!otherWindowNameOrUri){ return ; }
+    var uri = otherWindowNameOrUri;
+    if (otherWindowNameOrUri.startsWith('/')) {
+      openWindow(rawProtocol + '//' + hostname + ':' + port + otherWindowNameOrUri, otherWindowNameOrUri);
+    } else {
+      openWindow(otherWindowNameOrUri, otherWindowNameOrUri);
+    }
+  });
 
   // TODO includening wizard
   var el_otherSite = $('#HDotherSite');
@@ -3809,15 +3818,10 @@ $(function(){
     var root = [];
     var otherWindow = null;
     if (!otherWindowNameOrUri){ return ; }
-    if (otherWindowNameOrUri.startsWith('http')){
-      openWindow(otherWindowNameOrUri, otherWindowNameOrUri);
-    } else if (otherWindowNameOrUri.startsWith('/')) {
-      otherWindowNameOrUri = rawProtocol + '//' + hostname + ':' + port + otherWindowNameOrUri;
-      openWindow(otherWindowNameOrUri, otherWindowNameOrUri);
-    } else {
-      otherWindow = windows[otherWindowNameOrUri];
-    }
+    otherWindow = windows[otherWindowNameOrUri];
+    if (!otherWindow){return ;}
 
+    var upDir = otherWindowNameOrUri.substring(0, otherWindowNameOrUri.indexOf('/')) || '';// TODO multiup
 
     var el_other_html = $('html', otherWindow.document);
     var el_other_head = el_other_html.find(' > head');
@@ -3825,6 +3829,15 @@ $(function(){
 
     var head_html_list = el_other_head.find(' > style, > script, > link')
         .map(function(x,i,a){
+          var _this = $(this);
+          var tag = this.localName;
+          switch(tag) {
+          case 'link':
+            return this.outerHTML.replace(/href="/g, 'href="' + upDir);
+          case 'script':
+            return this.outerHTML.replace(/src="/g, 'src="' + upDir);
+          default:
+          }
           return this.outerHTML;
         }).get();
 
@@ -3859,7 +3872,7 @@ $(function(){
         go(_this.find(' > *'), child_s);
       });
     }
-    go(el_other_body, root);
+    go(el_other_body.find('> *'), root);
 
     display_onscreen('appendTo', nowPage.screen, root);
     return ;
