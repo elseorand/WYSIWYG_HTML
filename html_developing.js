@@ -11,6 +11,7 @@ $(function(){
    * 3D
    * ajax request / callback
    * flex grid box
+   * include other site
    */
   /** TODO CSS
    * size
@@ -154,6 +155,11 @@ $(function(){
    ** save_dirs: positive name map
    ** TODO yet sent data to Server
    */
+  var href = window.location.href ;
+  var rawProtocol = window.location.protocol;
+  var protocol = rawProtocol.substr( 0 , (rawProtocol.length-1) ) ;
+  var hostname = window.location.hostname ;
+  var port = window.location.port;
 
   // mod prototype
   // startsWith
@@ -264,6 +270,9 @@ $(function(){
 
   // util
   var el_func_json_val = $('.json_val');
+
+  // basic DOMS
+  var el_head = $('head');
 
   // main menu singleton
   var el_basic_menu = $('body > #basic_menu');
@@ -1171,8 +1180,10 @@ $(function(){
   el_pageSpace
 	  .data(エクスプローラー表示対象クラス, CLASS_EXPLORER_CONTAINER)
 	  .on(MY_CLICK, '.func_page_change', function(){
-	    var _this = $(this).addClass(CLASS_SELECTED_BTN_PAGE);
+	    var _this = $(this);
 	    var _page = _this.data('page');
+      if (!_page){ return ; }
+      _this.addClass(CLASS_SELECTED_BTN_PAGE);
 	    var selectedName = _page.screen.data('name');
 	    ROOT_BTN_PAGE.page.screen.siblings('.HDpageClass').each(function(idx){// screenに全ページがありRoot以外を一旦explorerに収納
 		    return putInExplorer(CLASS_EXPLORER_CONTAINER, $(this), selectedName);
@@ -3765,13 +3776,15 @@ $(function(){
 	  var html = mother_ids.flatMap(function(mother_id,i,a){
       return get_child_tree_select_dom(mother_id).child_s();
 	  });
-	  return openWindowAndWrite('./HtmlDeveloping.htm', name, html);
+	  return openWindow('./HtmlDeveloping.htm', name, html);
 	}
 
-	function openWindowAndWrite(uri, name, parsedForHtmlize){
-	  var newWindow = window.open(uri, name);
+	function openWindow(uri, name, parsedForHtmlize){
+	  var newWindow = window.open(uri, name, 'menubar=yes, toolbar=yes, location=yes, status=yes, resizable=yes, scrollbars=yes, dependent=yes');
 	  newWindow.document.open();
-	  newWindow.document.write(htmlize(parsedForHtmlize));
+    if (parsedForHtmlize){
+	    newWindow.document.write(htmlize(parsedForHtmlize));
+    }
 	  newWindow.document.close();
     windows[name] = newWindow;
     return newWindow;
@@ -3787,24 +3800,41 @@ $(function(){
   });
 
   // including for ver server
-  // var el_uriOtherSite = $('#HDuriOtherSite');
-  var el_scanOtherSite = $('#HDscanOtherSite');
-  // var el_openOtherSite = $('#HDopenOtherSite').on(MY_CLICK, function(){
-  //   var uri = el_uriOtherSite.val();
-  //   if (uri){
-  //     var win = window.open(uri, 'otherSite', 'menubar=yes, toolbar=yes, location=yes, directories=yes, status=yes, resizable=yes, scrollbars=yes');
+  var el_includeOtherSite = $('#HDincludeOtherSite');
 
+  // TODO includening wizard
   var el_otherSite = $('#HDotherSite');
-  el_scanOtherSite.off(MY_CLICK).on(MY_CLICK, function(){
-    var otherWindowNameOrUri = el_otherSite.val();
+  el_includeOtherSite.off(MY_CLICK).on(MY_CLICK, function(){
+    var otherWindowNameOrUri = el_otherSite.val().trim();
     var root = [];
-    if (!otherWindowNameOrUri){
-      return ;
+    var otherWindow = null;
+    if (!otherWindowNameOrUri){ return ; }
+    if (otherWindowNameOrUri.startsWith('http')){
+      openWindow(otherWindowNameOrUri, otherWindowNameOrUri);
+    } else if (otherWindowNameOrUri.startsWith('/')) {
+      otherWindowNameOrUri = rawProtocol + '//' + hostname + ':' + port + otherWindowNameOrUri;
+      openWindow(otherWindowNameOrUri, otherWindowNameOrUri);
+    } else {
+      otherWindow = windows[otherWindowNameOrUri];
     }
-    var otherWindow = windows[otherWindowNameOrUri];
-    var el_html = $('html', otherWindow.document);
-    var el_head = el_html.find(' > head');
-    var el_body = el_html.find(' > body');
+
+
+    var el_other_html = $('html', otherWindow.document);
+    var el_other_head = el_other_html.find(' > head');
+    var el_other_body = el_other_html.find(' > body');
+
+    var head_html_list = el_other_head.find(' > style, > script, > link')
+        .map(function(x,i,a){
+          return this.outerHTML;
+        }).get();
+
+    el_head.find('.HDfromOtherSite').remove();
+    // TODO 既存との重複除去
+    head_html_list
+      .filter(function(html){ return html.indexOf('jquery') === -1; })
+      .forEach(function(html,i,a){
+        $(html).addClass('HDfromOtherSite').appendTo(el_head);
+      });
 
     // @tailrec
     function go(els, acc){
@@ -3829,9 +3859,8 @@ $(function(){
         go(_this.find(' > *'), child_s);
       });
     }
-    go(el_body, root);
+    go(el_other_body, root);
 
-    console.log('root : ' + JSON.stringify(root));
     display_onscreen('appendTo', nowPage.screen, root);
     return ;
   });
