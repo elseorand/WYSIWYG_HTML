@@ -2487,13 +2487,13 @@ $(function(){
 	  };
 	  tag_size_s = tag_size_s.reverse();
 
-	  $.each(tag_s2, function(page_idx, tag_s ){
+	  tag_s2.forEach(function(tag_s, page_idx){
 	    var new_parent_s = [];
-	    $.each(parent_s, function(pIdx, parent){
-		    for(var i=0;i < tag_s.tag_s.length;++i){
+	    parent_s.forEach(function(parent, pIdx){
+		    tag_s.tag_s.forEach(function(_tag, i){
 		      //tag_s.tag_s[i] :  tag#hoge.fuga.hage($col 4 =,5,0) //removed "*n"
 		      //副作用 param_mapへ
-		      var input_tag_param_s = extract_param_from(tag_s.tag_s[i], param_map, parent_param_s);
+		      var input_tag_param_s = extract_param_from(_tag, param_map, parent_param_s);
 		      var input_tag = input_tag_param_s[0];
 		      var param_s = input_tag_param_s[1];
 		      //css selector
@@ -2538,7 +2538,7 @@ $(function(){
 			      }
 			      parent.child_s.push(child);
 		      }
-		    }
+		    });
 	    });
 	    parent_s = new_parent_s;
 	  });
@@ -2818,23 +2818,27 @@ $(function(){
    * @param is_svg
    * @return new roots
    */
-  function display_onscreen(add_method, target_s, parsedData, _is_draggable, is_svg){
-    if (!parsedData){
-      return ;
+  function display_onscreen(add_method, target_s, parsedData, _is_draggable, is_svg, is_once_draggable){
+    is_once_draggable = is_once_draggable === undefined || is_once_draggable === null
+      ? true : is_once_draggable;
+    if (!parsedData){ return ;
     }else if ($.isArray(parsedData)){
       parsedData.forEach(function(parsed){
-        display_onscreen(add_method, target_s, parsed, _is_draggable, is_svg);
+        display_onscreen(add_method, target_s, parsed, _is_draggable, is_svg, is_once_draggable);
       });
       return ;
-    }else if (!parsedData['tag']){
-      return ;
-    }
-	  var is_default_draggable = _is_draggable || typeof _is_draggable === 'undefined' ;
+    }else if (!parsedData['tag']){ return ; }
+
+	  var is_default_draggable = is_once_draggable === false
+        ? false : _is_draggable || typeof _is_draggable === 'undefined';
+
+    is_once_draggable = false;
 	  var tag = parsedData['tag'].trim().toLowerCase();
 	  var prop_s = parsedData['prop_s'];
 	  var child_s = parsedData['child_s'];
 	  if( ! $.isArray(child_s)){
 	    console.log('Error this is not Array:'+JSON.stringify(child_s));
+      return ;
 	  }
 	  if(tag毎の入力規則.hasOwnProperty(tag)){
 	    var setting = tag毎の入力規則[tag];
@@ -2861,9 +2865,7 @@ $(function(){
 	    var amRelative禁止タグ =  position_relative禁止タグ.indexOf(tag) >= 0;
 	    var is_resizable = true;
 
-	    if( !isParentRelative禁止タグ && is_default_draggable){
-		    var is_draggable = true;
-	    }
+		  var is_draggable = !isParentRelative禁止タグ && is_default_draggable;
 	    if( tag === 'svg'){
 		    is_svg = true;
 		    is_draggable = false;
@@ -2887,7 +2889,7 @@ $(function(){
 		    parent_is_svg = is_svg;
 	    }
 	    var work_jq = tag.length == 0 ? target : myCreateElement(tag, parent_is_svg);
-	    for(var prop in prop_s)if(prop_s.hasOwnProperty(prop)){
+      Object.keys(prop_s).forEach(function(prop){
 		    prop = prop.trim().toLowerCase();
 		    if( prop === 'html'){//余計なお節介機能
 		      if( tag === 'input' && work_jq.val() === '' ){
@@ -2906,7 +2908,7 @@ $(function(){
 		    }else{
 		      work_jq.attr(prop,prop_s[prop]);
 		    }
-	    }
+      });
 	    if(typeof work_jq.data('myhd-obj-val') === 'undefined'){work_jq.data('myhd-obj-val','');}
 
 	    work_jq.data({"my-org-prop_s": prop_s, "prop-history": {}});//TODO saveから復元
@@ -2933,10 +2935,6 @@ $(function(){
 		      var _this = myWrapElement(this);
 		      _this.data('myhd-obj-val', _this.val());
 		    });
-	    var length_child_s = child_s.length;
-	    for(var idx_child=0;idx_child < length_child_s;++idx_child){
-		    display_onscreen('appendTo', [work_jq], child_s[idx_child], is_draggable, is_svg);
-	    }
 
 	    var is_table_cell = false;
 	    var original_coord = null;
@@ -2944,6 +2942,7 @@ $(function(){
 	    var y_sibl = null;
 	    var resizableOption = {
 		    "stop":function(ev, ui){
+			    var _this = $(this);
 		      is_table_cell = false;
 		      draw_arrow_s(cached_arrow_factory, _this);
 		      // TODO サイズ合わせオブザーバー
@@ -2951,7 +2950,6 @@ $(function(){
 		    },
 		    "resize":function(ev, ui){
 		      if(is_table_cell){
-			      var _this = $(this);
 			      x_sibl.width(original_coord.x + ev.pageX);
 			      y_sibl.height(original_coord.y + ev.pageY);
 		      }
@@ -2990,29 +2988,31 @@ $(function(){
 		    "autoHide":true, "handles":"e,s,se", "cancel":"option","minWidth":"10","minHeight":"10"
 		    //TODO , "containment":page.screen bugるため範囲内に収める独自処理を
 	    };
-	    var draggableOption ={"snap":".snap","snapTolerance":"8","distance":"4","containment":nowPage.screen, "delay":150,
-				                    "stop":function(ev, ui){
-				                      var _this = $(this);
-				                      _this.removeClass('snap_border')
-					                      .parent().removeClass('snap_border')
-					                      .children('.snap').removeClass('snap_border');
-				                      if(this.localName === 'table' || this.localName === 'ol'){//TODO sizeを持たせないタグ
-					                      _this.css({"width":"auto", "height":"auto"});
-				                      }
-				                      draw_arrow_s(cached_arrow_factory, _this);
-				                      cached_arrow_factory = null;
-				                    },
-				                    "drag":continuous_draw_arrow_s,
-				                    "start":function(ev, ui){
-				                      not_click = true;
-				                      var _this = $(this);
-				                      _this.addClass('snap_border')
-					                      .parent(':not(.screen)').addClass('snap_border')
-					                      .children('.snap').addClass('snap_border');
-				                      var my_id = _this.attr('data-myhd-node-id');
-				                      cached_arrow_factory = draw_arrow_s_factory(null, my_id);
-				                    }
-				                   };
+	    var draggableOption = {
+        "snap":".snap","snapTolerance":"8","distance":"4",
+        "containment":nowPage.screen, "delay":150,
+				"stop":function(ev, ui){
+				  var _this = $(this);
+				  _this.removeClass('snap_border')
+					  .parent().removeClass('snap_border')
+					  .children('.snap').removeClass('snap_border');
+				  if(this.localName === 'table' || this.localName === 'ol'){//TODO sizeを持たせないタグ
+					  _this.css({"width":"auto", "height":"auto"});
+				  }
+				  draw_arrow_s(cached_arrow_factory, _this);
+				  cached_arrow_factory = null;
+				},
+				"drag":continuous_draw_arrow_s,
+				"start":function(ev, ui){
+				  not_click = true;
+				  var _this = $(this);
+				  _this.addClass('snap_border')
+					  .parent(':not(.screen)').addClass('snap_border')
+					  .children('.snap').addClass('snap_border');
+				  var my_id = _this.attr('data-myhd-node-id');
+				  cached_arrow_factory = draw_arrow_s_factory(null, my_id);
+				}
+			};
 	    var wrapped_is_true = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapped') !== -1;
 	    var i_am_wrapper = typeof prop_s['class'] !== 'undefined' && prop_s['class'].indexOf('wrapper') !== -1;
 	    if( i_am_wrapper ){
@@ -3023,10 +3023,24 @@ $(function(){
 		    };
 	    }
 
-	    removeSelected(work_jq)
-	    [add_method]( target )
+	    removeSelected(work_jq)[add_method](target)// work_jq.appendTo(target) etc
 		    .data('myhd-htmlize-target',true)
-		    .attr('data-myhd-htmlize-target',true);
+		    .attr('data-myhd-htmlize-target',true)
+        .each(function(){
+          var _this = $(this);
+          // _thisにfloatが適用された場合、is_draggableをfalseに
+          if (['left', 'right'].indexOf(_this.css('float')) > -1) {
+            is_draggable = false; }
+          // 次に親となる_thisがdisplay:flexの適用を受けている場合、draggableできないようにする
+          // ※ linkのcssファイルの設定がこの段階ではwork_jqには反映されていないため、ここだけでは不十分
+          var next_once_draggable = _this.css('display') !== 'flex';
+          child_s.forEach(function(child){
+		        display_onscreen('appendTo', [_this], child, is_draggable, is_svg, next_once_draggable); });
+          if (!next_once_draggable){
+            console.log('_this : ' + JSON.stringify(_this[0]));
+          }
+        });
+
 	    if( wrapped_is_true ){
 		    //nothing
 	    }else if(必ず子要素のタグ.indexOf(tag) > -1 ){
@@ -3067,7 +3081,7 @@ $(function(){
 			      work_jq.css({"top":0, "left":0});
 		      }
 		    }
-		    if(!isParentRelative禁止タグ){
+		    if(!isParentRelative禁止タグ && is_draggable){
 		      work_jq.css('position','absolute');
 		    }else{
 		      work_jq.css('position','relative');
@@ -3081,7 +3095,7 @@ $(function(){
 		    work_jq.css({"top":0, "left":0});
 	    }
 	    rtn_work_jq_s.push(work_jq);
-	  }//	for(var idx_tgt=0;idx_tgt < length_target_s;++idx_tgt)
+	  }//	forEach
 	  return rtn_work_jq_s;
   }// function display_onscreen
 
@@ -3293,10 +3307,8 @@ $(function(){
 			        var raw_tag_s = el_val_tag.val().trim();//Preset Name. not resolved
 			        if( typeof raw_tag_s !== 'undefined' && raw_tag_s != ''){
 				        var root = convert_data_to_display(raw_tag_s , el_val_array_json.val(), el_some_input.prop_list.val(), el_some_input.part_list.val());
-				        kept_new = [];
-				        $.each(root.child_s, function(cIdx, child){
-				          kept_new.push(display_onscreen('appendTo', kept_target_s, child));
-				        });
+				        kept_new = root.child_s.map(function(child, cIdx){
+				          return display_onscreen('appendTo', kept_target_s, child); });
 			        }
 			      }
 			      draw_arrow_s();
@@ -3804,8 +3816,9 @@ $(function(){
     var otherWindowNameOrUri = el_otherSite.val().trim();
     if (!otherWindowNameOrUri){ return ; }
     var uri = otherWindowNameOrUri;
-    if (otherWindowNameOrUri.startsWith('/')) {
-      openWindow(rawProtocol + '//' + hostname + ':' + port + otherWindowNameOrUri, otherWindowNameOrUri);
+    var idx = otherWindowNameOrUri.indexOf('/');
+    if (idx > -1) {
+      openWindow(rawProtocol + '//' + hostname + ':' + port + otherWindowNameOrUri.substring(idx), otherWindowNameOrUri);
     } else {
       openWindow(otherWindowNameOrUri, otherWindowNameOrUri);
     }
@@ -3815,7 +3828,6 @@ $(function(){
   var el_otherSite = $('#HDotherSite');
   el_includeOtherSite.off(MY_CLICK).on(MY_CLICK, function(){
     var otherWindowNameOrUri = el_otherSite.val().trim();
-    var root = [];
     var otherWindow = null;
     if (!otherWindowNameOrUri){ return ; }
     otherWindow = windows[otherWindowNameOrUri];
@@ -3843,11 +3855,15 @@ $(function(){
 
     el_head.find('.HDfromOtherSite').remove();
     // TODO 既存との重複除去
+    var root = [];
     head_html_list
       .filter(function(html){ return html.indexOf('jquery') === -1; })
-      .forEach(function(html,i,a){
-        $(html).addClass('HDfromOtherSite').appendTo(el_head);
+      .map(function(html,i,a){
+        return $(html).addClass('HDfromOtherSite').appendTo(el_head);
       });
+    var _this = $(this);
+    go(el_other_body.find('> *'), root);
+    display_onscreen('appendTo', nowPage.screen, root);
 
     // @tailrec
     function go(els, acc){
@@ -3872,11 +3888,22 @@ $(function(){
         go(_this.find(' > *'), child_s);
       });
     }
-    go(el_other_body.find('> *'), root);
-
-    display_onscreen('appendTo', nowPage.screen, root);
-    return ;
   });
+
+  var el_dispellDraggable = $('#HDdispellDraggable').on(MY_CLICK, function(){
+    // @tailrec
+    function go(els, disDraggable){
+      els.find(' > *').each(function(){
+        var _this = $(this);
+        if (['left', 'right'].indexOf(_this.css('float')) > -1 || disDraggable){
+          try {_this.css({"position": "relative"}).draggable('disable');}catch(e){}
+        }
+        go(_this, _this.css('display') === 'flex');
+      });
+    }
+    go(nowPage.screen, false);
+  });
+
 
   //Util start
   function htmlTag2escape(htmlStr){
