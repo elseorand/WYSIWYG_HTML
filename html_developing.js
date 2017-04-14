@@ -1533,7 +1533,7 @@ $(function(){
 	    // TODO css structure var pool = [];
 	    css_keyval.forEach(function(x,i,a){
 		    var trimed = x.trim();
-		    if (trimed.indexOf('@keyframes') > -1){
+		    if (trimed.indexOf('@') > -1){// for @keyframes, @media
 		      //  css animation
 		      var idxNami = trimed.indexOf('{');
 		      var keyframeName = trimed.substring(0, idxNami).trim();
