@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <title>Diagram</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" ></script>
+    <style>
+      .hoge {
+          width: 100px;
+          height: 100px;
+          box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.5);
+      }
+      body {
+          width: 100vw;
+          height: 100vh;
+          padding: 0x;
+          margin: 0x;
+          display: flex;
+          flex-flow: row nowrap;
+      }
+      #app_screen {
+          flex-grow: 1;
+          height: 100vh;
+      }
+      #app_controller {
+          width: 20vh;
+          height: 100vh;
+          background-color: #aaa;
+          display: flex;
+          flex-flow: column nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="app_screen" ></section>
+    <section id="app_controller" >
+      <input type="text">
+      <button type="button">add</button>
+      <button type="button">UNDO</button>
+      <button type="button">REDO</button>
+    </section>
+    <script>
+      const ID = (() => {
+        let i = 0;
+        return () => "ID_" + i++;
+      })();
+      const domHistory = (() => {
+        const body = d3.select("body");
+        const DOM_HISTORY = [];
+        const UNDO_HISTORY = [];
+        const REDO_HISTORY = [];
+
+        return tag => {
+          const newer = body.append(tag);
+          DOM_HISTORY.push(newer);
+          UNDO_HISTORY.push(() => newer.remove());
+          return newer;
+        };
+      })();
+
+
+
+      body.append("svg");
+      let div = body.append("div").classed("hoge", true);
+      div.attr("id", ID()).text("hoge");
+
+    </script>
+  </body>
+</html>
